@@ -1,0 +1,30 @@
+Night City theme — background image
+===================================
+
+File: nyc-manhattan-night-aerial.jpg
+
+Photo: “Aerial photography of Empire State Building during nighttime”
+Photographer: Anthony DELANOIX (Unsplash)
+Source page: https://unsplash.com/photos/aerial-photography-of-empire-state-building-during-nighttime-79HoTuHnNsc
+
+Licensed under the Unsplash License (https://unsplash.com/license).
+
+To replace with your own image: drop a JPEG or WebP at this path (or change the url() in app.css under html.theme-city) and keep a similar aspect ratio for best results.
+
+
+Cherry Blossom theme — background image
+=======================================
+
+File: cherry-blossom-scene.png
+
+Custom artwork supplied for this app (sakura path, butterflies, sunlit scene).
+Replace this file in app/static/themes/ to change the Cherry Blossom background; url() is set in app.css under html.theme-blossom.
+
+
+Jungle theme — background image
+================================
+
+File: jungle-backdrop.png
+
+Custom artwork supplied for this app (tropical river, jungle foliage, sunlit sky).
+Replace this file in app/static/themes/ to change the Jungle backdrop; the url() is set in app.css under html.theme-jungle (last layer of background-image, with a dark scrim gradient on top for readability).

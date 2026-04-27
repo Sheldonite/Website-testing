@@ -1,0 +1,1010 @@
+<!doctype html>
+<html lang="en" class="h-full" data-page-margin="balanced">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Projects</title>
+    <script>
+      (function () {
+        try {
+          var root = document.documentElement;
+          var t = localStorage.getItem("theme");
+          root.classList.remove(
+            "dark",
+            "theme-light",
+            "theme-dark",
+            "theme-purple",
+            "theme-pink",
+            "theme-blossom",
+            "theme-city",
+            "theme-jungle"
+          );
+          if (t === "purple") {
+            root.classList.add("dark", "theme-purple");
+          } else if (t === "pink") {
+            root.classList.add("dark", "theme-pink");
+          } else if (t === "blossom") {
+            root.classList.add("dark", "theme-blossom");
+          } else if (t === "city") {
+            root.classList.add("dark", "theme-city");
+          } else if (t === "jungle") {
+            root.classList.add("dark", "theme-jungle");
+          } else if (t === "light") {
+            root.classList.add("theme-light");
+          } else if (t === "dark") {
+            root.classList.add("dark", "theme-dark");
+          } else if (t === null && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+            root.classList.add("dark", "theme-dark");
+          } else {
+            root.classList.add("theme-light");
+          }
+        } catch (e) {}
+      })();
+    </script>
+    <!-- Apply saved page shell max-width before shell elements paint (avoids flash of default max-w-6xl). Removed in initPageMargin(). -->
+    <script>
+      (function () {
+        try {
+          var STORAGE_KEY = "pageMarginPreset";
+          var STORAGE_WIDTH_KEY = "pageShellMaxWidthPx";
+          var STORAGE_LOCK_KEY = "pageMarginCustomLocked";
+          var PRESET_MAX_PX = { tight: 1280, balanced: 1152, relaxed: 1024 };
+          var ABS_MIN_W = 400;
+          var ABS_MAX_W = 2500;
+          function bootViewportCap() {
+            try {
+              var vw = window.innerWidth || document.documentElement.clientWidth || ABS_MAX_W;
+              return Math.max(ABS_MIN_W, Math.min(ABS_MAX_W, Math.floor(vw)));
+            } catch (e) {
+              return ABS_MAX_W;
+            }
+          }
+          var saved = localStorage.getItem(STORAGE_KEY);
+          if (saved === null || saved === "") return;
+          var preset = saved;
+          if (preset !== "custom" && !Object.prototype.hasOwnProperty.call(PRESET_MAX_PX, preset)) {
+            preset = "balanced";
+          }
+          var maxPx;
+          var root = document.documentElement;
+          if (preset === "custom") {
+            var w = parseInt(localStorage.getItem(STORAGE_WIDTH_KEY), 10);
+            if (isNaN(w)) w = 1600;
+            var cap = bootViewportCap();
+            maxPx = Math.min(Math.max(w, ABS_MIN_W), cap, ABS_MAX_W);
+            root.setAttribute("data-page-shell-max-w", String(maxPx));
+          } else {
+            maxPx = PRESET_MAX_PX[preset];
+          }
+          root.setAttribute("data-page-margin", preset);
+          var st = document.createElement("style");
+          st.id = "page-shell-boot";
+          st.textContent =
+            "#page-shell-header,#page-shell-main,#page-shell-footer{max-width:" +
+            maxPx +
+            "px!important;box-sizing:border-box}";
+          document.head.appendChild(st);
+        } catch (e) {}
+      })();
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = { darkMode: "class" };
+    </script>
+    <link rel="stylesheet" href="/static/app.css" />
+  </head>
+  <body class="min-h-full bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100">
+    
+    <div class="hidden" aria-hidden="true">
+      <span class="mx-auto max-w-7xl px-2 sm:px-3"></span>
+      <span class="mx-auto max-w-6xl px-3 sm:px-4"></span>
+      <span class="mx-auto max-w-5xl px-5 sm:px-8"></span>
+      <span class="mx-auto w-full px-3 sm:px-4"></span>
+    </div>
+    <div class="min-h-screen">
+      <header class="relative z-50 border-b border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+        <div
+          id="page-shell-header"
+          class="mx-auto flex max-w-6xl items-center justify-between gap-4 px-3 py-4 sm:px-4"
+        >
+          <a
+            href="/projects"
+            class="font-semibold tracking-tight text-slate-900 dark:text-slate-100"
+          >Project: ATS</a>
+          <div class="flex items-center gap-2 sm:gap-3">
+            
+            <nav class="flex flex-wrap items-center justify-end gap-2 text-sm sm:gap-3">
+              
+              
+              <a class="text-slate-700 hover:underline dark:text-slate-300 dark:hover:text-white" href="/projects">Projects</a>
+              
+              
+              
+            </nav>
+            
+            <div class="flex shrink-0 items-center gap-1.5 sm:gap-2">
+            
+            <span class="hidden text-xs font-medium text-slate-500 dark:text-slate-400 sm:inline">Codex Project Viewer</span>
+            <a
+              href="/profile"
+              class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+              title="Sheldon — Your profile"
+              aria-label="Your profile"
+            >
+              <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"
+                />
+              </svg>
+            </a>
+            <div id="app-settings-dropdown" class="relative shrink-0">
+              <button
+                type="button"
+                id="app-settings-menu-btn"
+                class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+                aria-expanded="false"
+                aria-haspopup="dialog"
+                aria-controls="app-settings-menu"
+                title="Settings"
+              >
+                <span class="sr-only">Open settings menu</span>
+                <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.431.992a6.759 6.759 0 010 .255c-.007.378.138.75.43.99l1.005.828c.424.35.534.954.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.37.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.992a6.932 6.932 0 010-.255c.007-.378-.138-.75-.43-.99l-1.004-.828a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z"
+                  />
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+              </button>
+              <div
+                id="app-settings-menu"
+                role="dialog"
+                aria-modal="false"
+                aria-label="Settings"
+                class="absolute right-0 z-50 mt-1 hidden min-w-[18rem] max-w-[calc(100vw-1rem)] rounded-xl border border-slate-200 bg-white py-2 shadow-lg dark:border-slate-600 dark:bg-slate-900"
+              >
+                <div class="border-b border-slate-100 px-3 py-2 dark:border-slate-700">
+                  <label class="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-400" for="page-margin-select">Page margins</label>
+                  <div class="flex items-stretch gap-2">
+                    <select
+                      id="page-margin-select"
+                      title="Side margins and content width"
+                      class="min-w-0 flex-1 rounded-lg border border-slate-200 bg-white py-2 pl-2 pr-8 text-sm text-slate-800 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
+                    >
+                      <option value="tight">Tight</option>
+                      <option value="balanced" selected>Balanced</option>
+                      <option value="relaxed">Relaxed</option>
+                      <option value="custom">Custom width</option>
+                    </select>
+                    <button
+                      type="button"
+                      id="page-margin-custom-lock"
+                      class="hidden shrink-0 rounded-lg border border-slate-200 bg-white px-2 text-slate-600 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+                      title="Lock custom width"
+                      aria-label="Lock custom width"
+                      aria-pressed="false"
+                    >
+                      <span class="page-margin-lock-icon page-margin-lock-icon--open inline-flex" aria-hidden="true">
+                        <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5V6.75a4.5 4.5 0 119 0v3.75M3.75 21.75h10.5a2.25 2.25 0 002.25-2.25v-6.75a1.5 1.5 0 00-1.5-1.5H3.75a1.5 1.5 0 00-1.5 1.5v6.75a2.25 2.25 0 002.25 2.25z" />
+                        </svg>
+                      </span>
+                      <span class="page-margin-lock-icon page-margin-lock-icon--closed hidden inline-flex" aria-hidden="true">
+                        <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a1.5 1.5 0 00-1.5-1.5H6.75a1.5 1.5 0 00-1.5 1.5v6.75a2.25 2.25 0 002.25 2.25z" />
+                        </svg>
+                      </span>
+                    </button>
+                  </div>
+                  <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">Content width and side spacing</p>
+                  <div id="page-margin-custom-panel" class="mt-2 hidden space-y-2">
+                    <div class="flex items-center justify-between gap-2">
+                      <label class="text-[0.65rem] font-medium text-slate-600 dark:text-slate-400" for="page-margin-width-slider">Max width</label>
+                      <span id="page-margin-width-value" class="font-mono text-[0.65rem] text-slate-600 dark:text-slate-300">1600px</span>
+                    </div>
+                    <input
+                      type="range"
+                      id="page-margin-width-slider"
+                      min="400"
+                      max="2500"
+                      step="8"
+                      value="1600"
+                      class="w-full accent-slate-700 dark:accent-slate-300"
+                      aria-valuemin="400"
+                      aria-valuemax="2500"
+                    />
+                    <p class="text-[0.65rem] leading-snug text-slate-500 dark:text-slate-400">
+                      Preview while you drag; saved on release (max 2500px, capped to screen). Drag page edges on wide screens.
+                    </p>
+                  </div>
+                </div>
+                <div class="px-3 py-2">
+                  <label class="mb-1 block text-xs font-medium text-slate-600 dark:text-slate-400" for="theme-select">Theme</label>
+                  <select
+                    id="theme-select"
+                    title="Color theme"
+                    class="w-full rounded-lg border border-slate-200 bg-white py-2 pl-2 pr-8 text-sm text-slate-800 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
+                  >
+                    <option value="light">Light</option>
+                    <option value="dark">Dark</option>
+                    <option value="purple">Purple (gradient)</option>
+                    <option value="pink">Pink</option>
+                    <option value="blossom">Cherry blossom</option>
+                    <option value="city">Night city</option>
+                    <option value="jungle">Jungle</option>
+                  </select>
+                  <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">Decorative themes use a gradient or background art behind the page.</p>
+                </div>
+              </div>
+            </div>
+            <form method="post" action="/logout" class="inline-flex">
+              <button
+                type="submit"
+                class="inline-flex h-9 items-center justify-center rounded-lg border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+              >
+                Log out
+              </button>
+            </form>
+            
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <main id="page-shell-main" class="mx-auto max-w-6xl px-3 py-8 sm:px-4">
+        
+        
+        
+  <div class="flex flex-col gap-6">
+    <div class="rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-700 dark:bg-slate-900">
+      <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h1 class="text-xl font-semibold">Project Management</h1>
+          <p class="text-sm text-slate-600 dark:text-slate-300">
+            Create a new project and keep a quick list of what is in planning, active, on hold, or completed.
+          </p>
+        </div>
+        
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+      <div class="rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
+        <div class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Total projects</div>
+        <div class="mt-1 text-2xl font-semibold">1</div>
+      </div>
+      <div class="rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
+        <div class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Active projects</div>
+        <div class="mt-1 text-2xl font-semibold">0</div>
+      </div>
+      <div class="rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
+        <div class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Latest project</div>
+        <div class="mt-1 text-sm text-slate-700 dark:text-slate-300">
+          
+            New Client Implementation<br />
+            <span class="text-xs text-slate-500 dark:text-slate-400">2026-04-21 14:06:25</span>
+          
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 gap-6 ">
+      
+
+      <div class="rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-700 dark:bg-slate-900">
+        <div class="flex items-center justify-between gap-3">
+          <h2 class="text-lg font-semibold">Projects</h2>
+          <div class="text-sm text-slate-500 dark:text-slate-400">1 total</div>
+        </div>
+
+        <div class="mt-4 overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead class="text-left text-xs text-slate-500 dark:text-slate-400">
+              <tr>
+                <th class="py-2 pr-3">Project</th>
+                <th class="py-2 pr-3">Client / Internal Department</th>
+                <th class="py-2 pr-3">Status</th>
+                <th class="py-2 pr-3">Created</th>
+                <th class="py-2 pr-3">Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              
+                <tr class="border-t border-slate-200 align-top dark:border-slate-700">
+                  <td class="py-3 pr-3">
+                    <a class="font-medium text-slate-900 hover:underline dark:text-slate-100" href="/projects/1">New Client Implementation</a>
+                  </td>
+                  <td class="py-3 pr-3 text-slate-700 dark:text-slate-300">New Client</td>
+                  <td class="py-3 pr-3">
+                    <span class="inline-flex rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-medium capitalize text-slate-700 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200">
+                      planning
+                    </span>
+                  </td>
+                  <td class="py-3 pr-3 whitespace-nowrap text-slate-700 dark:text-slate-300">2026-04-21 14:06:25</td>
+                  <td class="py-3 pr-3 text-slate-700 dark:text-slate-300">
+                    
+                      <div class="max-w-xl whitespace-pre-wrap">Start to end Implementation for the new client</div>
+                    
+                  </td>
+                </tr>
+              
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+      </main>
+
+      <footer class="border-t border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+        <div id="page-shell-footer" class="mx-auto max-w-6xl px-3 py-6 text-xs text-slate-500 dark:text-slate-400 sm:px-4">
+          Secure login enabled. Sensitive HR fields are encrypted before they are stored in SQLite.
+        </div>
+      </footer>
+    </div>
+    <script>
+      (function () {
+        var STORAGE_KEY = "pageMarginPreset";
+        var STORAGE_WIDTH_KEY = "pageShellMaxWidthPx";
+        var STORAGE_LOCK_KEY = "pageMarginCustomLocked";
+        var SHELL = {
+          tight: "mx-auto max-w-7xl px-2 sm:px-3",
+          balanced: "mx-auto max-w-6xl px-3 sm:px-4",
+          relaxed: "mx-auto max-w-5xl px-5 sm:px-8",
+          custom: "mx-auto w-full px-3 sm:px-4",
+        };
+        var PRESET_WIDTH_HINT = { tight: 1280, balanced: 1152, relaxed: 1024 };
+        var ABS_MIN_W = 400;
+        var ABS_MAX_W = 2500;
+        var handleL = null;
+        var handleR = null;
+        var dragState = null;
+        var rafScheduled = false;
+        var settingsMenuPinned = false;
+
+        function pinSettingsMenuIfOpen() {
+          if (settingsMenuPinned) return;
+          var menu = document.getElementById("app-settings-menu");
+          if (!menu || menu.classList.contains("hidden")) return;
+          var r = menu.getBoundingClientRect();
+          menu.dataset.pinned = "1";
+          settingsMenuPinned = true;
+          menu.style.position = "fixed";
+          menu.style.left = r.left + "px";
+          menu.style.top = r.top + "px";
+          menu.style.width = r.width + "px";
+          menu.style.right = "auto";
+          menu.style.marginTop = "0";
+          menu.style.zIndex = "10050";
+        }
+
+        function unpinSettingsMenu() {
+          var menu = document.getElementById("app-settings-menu");
+          if (!menu || menu.dataset.pinned !== "1") return;
+          delete menu.dataset.pinned;
+          settingsMenuPinned = false;
+          menu.style.position = "";
+          menu.style.left = "";
+          menu.style.top = "";
+          menu.style.width = "";
+          menu.style.right = "";
+          menu.style.marginTop = "";
+          menu.style.zIndex = "";
+        }
+
+        function maxWidthForViewport() {
+          try {
+            var vw = window.innerWidth || document.documentElement.clientWidth || ABS_MAX_W;
+            return Math.max(ABS_MIN_W, Math.min(ABS_MAX_W, Math.floor(vw)));
+          } catch (e) {
+            return ABS_MAX_W;
+          }
+        }
+
+        function clampWidth(w) {
+          var n = Math.round(Number(w));
+          if (isNaN(n)) n = 1600;
+          var cap = maxWidthForViewport();
+          return Math.min(Math.max(n, ABS_MIN_W), cap, ABS_MAX_W);
+        }
+
+        function isCustomLocked() {
+          try {
+            return localStorage.getItem(STORAGE_LOCK_KEY) === "1";
+          } catch (e) {
+            return false;
+          }
+        }
+
+        function setCustomLocked(locked) {
+          try {
+            if (locked) localStorage.setItem(STORAGE_LOCK_KEY, "1");
+            else localStorage.removeItem(STORAGE_LOCK_KEY);
+          } catch (e) {}
+          syncCustomLockUi();
+        }
+
+        function syncCustomLockUi() {
+          var sel = document.getElementById("page-margin-select");
+          var btn = document.getElementById("page-margin-custom-lock");
+          var panel = document.getElementById("page-margin-custom-panel");
+          var openIc = document.querySelector(".page-margin-lock-icon--open");
+          var closedIc = document.querySelector(".page-margin-lock-icon--closed");
+          var locked = isCustomLocked();
+          var isCustom = sel && sel.value === "custom";
+          if (btn) {
+            if (isCustom) btn.classList.remove("hidden");
+            else btn.classList.add("hidden");
+            btn.setAttribute("aria-pressed", locked ? "true" : "false");
+            btn.title = locked ? "Unlock custom width (show slider and edge handles)" : "Lock custom width (hide slider; width stays within screen)";
+            btn.setAttribute(
+              "aria-label",
+              locked ? "Unlock custom width" : "Lock custom width"
+            );
+          }
+          if (openIc && closedIc) {
+            if (!isCustom || !locked) {
+              openIc.classList.remove("hidden");
+              closedIc.classList.add("hidden");
+            } else {
+              openIc.classList.add("hidden");
+              closedIc.classList.remove("hidden");
+            }
+          }
+          if (panel && isCustom) {
+            if (locked) panel.classList.add("hidden");
+            else panel.classList.remove("hidden");
+          }
+          scheduleHandleUpdate();
+        }
+
+        function updateSliderViewportMax() {
+          var slider = document.getElementById("page-margin-width-slider");
+          if (!slider) return;
+          var cap = maxWidthForViewport();
+          slider.setAttribute("max", String(cap));
+          slider.setAttribute("aria-valuemax", String(cap));
+          var sel = document.getElementById("page-margin-select");
+          if (!sel || sel.value !== "custom") return;
+          var v = parseInt(slider.value, 10);
+          if (!isNaN(v) && v > cap) {
+            slider.value = String(cap);
+            previewCustomWidth(cap);
+          }
+        }
+
+        function getStoredWidth() {
+          try {
+            var w = parseInt(localStorage.getItem(STORAGE_WIDTH_KEY), 10);
+            if (!isNaN(w)) return clampWidth(w);
+          } catch (e) {}
+          return 1600;
+        }
+
+        function applyShellWithOptionalMax(shell, widthPx) {
+          var h = document.getElementById("page-shell-header");
+          var m = document.getElementById("page-shell-main");
+          var f = document.getElementById("page-shell-footer");
+          if (h) h.className = shell + " flex items-center justify-between gap-4 py-4";
+          if (m) m.className = shell + " py-8";
+          if (f) f.className = shell + " py-6 text-xs text-slate-500 dark:text-slate-400";
+          [h, m, f].forEach(function (el) {
+            if (!el) return;
+            if (widthPx != null) {
+              el.style.maxWidth = widthPx + "px";
+            } else {
+              el.style.maxWidth = "";
+            }
+          });
+        }
+
+        function previewCustomWidth(w) {
+          var cw = clampWidth(w);
+          applyShellWithOptionalMax(SHELL.custom, cw);
+          try {
+            document.documentElement.setAttribute("data-page-margin", "custom");
+            document.documentElement.setAttribute("data-page-shell-max-w", String(cw));
+          } catch (e) {}
+          var valSpan = document.getElementById("page-margin-width-value");
+          if (valSpan) valSpan.textContent = cw + "px";
+          var slider = document.getElementById("page-margin-width-slider");
+          if (slider && document.activeElement !== slider) {
+            slider.value = String(cw);
+          }
+          scheduleHandleUpdate();
+        }
+
+        function commitCustomWidth(w) {
+          var cw = clampWidth(w);
+          applyShellWithOptionalMax(SHELL.custom, cw);
+          try {
+            document.documentElement.setAttribute("data-page-margin", "custom");
+            document.documentElement.setAttribute("data-page-shell-max-w", String(cw));
+            localStorage.setItem(STORAGE_KEY, "custom");
+            localStorage.setItem(STORAGE_WIDTH_KEY, String(cw));
+          } catch (e) {}
+          var valSpan = document.getElementById("page-margin-width-value");
+          if (valSpan) valSpan.textContent = cw + "px";
+          var slider = document.getElementById("page-margin-width-slider");
+          if (slider) slider.value = String(cw);
+          scheduleHandleUpdate();
+          unpinSettingsMenu();
+        }
+
+        function applyPageMarginPreset(preset) {
+          var shell = SHELL[preset] || SHELL.balanced;
+          applyShellWithOptionalMax(shell, null);
+          try {
+            document.documentElement.setAttribute("data-page-margin", preset);
+            document.documentElement.removeAttribute("data-page-shell-max-w");
+          } catch (e) {}
+          scheduleHandleUpdate();
+          unpinSettingsMenu();
+        }
+
+        function scheduleHandleUpdate() {
+          if (rafScheduled) return;
+          rafScheduled = true;
+          requestAnimationFrame(function () {
+            rafScheduled = false;
+            updateDragHandlePositions();
+            toggleDragHandlesVisibility();
+          });
+        }
+
+        function updateDragHandlePositions() {
+          if (!handleL || !handleR) return;
+          var main = document.getElementById("page-shell-main");
+          if (!main) return;
+          var r = main.getBoundingClientRect();
+          var top = r.top;
+          var hgt = Math.max(0, r.height);
+          handleL.style.top = top + "px";
+          handleL.style.height = hgt + "px";
+          handleL.style.left = Math.max(0, r.left - 4) + "px";
+          handleR.style.top = top + "px";
+          handleR.style.height = hgt + "px";
+          handleR.style.left = Math.max(0, r.right - 4) + "px";
+        }
+
+        function toggleDragHandlesVisibility() {
+          var show =
+            document.documentElement.getAttribute("data-page-margin") === "custom" &&
+            !isCustomLocked() &&
+            window.matchMedia("(min-width: 640px)").matches;
+          var d = show ? "" : "none";
+          if (handleL) handleL.style.display = d;
+          if (handleR) handleR.style.display = d;
+        }
+
+        function getMainMaxWidthPx() {
+          var m = document.getElementById("page-shell-main");
+          if (!m || !m.style.maxWidth) return getStoredWidth();
+          var n = parseFloat(m.style.maxWidth);
+          return isNaN(n) ? getStoredWidth() : n;
+        }
+
+        function ensureDragHandles() {
+          if (handleL && handleR) return;
+          handleL = document.createElement("div");
+          handleR = document.createElement("div");
+          handleL.className = "page-shell-drag-handle page-shell-drag-handle--left";
+          handleR.className = "page-shell-drag-handle page-shell-drag-handle--right";
+          handleL.setAttribute("role", "separator");
+          handleR.setAttribute("role", "separator");
+          handleL.setAttribute("aria-orientation", "vertical");
+          handleR.setAttribute("aria-orientation", "vertical");
+          handleL.setAttribute("aria-label", "Drag to resize content width");
+          handleR.setAttribute("aria-label", "Drag to resize content width");
+          handleL.addEventListener("pointerdown", onHandlePointerDown("left"));
+          handleR.addEventListener("pointerdown", onHandlePointerDown("right"));
+          document.body.appendChild(handleL);
+          document.body.appendChild(handleR);
+        }
+
+        function onHandlePointerDown(side) {
+          return function (e) {
+            if (document.documentElement.getAttribute("data-page-margin") !== "custom") return;
+            if (isCustomLocked()) return;
+            e.preventDefault();
+            dragState = {
+              side: side,
+              startX: e.clientX,
+              startW: getMainMaxWidthPx(),
+            };
+            pinSettingsMenuIfOpen();
+            (side === "left" ? handleL : handleR).classList.add("is-dragging");
+            try {
+              (side === "left" ? handleL : handleR).setPointerCapture(e.pointerId);
+            } catch (err) {}
+            document.addEventListener("pointermove", onHandlePointerMove);
+            document.addEventListener("pointerup", onHandlePointerUp);
+            document.addEventListener("pointercancel", onHandlePointerUp);
+          };
+        }
+
+        function onHandlePointerMove(e) {
+          if (!dragState) return;
+          var dx = e.clientX - dragState.startX;
+          var newW =
+            dragState.side === "right"
+              ? clampWidth(dragState.startW + 2 * dx)
+              : clampWidth(dragState.startW - 2 * dx);
+          dragState.lastW = newW;
+          previewCustomWidth(newW);
+        }
+
+        function onHandlePointerUp(e) {
+          if (!dragState) return;
+          var side = dragState.side;
+          var ds = dragState;
+          dragState = null;
+          var finalW = ds.lastW != null ? ds.lastW : ds.startW;
+          if (handleL) handleL.classList.remove("is-dragging");
+          if (handleR) handleR.classList.remove("is-dragging");
+          try {
+            var el = side === "left" ? handleL : handleR;
+            if (el && el.releasePointerCapture) el.releasePointerCapture(e.pointerId);
+          } catch (err) {}
+          document.removeEventListener("pointermove", onHandlePointerMove);
+          document.removeEventListener("pointerup", onHandlePointerUp);
+          document.removeEventListener("pointercancel", onHandlePointerUp);
+          commitCustomWidth(finalW);
+        }
+
+        function initPageMargin() {
+          var boot = document.getElementById("page-shell-boot");
+          if (boot) boot.remove();
+
+          var sel = document.getElementById("page-margin-select");
+          var slider = document.getElementById("page-margin-width-slider");
+          var customPanel = document.getElementById("page-margin-custom-panel");
+          var valSpan = document.getElementById("page-margin-width-value");
+          var saved = null;
+          try {
+            saved = localStorage.getItem(STORAGE_KEY);
+          } catch (e) {}
+
+          ensureDragHandles();
+
+          if (saved === "custom") {
+            if (sel) sel.value = "custom";
+            updateSliderViewportMax();
+            var w0 = clampWidth(getStoredWidth());
+            if (slider) slider.value = String(w0);
+            if (valSpan) valSpan.textContent = w0 + "px";
+            if (customPanel && !isCustomLocked()) customPanel.classList.remove("hidden");
+            else if (customPanel && isCustomLocked()) customPanel.classList.add("hidden");
+            commitCustomWidth(w0);
+          } else if (saved && SHELL[saved]) {
+            if (sel) sel.value = saved;
+            applyPageMarginPreset(saved);
+          } else if (sel) {
+            applyPageMarginPreset(sel.value);
+          }
+
+          updateSliderViewportMax();
+          syncCustomLockUi();
+
+          var lockBtn = document.getElementById("page-margin-custom-lock");
+          if (lockBtn) {
+            lockBtn.addEventListener("click", function (e) {
+              e.stopPropagation();
+              if (!sel || sel.value !== "custom") return;
+              if (isCustomLocked()) {
+                setCustomLocked(false);
+              } else {
+                var w = clampWidth(getMainMaxWidthPx());
+                commitCustomWidth(w);
+                setCustomLocked(true);
+              }
+            });
+          }
+
+          if (sel) {
+            var prevPreset = sel.value;
+            sel.addEventListener("change", function () {
+              var v = sel.value;
+              if (v === "custom") {
+                updateSliderViewportMax();
+                var rawW = parseInt(localStorage.getItem(STORAGE_WIDTH_KEY), 10);
+                var w = !isNaN(rawW) ? clampWidth(rawW) : clampWidth(PRESET_WIDTH_HINT[prevPreset] || 1152);
+                if (customPanel && !isCustomLocked()) customPanel.classList.remove("hidden");
+                else if (customPanel && isCustomLocked()) customPanel.classList.add("hidden");
+                if (slider) slider.value = String(w);
+                if (valSpan) valSpan.textContent = w + "px";
+                commitCustomWidth(w);
+              } else {
+                if (customPanel) customPanel.classList.add("hidden");
+                applyPageMarginPreset(v);
+                try {
+                  localStorage.setItem(STORAGE_KEY, v);
+                  localStorage.removeItem(STORAGE_WIDTH_KEY);
+                  localStorage.removeItem(STORAGE_LOCK_KEY);
+                } catch (e) {}
+              }
+              prevPreset = v;
+              syncCustomLockUi();
+            });
+          }
+
+          if (slider) {
+            slider.addEventListener("pointerdown", function () {
+              if (isCustomLocked()) return;
+              if (sel && sel.value === "custom") pinSettingsMenuIfOpen();
+            });
+            slider.addEventListener("input", function () {
+              if (isCustomLocked()) return;
+              if (sel && sel.value !== "custom") return;
+              var w = clampWidth(parseInt(slider.value, 10));
+              previewCustomWidth(w);
+            });
+            slider.addEventListener("change", function () {
+              if (isCustomLocked()) return;
+              if (sel && sel.value !== "custom") return;
+              var w = clampWidth(parseInt(slider.value, 10));
+              commitCustomWidth(w);
+            });
+            slider.addEventListener("pointerup", function () {
+              setTimeout(unpinSettingsMenu, 0);
+            });
+            slider.addEventListener("pointercancel", function () {
+              setTimeout(unpinSettingsMenu, 0);
+            });
+            slider.addEventListener("blur", function () {
+              if (isCustomLocked()) return;
+              if (sel && sel.value !== "custom") return;
+              commitCustomWidth(clampWidth(parseInt(slider.value, 10)));
+            });
+          }
+
+          window.addEventListener("resize", function () {
+            unpinSettingsMenu();
+            updateSliderViewportMax();
+            if (
+              document.documentElement.getAttribute("data-page-margin") === "custom" &&
+              isCustomLocked()
+            ) {
+              commitCustomWidth(clampWidth(getMainMaxWidthPx()));
+            }
+            scheduleHandleUpdate();
+          });
+          window.addEventListener("scroll", scheduleHandleUpdate, true);
+          try {
+            var mqWide = window.matchMedia("(min-width: 640px)");
+            if (mqWide.addEventListener) {
+              mqWide.addEventListener("change", scheduleHandleUpdate);
+            } else if (mqWide.addListener) {
+              mqWide.addListener(scheduleHandleUpdate);
+            }
+          } catch (eMq) {}
+          scheduleHandleUpdate();
+        }
+
+        var menuBtn = document.getElementById("app-settings-menu-btn");
+        var menu = document.getElementById("app-settings-menu");
+        var menuRoot = document.getElementById("app-settings-dropdown");
+        var personQuickAddBtn = document.getElementById("person-quick-add-btn");
+        var personQuickAddMenu = document.getElementById("person-quick-add-menu");
+        var personQuickAddRoot = document.getElementById("person-quick-add-dropdown");
+
+        function closePersonQuickAddMenu() {
+          if (!personQuickAddMenu || !personQuickAddBtn) return;
+          personQuickAddMenu.classList.add("hidden");
+          personQuickAddBtn.setAttribute("aria-expanded", "false");
+        }
+
+        function openPersonQuickAddMenu() {
+          if (!personQuickAddMenu || !personQuickAddBtn) return;
+          closeSettingsMenu();
+          personQuickAddMenu.classList.remove("hidden");
+          personQuickAddBtn.setAttribute("aria-expanded", "true");
+        }
+
+        function togglePersonQuickAddMenu() {
+          if (!personQuickAddMenu || !personQuickAddBtn) return;
+          if (personQuickAddMenu.classList.contains("hidden")) openPersonQuickAddMenu();
+          else closePersonQuickAddMenu();
+        }
+
+        function closeSettingsMenu() {
+          if (!menu || !menuBtn) return;
+          unpinSettingsMenu();
+          menu.classList.add("hidden");
+          menuBtn.setAttribute("aria-expanded", "false");
+        }
+
+        function openSettingsMenu() {
+          if (!menu || !menuBtn) return;
+          closePersonQuickAddMenu();
+          menu.classList.remove("hidden");
+          menuBtn.setAttribute("aria-expanded", "true");
+        }
+
+        function toggleSettingsMenu() {
+          if (!menu || !menuBtn) return;
+          if (menu.classList.contains("hidden")) openSettingsMenu();
+          else closeSettingsMenu();
+        }
+
+        if (menuBtn && menu) {
+          menuBtn.addEventListener("click", function (e) {
+            e.stopPropagation();
+            toggleSettingsMenu();
+          });
+        }
+
+        if (personQuickAddBtn && personQuickAddMenu) {
+          personQuickAddBtn.addEventListener("click", function (e) {
+            e.stopPropagation();
+            togglePersonQuickAddMenu();
+          });
+        }
+
+        document.addEventListener("click", function (e) {
+          if (menuRoot && menu && menuRoot.contains(e.target)) return;
+          if (personQuickAddRoot && personQuickAddMenu && personQuickAddRoot.contains(e.target)) return;
+          closeSettingsMenu();
+          closePersonQuickAddMenu();
+        });
+
+        document.addEventListener("keydown", function (e) {
+          if (e.key === "Escape") {
+            closeSettingsMenu();
+            closePersonQuickAddMenu();
+          }
+        });
+
+        var THEME_KEY = "theme";
+        function applyTheme(value) {
+          var root = document.documentElement;
+          root.classList.remove(
+            "dark",
+            "theme-light",
+            "theme-dark",
+            "theme-purple",
+            "theme-pink",
+            "theme-blossom",
+            "theme-city",
+            "theme-jungle"
+          );
+          if (value === "purple") {
+            root.classList.add("dark", "theme-purple");
+          } else if (value === "pink") {
+            root.classList.add("dark", "theme-pink");
+          } else if (value === "blossom") {
+            root.classList.add("dark", "theme-blossom");
+          } else if (value === "city") {
+            root.classList.add("dark", "theme-city");
+          } else if (value === "jungle") {
+            root.classList.add("dark", "theme-jungle");
+          } else if (value === "light") {
+            root.classList.add("theme-light");
+          } else {
+            root.classList.add("dark", "theme-dark");
+          }
+          try {
+            localStorage.setItem(THEME_KEY, value);
+          } catch (err) {}
+        }
+
+        function currentThemeFromDom() {
+          var root = document.documentElement;
+          if (root.classList.contains("theme-purple")) return "purple";
+          if (root.classList.contains("theme-pink")) return "pink";
+          if (root.classList.contains("theme-blossom")) return "blossom";
+          if (root.classList.contains("theme-city")) return "city";
+          if (root.classList.contains("theme-light")) return "light";
+          if (root.classList.contains("dark")) return "dark";
+          return "light";
+        }
+
+        var themeSel = document.getElementById("theme-select");
+        if (themeSel) {
+          var saved = null;
+          try {
+            saved = localStorage.getItem(THEME_KEY);
+          } catch (e) {}
+          if (saved && ["light", "dark", "purple", "pink", "blossom", "city", "jungle"].indexOf(saved) !== -1) {
+            themeSel.value = saved;
+          } else {
+            themeSel.value = currentThemeFromDom();
+          }
+          themeSel.addEventListener("change", function (e) {
+            e.stopPropagation();
+            applyTheme(themeSel.value);
+          });
+          themeSel.addEventListener("click", function (e) {
+            e.stopPropagation();
+          });
+        }
+
+        initPageMargin();
+      })();
+    </script>
+    <script>
+      (function () {
+        var SCROLL_PREFIX = "appScrollRestore:";
+        function storageKey() {
+          return SCROLL_PREFIX + location.pathname + location.search;
+        }
+        function saveScroll() {
+          try {
+            var y = window.scrollY || window.pageYOffset || 0;
+            sessionStorage.setItem(storageKey(), String(y));
+          } catch (e) {}
+        }
+        function restoreScroll() {
+          try {
+            /* Invoice cross-ref: row-note redirect uses #invoice-crossref-row-N — do not override with stored Y */
+            if (/^#invoice-crossref-row-\d+$/.test(location.hash)) {
+              try {
+                sessionStorage.removeItem(storageKey());
+              } catch (e2) {}
+              return;
+            }
+            var raw = sessionStorage.getItem(storageKey());
+            if (raw == null) return;
+            sessionStorage.removeItem(storageKey());
+            var y = parseInt(raw, 10);
+            if (Number.isNaN(y) || y < 0) return;
+            if (window.history && "scrollRestoration" in window.history) {
+              window.history.scrollRestoration = "manual";
+            }
+            requestAnimationFrame(function () {
+              requestAnimationFrame(function () {
+                window.scrollTo(0, y);
+              });
+            });
+          } catch (e) {}
+        }
+        window.addEventListener("beforeunload", saveScroll);
+        window.addEventListener("pagehide", saveScroll);
+        document.addEventListener("visibilitychange", function () {
+          if (document.visibilityState === "hidden") saveScroll();
+        });
+        document.addEventListener(
+          "click",
+          function (e) {
+            var a = e.target.closest("a[href]");
+            if (!a) return;
+            var href = (a.getAttribute("href") || "").trim();
+            if (!href || href.charAt(0) === "#" || href.indexOf("javascript:") === 0) return;
+            if (a.target === "_blank" || a.hasAttribute("download")) return;
+            try {
+              var u = new URL(href, location.href);
+              if (u.origin !== location.origin) return;
+              saveScroll();
+            } catch (err) {}
+          },
+          true
+        );
+        document.addEventListener(
+          "submit",
+          function (e) {
+            var form = e.target;
+            if (!form || form.tagName !== "FORM") return;
+            if (form.getAttribute("target") === "_blank") return;
+            try {
+              var action = (form.getAttribute("action") || "").trim();
+              if (!action || action.charAt(0) === "#") return;
+              var u = new URL(action, location.href);
+              if (u.origin !== location.origin) return;
+              saveScroll();
+            } catch (err) {}
+          },
+          true
+        );
+        if (document.readyState === "loading") {
+          document.addEventListener("DOMContentLoaded", restoreScroll);
+        } else {
+          restoreScroll();
+        }
+      })();
+    </script>
+  </body>
+</html>

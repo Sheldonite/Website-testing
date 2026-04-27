@@ -1,0 +1,1462 @@
+﻿{% extends "base.html" %}
+{% macro status_badge(status, label) %}
+  {% set s = status or 'todo' %}
+  <span class="inline-flex rounded-full border px-2.5 py-1 text-xs font-semibold
+    {% if s == 'done' %}border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-900/60 dark:bg-emerald-950/30 dark:text-emerald-200
+    {% elif s == 'blocked' %}border-red-200 bg-red-50 text-red-800 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-200
+    {% elif s == 'in_progress' %}border-blue-200 bg-blue-50 text-blue-800 dark:border-blue-900/60 dark:bg-blue-950/30 dark:text-blue-200
+    {% elif s == 'backlog' %}border-slate-200 bg-slate-50 text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300
+    {% else %}border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-200{% endif %}">
+    {{ label }}
+  </span>
+{% endmacro %}
+{% macro priority_badge(priority, label) %}
+  {% set p = priority or 'medium' %}
+  <span class="inline-flex rounded-full border px-2 py-0.5 text-xs font-medium
+    {% if p == 'critical' %}border-rose-200 bg-rose-50 text-rose-800 dark:border-rose-900/60 dark:bg-rose-950/30 dark:text-rose-200
+    {% elif p == 'high' %}border-orange-200 bg-orange-50 text-orange-800 dark:border-orange-900/60 dark:bg-orange-950/30 dark:text-orange-200
+    {% elif p == 'low' %}border-slate-200 bg-slate-50 text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300
+    {% else %}border-indigo-200 bg-indigo-50 text-indigo-800 dark:border-indigo-900/60 dark:bg-indigo-950/30 dark:text-indigo-200{% endif %}">
+    {{ label }}
+  </span>
+{% endmacro %}
+{% macro department_badge(name, color) %}
+  {% set c = color or 'slate' %}
+  <span class="inline-flex max-w-full items-center rounded-full border px-2 py-0.5 text-xs font-medium
+    {% if c == 'blue' %}border-blue-200 bg-blue-50 text-blue-800 dark:border-blue-900/60 dark:bg-blue-950/30 dark:text-blue-200
+    {% elif c == 'emerald' %}border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-900/60 dark:bg-emerald-950/30 dark:text-emerald-200
+    {% elif c == 'amber' %}border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-200
+    {% elif c == 'rose' %}border-rose-200 bg-rose-50 text-rose-800 dark:border-rose-900/60 dark:bg-rose-950/30 dark:text-rose-200
+    {% elif c == 'cyan' %}border-cyan-200 bg-cyan-50 text-cyan-800 dark:border-cyan-900/60 dark:bg-cyan-950/30 dark:text-cyan-200
+    {% elif c == 'violet' %}border-violet-200 bg-violet-50 text-violet-800 dark:border-violet-900/60 dark:bg-violet-950/30 dark:text-violet-200
+    {% elif c == 'orange' %}border-orange-200 bg-orange-50 text-orange-800 dark:border-orange-900/60 dark:bg-orange-950/30 dark:text-orange-200
+    {% else %}border-slate-200 bg-slate-50 text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300{% endif %}">
+    <span class="truncate">{{ name or 'Cross-functional' }}</span>
+  </span>
+{% endmacro %}
+{% macro task_form(task, project, member_cards, department_cards, status_options, priority_options, risk_options, return_tab) %}
+  <form class="project-task-form grid gap-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-950/80" method="post" action="/projects/{{ project.id }}/tasks{% if task %}/{{ task.id }}{% endif %}">
+    <input type="hidden" name="return_tab" value="{{ return_tab }}" />
+    <div class="grid gap-3 lg:grid-cols-[minmax(16rem,1fr)_12rem_12rem]">
+      <div class="grid gap-1.5">
+        <label class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Task</label>
+        <input name="title" maxlength="300" required value="{{ task.title if task else '' }}" placeholder="Define the work item" class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-950 dark:text-slate-100" />
+      </div>
+      <div class="grid gap-1.5">
+        <label class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Status</label>
+        <select name="status" class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-950 dark:text-slate-100">
+          {% for value, label in status_options %}
+            <option value="{{ value }}" {% if (task.status if task else 'todo') == value %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="grid gap-1.5">
+        <label class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Priority</label>
+        <select name="priority" class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-950 dark:text-slate-100">
+          {% for value, label in priority_options %}
+            <option value="{{ value }}" {% if (task.priority if task else 'medium') == value %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+    <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-6">
+      <div class="grid gap-1.5">
+        <label class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Department</label>
+        <select name="department_id" class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-950 dark:text-slate-100">
+          <option value="">Cross-functional</option>
+          {% for department in department_cards %}
+            <option value="{{ department.id }}" {% if task and task.department_id == department.id %}selected{% endif %}>{{ department.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="grid gap-1.5">
+        <label class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Owner</label>
+        <select name="owner_participant_id" class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-950 dark:text-slate-100">
+          <option value="">Unassigned</option>
+          {% for member in member_cards %}
+            <option value="{{ member.id }}" {% if task and task.owner_participant_id == member.id %}selected{% endif %}>{{ member.display_name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="grid gap-1.5 md:col-span-2 xl:col-span-2">
+        <span class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Supporters</span>
+        <div class="max-h-28 overflow-y-auto rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-950 dark:text-slate-100">
+          <div class="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+          {% for member in member_cards %}
+            <label class="inline-flex items-center gap-1.5 whitespace-nowrap">
+              <input type="checkbox" name="supporter_participant_ids" value="{{ member.id }}" class="h-3.5 w-3.5 rounded border-slate-300" {% if task and member.id in task.supporter_ids %}checked{% endif %} />
+              <span>{{ member.display_name }}</span>
+            </label>
+          {% else %}
+            <span class="text-slate-500 dark:text-slate-400">Add people first</span>
+          {% endfor %}
+          </div>
+        </div>
+      </div>
+      <div class="grid gap-1.5">
+        <label class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Start</label>
+        <input type="date" name="start_date" value="{{ task.start_date if task and task.start_date else '' }}" class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-950 dark:text-slate-100" />
+      </div>
+      <div class="grid gap-1.5">
+        <label class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Due</label>
+        <input type="date" name="due_date" value="{{ task.due_date if task and task.due_date else '' }}" class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-950 dark:text-slate-100" />
+      </div>
+      <div class="grid gap-1.5">
+        <label class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Complete</label>
+        <input type="number" name="percent_complete" min="0" max="100" value="{{ task.percent_complete if task else 0 }}" class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-950 dark:text-slate-100" />
+      </div>
+      <div class="grid gap-1.5">
+        <label class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Risk</label>
+        <select name="risk_level" class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-950 dark:text-slate-100">
+          {% for value, label in risk_options %}
+            <option value="{{ value }}" {% if (task.risk_level if task else 'low') == value %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+    <div class="grid gap-3 lg:grid-cols-3">
+      <label class="grid gap-1.5">
+        <span class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Task Notes</span>
+        <textarea name="description" rows="4" maxlength="4000" placeholder="Context, decisions, next steps, or meeting notes for this task." class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-950 dark:text-slate-100">{{ task.description if task else '' }}</textarea>
+      </label>
+      <label class="grid gap-1.5">
+        <span class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Dependencies</span>
+        <textarea name="dependency_note" rows="4" maxlength="4000" placeholder="What this task depends on." class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-950 dark:text-slate-100">{{ task.dependency_note if task else '' }}</textarea>
+      </label>
+      <label class="grid gap-1.5">
+        <span class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Risk Notes</span>
+        <textarea name="risk_notes" rows="4" maxlength="4000" placeholder="Concerns, mitigation, or escalation notes." class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-950 dark:text-slate-100">{{ task.risk_notes if task else '' }}</textarea>
+      </label>
+    </div>
+    <div class="flex flex-wrap items-center gap-2">
+      <button type="submit" class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white">
+        {% if task %}Save task{% else %}Create task{% endif %}
+      </button>
+      {% if task %}
+        <button type="submit" formaction="/projects/{{ project.id }}/tasks/{{ task.id }}/delete" class="rounded-lg border border-red-200 bg-white px-3 py-2 text-sm font-medium text-red-800 hover:bg-red-50 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-300 dark:hover:bg-red-950/40">
+          Delete
+        </button>
+      {% endif %}
+    </div>
+  </form>
+{% endmacro %}
+{% block content %}
+  <div class="flex flex-col gap-5">
+    <div class="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
+      <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div>
+          <div class="flex flex-wrap items-center gap-2 text-sm">
+            <a class="text-slate-500 hover:underline dark:text-slate-400" href="/projects">Projects</a>
+            <span class="text-slate-400 dark:text-slate-500">/</span>
+            <span class="font-medium text-slate-700 dark:text-slate-200">{{ project.name }}</span>
+            <span class="inline-flex rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-xs font-medium capitalize text-slate-600 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300">
+              {{ (project.status or 'planning')|replace('_', ' ') }}
+            </span>
+          </div>
+          <h1 class="mt-3 text-2xl font-semibold tracking-tight">{{ project.name }}</h1>
+          <p class="mt-1 max-w-3xl text-sm text-slate-600 dark:text-slate-300">
+            {{ project.client_name or "Internal project" }}{% if project.notes %} - {{ project.notes }}{% endif %}
+          </p>
+        </div>
+        <div class="grid min-w-[16rem] grid-cols-3 gap-2 text-center">
+          <div class="rounded-lg border border-slate-200 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-800/60">
+            <div class="text-xl font-semibold">{{ task_stats.avg_completion }}%</div>
+            <div class="text-xs text-slate-500 dark:text-slate-400">Complete</div>
+          </div>
+          <div class="rounded-lg border border-slate-200 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-800/60">
+            <div class="text-xl font-semibold">{{ task_stats.active }}</div>
+            <div class="text-xs text-slate-500 dark:text-slate-400">Active</div>
+          </div>
+          <div class="rounded-lg border border-slate-200 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-800/60">
+            <div class="text-xl font-semibold {% if task_stats.overdue %}text-red-700 dark:text-red-300{% endif %}">{{ task_stats.overdue }}</div>
+            <div class="text-xs text-slate-500 dark:text-slate-400">Overdue</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-900" data-project-workspace>
+      <nav class="-mx-1 flex max-w-full flex-nowrap gap-1 overflow-x-auto border-b border-slate-200 pb-px dark:border-slate-600" aria-label="Project sections">
+        {% for value, label in [('overview','Dashboard'),('board','Views'),('timeline','Timeline'),('people','People')] %}
+          <a href="/projects/{{ project.id }}?tab={{ value }}" data-project-tab-link data-no-scroll-restore class="whitespace-nowrap border-b-2 px-3 py-2 text-sm font-medium transition-colors {% if project_tab == value %}border-slate-900 text-slate-900 dark:border-slate-100 dark:text-slate-100{% else %}border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-800 dark:text-slate-400 dark:hover:border-slate-600 dark:hover:text-slate-200{% endif %}">{{ label }}</a>
+        {% endfor %}
+        {% if can_manage_projects %}
+          <a href="/projects/{{ project.id }}?tab=manager" data-project-tab-link data-no-scroll-restore class="whitespace-nowrap border-b-2 px-3 py-2 text-sm font-medium transition-colors {% if project_tab == 'manager' %}border-slate-900 text-slate-900 dark:border-slate-100 dark:text-slate-100{% else %}border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-800 dark:text-slate-400 dark:hover:border-slate-600 dark:hover:text-slate-200{% endif %}">Manager</a>
+        {% endif %}
+      </nav>
+
+      <div class="mt-5 project-tab-panel">
+        {% if can_manage_projects and project_tab == 'board' %}
+          <div class="mb-4 flex justify-start">
+            <button type="button" data-open-task-modal class="inline-flex items-center gap-2 rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white dark:focus:ring-offset-slate-900">
+              <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14m7-7H5" />
+              </svg>
+              <span>Create Task</span>
+            </button>
+          </div>
+        {% endif %}
+        {% if notice %}
+          <div class="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900 dark:border-emerald-900/60 dark:bg-emerald-950/30 dark:text-emerald-200">{{ notice }}</div>
+        {% endif %}
+        {% if error %}
+          <div class="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900 dark:border-red-800 dark:bg-red-950/40 dark:text-red-200">{{ error }}</div>
+        {% endif %}
+
+        {% if project_tab in ['overview', 'board', 'timeline', 'people', 'manager'] %}
+          <div class="mb-5 flex flex-col gap-3 rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm dark:border-slate-700 dark:bg-slate-800/60 lg:flex-row lg:items-center lg:justify-between" data-pm-controls>
+            <div class="flex flex-wrap items-center gap-2">
+              {% if project_tab != 'manager' %}
+                <span class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">View</span>
+                <label class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 dark:border-slate-700 dark:bg-slate-900" style="background: var(--pm-button-subtle-bg); border-color: var(--pm-border); color: var(--pm-button-subtle-text);">
+                  <input type="checkbox" class="h-4 w-4 rounded border-slate-300" data-pm-toggle="hideDone" />
+                  <span>Hide done</span>
+                </label>
+                <label class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 dark:border-slate-700 dark:bg-slate-900" style="background: var(--pm-button-subtle-bg); border-color: var(--pm-border); color: var(--pm-button-subtle-text);">
+                  <input type="checkbox" class="h-4 w-4 rounded border-slate-300" data-pm-toggle="onlyOverdue" />
+                  <span>Overdue</span>
+                </label>
+                <label class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 dark:border-slate-700 dark:bg-slate-900" style="background: var(--pm-button-subtle-bg); border-color: var(--pm-border); color: var(--pm-button-subtle-text);">
+                  <input type="checkbox" class="h-4 w-4 rounded border-slate-300" data-pm-toggle="onlyHighRisk" />
+                  <span>High risk</span>
+                </label>
+                <select data-pm-filter="department" class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100">
+                  <option value="">All departments</option>
+                  <option value="__none__">Cross-functional</option>
+                  {% for department in department_cards %}
+                    <option value="{{ department.id }}">{{ department.name }}</option>
+                  {% endfor %}
+                </select>
+                <select data-pm-filter="person" class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100">
+                  <option value="">All people</option>
+                  {% for member in member_cards %}
+                    <option value="{{ member.id }}">{{ member.display_name }}</option>
+                  {% endfor %}
+                </select>
+              {% endif %}
+            </div>
+            <label class="inline-flex w-fit items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 dark:border-slate-700 dark:bg-slate-900" style="background: var(--pm-button-subtle-bg); border-color: var(--pm-border); color: var(--pm-button-subtle-text);">
+              <input type="checkbox" class="h-4 w-4 rounded border-slate-300" data-pm-toggle="compact" />
+              <span>Compact</span>
+            </label>
+          </div>
+        {% endif %}
+
+        {% if project_tab == 'overview' %}
+          <div class="grid gap-5 xl:grid-cols-[minmax(0,1fr)_24rem]">
+            <div class="space-y-5">
+              <div class="grid grid-cols-2 gap-3 lg:grid-cols-5">
+                <div class="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800/60">
+                  <div class="text-2xl font-semibold">{{ task_stats.total }}</div>
+                  <div class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Tasks</div>
+                </div>
+                <div class="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800/60">
+                  <div class="text-2xl font-semibold">{{ task_stats.done }}</div>
+                  <div class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Done</div>
+                </div>
+                <div class="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800/60">
+                  <div class="text-2xl font-semibold">{{ task_stats.blocked }}</div>
+                  <div class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Stuck</div>
+                </div>
+                <div class="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800/60">
+                  <div class="text-2xl font-semibold">{{ task_stats.due_soon }}</div>
+                  <div class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Due soon</div>
+                </div>
+                <div class="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800/60">
+                  <div class="text-2xl font-semibold">{{ member_cards|length }}</div>
+                  <div class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">People</div>
+                </div>
+              </div>
+
+              <div class="grid gap-5 2xl:grid-cols-[minmax(0,1fr)_22rem]">
+                <section class="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800/60">
+                  <div class="flex items-center justify-between gap-3">
+                    <h2 class="font-semibold">Work by status</h2>
+                    <a href="/projects/{{ project.id }}?tab=board" class="text-sm text-slate-500 hover:underline dark:text-slate-400">Open views</a>
+                  </div>
+                  <div class="mt-4 overflow-hidden rounded-full bg-white ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-700">
+                    <div class="flex h-4 w-full">
+                      {% for column in task_columns %}
+                        <div class="{{ column.bar_class }}" style="width: {{ column.percent }}%" title="{{ column.label }}: {{ column.tasks|length }}"></div>
+                      {% endfor %}
+                    </div>
+                  </div>
+                  <div class="mt-4 grid gap-2" style="grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr));">
+                    {% for column in task_columns %}
+                      <div class="rounded-lg border border-slate-200 bg-white p-2.5 dark:border-slate-700 dark:bg-slate-900">
+                        <div class="flex min-w-0 items-center justify-between gap-2">
+                          <div class="truncate whitespace-nowrap text-sm font-semibold">{{ column.label }}</div>
+                          <div class="shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600 dark:bg-slate-800 dark:text-slate-300">{{ column.tasks|length }}</div>
+                        </div>
+                        <div class="mt-2 h-2 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+                          <div class="h-full rounded-full {{ column.bar_class }}" style="width: {{ column.percent }}%"></div>
+                        </div>
+                      </div>
+                    {% endfor %}
+                  </div>
+                </section>
+
+                <section class="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800/60">
+                  <h2 class="font-semibold">Risk mix</h2>
+                  <div class="mt-4 space-y-3">
+                    {% for item in risk_chart %}
+                      <div>
+                        <div class="mb-1 flex justify-between text-xs text-slate-500 dark:text-slate-400">
+                          <span>{{ item.label }}</span><span>{{ item.count }}</span>
+                        </div>
+                        <div class="h-2 overflow-hidden rounded-full bg-white ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-700">
+                          <div class="h-full rounded-full {{ item.bar_class }}" style="width: {{ item.percent }}%"></div>
+                        </div>
+                      </div>
+                    {% endfor %}
+                  </div>
+                </section>
+              </div>
+
+              <div class="grid gap-5 2xl:grid-cols-3">
+                <section class="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800/60">
+                  <h2 class="font-semibold">Priority chart</h2>
+                  <div class="mt-4 space-y-3">
+                    {% for item in priority_chart %}
+                      <div>
+                        <div class="mb-1 flex justify-between text-xs text-slate-500 dark:text-slate-400">
+                          <span>{{ item.label }}</span><span>{{ item.count }}</span>
+                        </div>
+                        <div class="h-2 overflow-hidden rounded-full bg-white ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-700">
+                          <div class="h-full rounded-full {{ item.bar_class }}" style="width: {{ item.percent }}%"></div>
+                        </div>
+                      </div>
+                    {% endfor %}
+                  </div>
+                </section>
+
+                <section class="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800/60">
+                  <h2 class="font-semibold">Department load</h2>
+                  <div class="mt-4 space-y-3">
+                    {% for department in department_load %}
+                      <div>
+                        <div class="mb-1 flex justify-between gap-3 text-xs text-slate-500 dark:text-slate-400">
+                          <span class="truncate">{{ department.name }}</span>
+                          <span>{{ department.open }} open{% if department.overdue %} / {{ department.overdue }} late{% endif %}</span>
+                        </div>
+                        <div class="h-2 overflow-hidden rounded-full bg-white ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-700">
+                          <div class="h-full rounded-full bg-blue-500" style="width: {{ department.percent }}%"></div>
+                        </div>
+                      </div>
+                    {% else %}
+                      <p class="text-sm text-slate-500 dark:text-slate-400">No departments yet.</p>
+                    {% endfor %}
+                  </div>
+                </section>
+
+                <section class="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800/60">
+                  <h2 class="font-semibold">Owner load</h2>
+                  <div class="mt-4 space-y-3">
+                    {% for owner in owner_load %}
+                      <div>
+                        <div class="mb-1 flex justify-between gap-3 text-xs text-slate-500 dark:text-slate-400">
+                          <span class="truncate">{{ owner.name }}</span>
+                          <span>{{ owner.open }} open{% if owner.overdue %} / {{ owner.overdue }} late{% endif %}</span>
+                        </div>
+                        <div class="h-2 overflow-hidden rounded-full bg-white ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-700">
+                          <div class="h-full rounded-full bg-cyan-500" style="width: {{ owner.percent }}%"></div>
+                        </div>
+                      </div>
+                    {% else %}
+                      <p class="text-sm text-slate-500 dark:text-slate-400">No owner assignments yet.</p>
+                    {% endfor %}
+                  </div>
+                </section>
+              </div>
+
+              <section class="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800/60">
+                <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <h2 class="font-semibold">Launch timeline</h2>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">{{ timeline_start }} to {{ timeline_end }}</p>
+                    {% if gantt_is_capped %}
+                      <p class="mt-1 text-xs text-amber-700 dark:text-amber-300">First 6 months shown</p>
+                    {% endif %}
+                  </div>
+                  <a href="/projects/{{ project.id }}?tab=timeline" class="text-sm text-slate-500 hover:underline dark:text-slate-400">Open timeline</a>
+                </div>
+                <div class="mt-4 space-y-3">
+                  {% for task in task_cards if task.has_timeline %}
+                    <div class="grid gap-2 sm:grid-cols-[12rem_minmax(0,1fr)]" data-pm-task data-status="{{ task.status }}" data-department-id="{{ task.department_id or '' }}" data-owner-id="{{ task.owner_participant_id or '' }}" data-supporter-ids="{{ task.supporter_ids|join(',') }}" data-risk="{{ task.risk_level }}" data-overdue="{{ 1 if task.is_overdue else 0 }}" data-high-risk="{{ 1 if task.risk_level in ['critical', 'high'] else 0 }}">
+                      <div class="min-w-0 text-sm">
+                        <a href="/projects/{{ project.id }}/tasks/{{ task.id }}" class="block truncate font-medium text-slate-900 hover:underline dark:text-slate-100">{{ task.title }}</a>
+                        <div class="text-xs text-slate-500 dark:text-slate-400">{{ task.owner_name or "Unassigned" }}</div>
+                      </div>
+                      <div class="relative h-9 rounded-lg bg-white ring-1 ring-slate-200 dark:bg-slate-900 dark:ring-slate-700">
+                        <div class="absolute top-2 h-5 rounded-md {% if task.status == 'blocked' %}bg-red-500{% elif task.status == 'done' %}bg-emerald-500{% else %}bg-blue-500{% endif %}" style="left: {{ task.gantt_left }}%; width: {{ task.gantt_width }}%"></div>
+                      </div>
+                    </div>
+                  {% else %}
+                    <p class="rounded-lg border border-dashed border-slate-200 p-4 text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400">Add start or due dates to draw the timeline.</p>
+                  {% endfor %}
+                </div>
+              </section>
+            </div>
+
+            <aside class="space-y-5">
+              <div class="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800/60">
+                <div class="flex items-center justify-between gap-3">
+                  <h2 class="font-semibold">Risk watch</h2>
+                  <span class="text-sm text-slate-500 dark:text-slate-400">{{ risk_watch|length }}</span>
+                </div>
+                <div class="mt-4 space-y-3">
+                  {% for task in risk_watch %}
+                    <div class="rounded-lg border border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-900" data-pm-task data-status="{{ task.status }}" data-department-id="{{ task.department_id or '' }}" data-owner-id="{{ task.owner_participant_id or '' }}" data-supporter-ids="{{ task.supporter_ids|join(',') }}" data-risk="{{ task.risk_level }}" data-overdue="{{ 1 if task.is_overdue else 0 }}" data-high-risk="{{ 1 if task.risk_level in ['critical', 'high'] else 0 }}">
+                      <div class="flex items-start justify-between gap-3">
+                        <div class="min-w-0">
+                          <a href="/projects/{{ project.id }}/tasks/{{ task.id }}" class="font-medium text-slate-900 hover:underline dark:text-slate-100">{{ task.title }}</a>
+                          <div class="mt-1 text-xs text-slate-500 dark:text-slate-400">{{ task.owner_name or "Unassigned" }}{% if task.due_date %} - due {{ task.due_date }}{% endif %}</div>
+                        </div>
+                        {{ priority_badge(task.priority, task.priority_label) }}
+                      </div>
+                      {% if task.risk_notes %}<div class="mt-2 text-xs text-slate-500 dark:text-slate-400">{{ task.risk_notes }}</div>{% endif %}
+                    </div>
+                  {% else %}
+                    <p class="text-sm text-slate-500 dark:text-slate-400">No high-risk or overdue work.</p>
+                  {% endfor %}
+                </div>
+              </div>
+
+              <div class="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800/60">
+                <div class="flex items-center justify-between gap-3">
+                  <h2 class="font-semibold">Dependencies</h2>
+                  <span class="text-sm text-slate-500 dark:text-slate-400">{{ dependency_watch|length }}</span>
+                </div>
+                <div class="mt-4 space-y-3">
+                  {% for task in dependency_watch %}
+                    <div class="rounded-lg border border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-900" data-pm-task data-status="{{ task.status }}" data-department-id="{{ task.department_id or '' }}" data-owner-id="{{ task.owner_participant_id or '' }}" data-supporter-ids="{{ task.supporter_ids|join(',') }}" data-risk="{{ task.risk_level }}" data-overdue="{{ 1 if task.is_overdue else 0 }}" data-high-risk="{{ 1 if task.risk_level in ['critical', 'high'] else 0 }}">
+                      <a href="/projects/{{ project.id }}/tasks/{{ task.id }}" class="font-medium text-slate-900 hover:underline dark:text-slate-100">{{ task.title }}</a>
+                      <div class="mt-1 text-xs text-slate-500 dark:text-slate-400">{{ task.dependency_note }}</div>
+                    </div>
+                  {% else %}
+                    <p class="text-sm text-slate-500 dark:text-slate-400">No open dependency notes.</p>
+                  {% endfor %}
+                </div>
+              </div>
+
+              <div class="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800/60">
+                <div class="flex items-center justify-between gap-3">
+                  <h2 class="font-semibold">Next up</h2>
+                  <a href="/projects/{{ project.id }}?tab=board" class="text-sm text-slate-500 hover:underline dark:text-slate-400">View all</a>
+                </div>
+                <div class="mt-4 space-y-3">
+                  {% for task in upcoming_tasks %}
+                    <div class="rounded-lg border border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-900" data-pm-task data-status="{{ task.status }}" data-department-id="{{ task.department_id or '' }}" data-owner-id="{{ task.owner_participant_id or '' }}" data-supporter-ids="{{ task.supporter_ids|join(',') }}" data-risk="{{ task.risk_level }}" data-overdue="{{ 1 if task.is_overdue else 0 }}" data-high-risk="{{ 1 if task.risk_level in ['critical', 'high'] else 0 }}">
+                      <div class="flex items-start justify-between gap-3">
+                        <div class="min-w-0">
+                          <a href="/projects/{{ project.id }}/tasks/{{ task.id }}" class="font-medium text-slate-900 hover:underline dark:text-slate-100">{{ task.title }}</a>
+                          <div class="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                            {{ task.owner_name or "Unassigned" }}{% if task.due_date %} - due {{ task.due_date }}{% endif %}
+                          </div>
+                        </div>
+                        {{ priority_badge(task.priority, task.priority_label) }}
+                      </div>
+                    </div>
+                  {% else %}
+                    <p class="text-sm text-slate-500 dark:text-slate-400">No open tasks yet.</p>
+                  {% endfor %}
+                </div>
+              </div>
+            </aside>
+          </div>
+
+        {% elif project_tab == 'board' %}
+          <div class="grid gap-5" data-saved-views-root>
+            <section class="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800/60">
+              <div class="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+                <div>
+                  <h2 class="font-semibold">Saved views</h2>
+                  <p class="text-sm text-slate-500 dark:text-slate-400">Use the buttons below to jump into compact task slices by person, department, or attention area.</p>
+                </div>
+                {% if can_manage_projects %}
+                  <button type="button" data-open-task-modal class="inline-flex w-fit items-center rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800">Create Task</button>
+                {% endif %}
+              </div>
+              <div class="mt-4 grid gap-3 lg:grid-cols-3">
+                <button type="button" data-saved-view data-saved-view-name="All Open" data-saved-hide-done="1" class="rounded-lg border border-slate-200 bg-white p-3 text-left hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:hover:bg-slate-800">
+                  <span class="block text-sm font-semibold">All open</span>
+                  <span class="mt-1 block text-2xl font-semibold">{{ task_stats.active }}</span>
+                </button>
+                <button type="button" data-saved-view data-saved-view-name="Overdue" data-saved-overdue="1" class="rounded-lg border border-red-200 bg-red-50 p-3 text-left hover:bg-red-100 dark:border-red-900/60 dark:bg-red-950/30 dark:hover:bg-red-950/50">
+                  <span class="block text-sm font-semibold text-red-900 dark:text-red-200">Overdue</span>
+                  <span class="mt-1 block text-2xl font-semibold text-red-900 dark:text-red-200">{{ task_stats.overdue }}</span>
+                </button>
+                <button type="button" data-saved-view data-saved-view-name="High Risk" data-saved-high-risk="1" data-saved-hide-done="1" class="rounded-lg border border-amber-200 bg-amber-50 p-3 text-left hover:bg-amber-100 dark:border-amber-900/60 dark:bg-amber-950/30 dark:hover:bg-amber-950/50">
+                  <span class="block text-sm font-semibold text-amber-900 dark:text-amber-200">High risk</span>
+                  <span class="mt-1 block text-2xl font-semibold text-amber-900 dark:text-amber-200">{{ risk_watch|length }}</span>
+                </button>
+              </div>
+            </section>
+
+            <div class="grid gap-5 xl:grid-cols-2">
+              <section class="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800/60" data-views-collapse-section="departments">
+                <button type="button" class="flex w-full items-center justify-between gap-3 text-left" data-views-collapse-toggle="departments" aria-expanded="true">
+                  <span>
+                    <span class="block font-semibold">Department views</span>
+                    <span class="mt-0.5 block text-xs text-slate-500 dark:text-slate-400">{{ department_load|length }} saved slices</span>
+                  </span>
+                  <span class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-lg font-semibold leading-none text-slate-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200" data-views-collapse-icon="departments">-</span>
+                </button>
+                <div class="mt-4 divide-y divide-slate-200 overflow-hidden rounded-lg border border-slate-200 bg-white dark:divide-slate-700 dark:border-slate-700 dark:bg-slate-900" data-views-collapse-panel="departments">
+                  {% for department in department_load %}
+                    <button type="button" data-saved-view data-saved-view-name="{{ department.name }}" data-saved-department="{{ department.id if department.id else '__none__' }}" data-saved-hide-done="1" class="grid w-full grid-cols-[minmax(0,1fr)_4.5rem_4.5rem_auto] items-center gap-3 px-3 py-2 text-left text-sm hover:bg-slate-50 dark:hover:bg-slate-800">
+                      <span class="truncate font-medium">{{ department.name }}</span>
+                      <span class="text-right text-slate-500 dark:text-slate-400">{{ department.open }} open</span>
+                      <span class="text-right {% if department.overdue %}font-semibold text-red-700 dark:text-red-300{% else %}text-slate-500 dark:text-slate-400{% endif %}">{{ department.overdue }} late</span>
+                      <span class="rounded-md border border-slate-200 px-2 py-1 text-xs font-medium text-slate-600 dark:border-slate-700 dark:text-slate-300">View</span>
+                    </button>
+                  {% else %}
+                    <p class="p-3 text-sm text-slate-500 dark:text-slate-400">No departments yet.</p>
+                  {% endfor %}
+                </div>
+              </section>
+
+              <section class="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800/60" data-views-collapse-section="people">
+                <button type="button" class="flex w-full items-center justify-between gap-3 text-left" data-views-collapse-toggle="people" aria-expanded="true">
+                  <span>
+                    <span class="block font-semibold">Person views</span>
+                    <span class="mt-0.5 block text-xs text-slate-500 dark:text-slate-400">{{ owner_load|length }} saved slices</span>
+                  </span>
+                  <span class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-lg font-semibold leading-none text-slate-600 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200" data-views-collapse-icon="people">-</span>
+                </button>
+                <div class="mt-4 divide-y divide-slate-200 overflow-hidden rounded-lg border border-slate-200 bg-white dark:divide-slate-700 dark:border-slate-700 dark:bg-slate-900" data-views-collapse-panel="people">
+                  {% for owner in owner_load %}
+                    <button type="button" data-saved-view data-saved-view-name="{{ owner.name }}" data-saved-person="{{ owner.id if owner.id else '' }}" data-saved-hide-done="1" class="grid w-full grid-cols-[minmax(0,1fr)_4.5rem_4.5rem_auto] items-center gap-3 px-3 py-2 text-left text-sm hover:bg-slate-50 dark:hover:bg-slate-800">
+                      <span class="truncate font-medium">{{ owner.name }}</span>
+                      <span class="text-right text-slate-500 dark:text-slate-400">{{ owner.open }} open</span>
+                      <span class="text-right {% if owner.overdue %}font-semibold text-red-700 dark:text-red-300{% else %}text-slate-500 dark:text-slate-400{% endif %}">{{ owner.overdue }} late</span>
+                      <span class="rounded-md border border-slate-200 px-2 py-1 text-xs font-medium text-slate-600 dark:border-slate-700 dark:text-slate-300">View</span>
+                    </button>
+                  {% else %}
+                    <p class="p-3 text-sm text-slate-500 dark:text-slate-400">No owner assignments yet.</p>
+                  {% endfor %}
+                </div>
+              </section>
+            </div>
+
+            <section class="overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700">
+              <div class="flex flex-col gap-1 border-b border-slate-200 bg-slate-50 px-4 py-3 dark:border-slate-700 dark:bg-slate-800/60 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h2 class="font-semibold">Compact task results</h2>
+                  <p class="text-sm text-slate-500 dark:text-slate-400"><span data-saved-view-current>All tasks</span></p>
+                </div>
+                <button type="button" data-pm-clear-filters class="w-fit rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800">Clear view</button>
+              </div>
+              <div class="overflow-x-auto">
+                <table class="w-full min-w-[980px] text-sm">
+                  <thead class="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500 dark:bg-slate-800 dark:text-slate-400">
+                    <tr>
+                      <th class="px-3 py-2">Task</th>
+                      <th class="px-3 py-2">Department</th>
+                      <th class="px-3 py-2">Owner</th>
+                      <th class="px-3 py-2">Status</th>
+                      <th class="px-3 py-2">Priority</th>
+                      <th class="px-3 py-2">Due</th>
+                      <th class="px-3 py-2">Progress</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-slate-200 dark:divide-slate-700">
+                    {% for task in task_cards %}
+                      <tr class="align-top" data-pm-task data-task-id="{{ task.id }}" data-query="{{ task.title|lower }} {{ task.owner_name|lower }} {{ task.supporter_summary|lower }} {{ task.description|lower }} {{ task.department_name|lower }}" data-status="{{ task.status }}" data-priority="{{ task.priority }}" data-percent="{{ task.percent_complete }}" data-department-id="{{ task.department_id or '' }}" data-owner-id="{{ task.owner_participant_id or '' }}" data-supporter-ids="{{ task.supporter_ids|join(',') }}" data-risk="{{ task.risk_level }}" data-overdue="{{ 1 if task.is_overdue else 0 }}" data-high-risk="{{ 1 if task.risk_level in ['critical', 'high'] else 0 }}">
+                        <td class="px-3 py-2">
+                          <a href="/projects/{{ project.id }}/tasks/{{ task.id }}" class="font-medium text-slate-900 hover:underline dark:text-slate-100">{{ task.title }}</a>
+                          {% if task.supporter_summary %}<div class="text-xs text-slate-500 dark:text-slate-400">Supports: {{ task.supporter_summary }}</div>{% endif %}
+                        </td>
+                        <td class="px-3 py-2">{{ department_badge(task.department_name, task.department_color) }}</td>
+                        <td class="px-3 py-2 text-slate-700 dark:text-slate-300">{{ task.owner_name or "Unassigned" }}</td>
+                        <td class="px-3 py-2">{{ status_badge(task.status, task.status_label) }}</td>
+                        <td class="px-3 py-2">{{ priority_badge(task.priority, task.priority_label) }}</td>
+                        <td class="px-3 py-2 {% if task.is_overdue %}font-semibold text-red-700 dark:text-red-300{% endif %}">{{ task.due_date or "-" }}</td>
+                        <td class="px-3 py-2">
+                          <div class="flex items-center gap-2">
+                            <div class="h-2 w-20 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+                              <div class="h-full rounded-full bg-slate-900 dark:bg-slate-100" style="width: {{ task.percent_complete }}%"></div>
+                            </div>
+                            <span class="text-xs text-slate-500">{{ task.percent_complete }}%</span>
+                          </div>
+                        </td>
+                      </tr>
+                    {% else %}
+                      <tr><td colspan="7" class="px-3 py-6 text-center text-sm text-slate-500 dark:text-slate-400">No tasks yet.</td></tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          </div>
+
+        {% elif project_tab == 'list' %}
+          <div class="grid gap-5">
+            <div class="rounded-xl border border-slate-200 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-800/60" data-list-filters>
+              <div class="grid gap-2 md:grid-cols-2 xl:grid-cols-[minmax(16rem,1.4fr)_12rem_12rem_12rem_12rem_auto]">
+                <input data-pm-filter="query" type="search" placeholder="Search task, notes, owner, supporters" class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100" />
+                <select data-pm-filter="status" class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100">
+                  <option value="">All statuses</option>
+                  {% for value, label in project_task_status_options %}
+                    <option value="{{ value }}">{{ label }}</option>
+                  {% endfor %}
+                </select>
+                <select data-pm-filter="priority" class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100">
+                  <option value="">All priorities</option>
+                  {% for value, label in project_task_priority_options %}
+                    <option value="{{ value }}">{{ label }}</option>
+                  {% endfor %}
+                </select>
+                <select data-pm-filter="risk" class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100">
+                  <option value="">All risks</option>
+                  {% for value, label in project_task_risk_options %}
+                    <option value="{{ value }}">{{ label }}</option>
+                  {% endfor %}
+                </select>
+                <select data-pm-filter="completion" class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100">
+                  <option value="">All progress</option>
+                  <option value="not_started">Not started</option>
+                  <option value="started">Started</option>
+                  <option value="complete">Complete</option>
+                </select>
+                <button type="button" data-pm-clear-filters class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800">Clear</button>
+              </div>
+            </div>
+            <div class="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700">
+              <table class="w-full min-w-[1180px] text-sm">
+                <thead class="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500 dark:bg-slate-800 dark:text-slate-400">
+                  <tr>
+                    <th class="px-3 py-2">Task</th>
+                    <th class="px-3 py-2">Department</th>
+                    <th class="px-3 py-2">Owner</th>
+                    <th class="px-3 py-2">Supporters</th>
+                    <th class="px-3 py-2">Status</th>
+                    <th class="px-3 py-2">Priority</th>
+                    <th class="px-3 py-2">Due</th>
+                    <th class="px-3 py-2">Progress</th>
+                    <th class="px-3 py-2">Risk</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-200 dark:divide-slate-700">
+                  {% for task in task_cards %}
+                    <tr class="align-top" data-pm-task data-task-id="{{ task.id }}" data-query="{{ task.title|lower }} {{ task.owner_name|lower }} {{ task.supporter_summary|lower }} {{ task.description|lower }} {{ task.department_name|lower }}" data-status="{{ task.status }}" data-priority="{{ task.priority }}" data-percent="{{ task.percent_complete }}" data-department-id="{{ task.department_id or '' }}" data-owner-id="{{ task.owner_participant_id or '' }}" data-supporter-ids="{{ task.supporter_ids|join(',') }}" data-risk="{{ task.risk_level }}" data-overdue="{{ 1 if task.is_overdue else 0 }}" data-high-risk="{{ 1 if task.risk_level in ['critical', 'high'] else 0 }}">
+                      <td class="px-3 py-3">
+                        <div class="font-medium">{{ task.title }}</div>
+                        {% if task.description %}<div class="mt-1 max-w-md text-xs text-slate-500 dark:text-slate-400"><span class="font-medium">Notes:</span> {{ task.description }}</div>{% endif %}
+                        {% if can_manage_projects %}
+                          <button type="button" class="mt-2 inline-flex items-center rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-sm hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800" data-task-edit-toggle="{{ task.id }}" aria-expanded="false">Edit task</button>
+                        {% endif %}
+                      </td>
+                      <td class="px-3 py-3">{{ department_badge(task.department_name, task.department_color) }}</td>
+                      <td class="px-3 py-3 text-slate-700 dark:text-slate-300">{{ task.owner_name or "Unassigned" }}</td>
+                      <td class="px-3 py-3 text-slate-700 dark:text-slate-300">{{ task.supporter_summary or "-" }}</td>
+                      <td class="px-3 py-3">{{ status_badge(task.status, task.status_label) }}</td>
+                      <td class="px-3 py-3">{{ priority_badge(task.priority, task.priority_label) }}</td>
+                      <td class="px-3 py-3 {% if task.is_overdue %}font-semibold text-red-700 dark:text-red-300{% endif %}">{{ task.due_date or "-" }}</td>
+                      <td class="px-3 py-3">
+                        <div class="flex items-center gap-2">
+                          <div class="h-2 w-24 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+                            <div class="h-full rounded-full bg-slate-900 dark:bg-slate-100" style="width: {{ task.percent_complete }}%"></div>
+                          </div>
+                          <span class="text-xs text-slate-500">{{ task.percent_complete }}%</span>
+                        </div>
+                      </td>
+                      <td class="px-3 py-3 capitalize">{{ task.risk_label }}</td>
+                    </tr>
+                    {% if can_manage_projects %}
+                      <tr class="hidden bg-slate-50/80 dark:bg-slate-900/70" data-task-edit-row="{{ task.id }}">
+                        <td class="px-3 py-4" colspan="9">
+                          <div class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-950">
+                            <div class="mb-3 flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                              <div>
+                                <div class="text-sm font-semibold">Edit task</div>
+                                <div class="text-xs text-slate-500 dark:text-slate-400">{{ task.title }}</div>
+                              </div>
+                              <button type="button" class="self-start rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800" data-task-edit-close="{{ task.id }}">Close</button>
+                            </div>
+                            {{ task_form(task, project, member_cards, department_cards, project_task_status_options, project_task_priority_options, project_task_risk_options, 'list') }}
+                          </div>
+                        </td>
+                      </tr>
+                    {% endif %}
+                  {% else %}
+                    <tr><td class="px-3 py-4 text-slate-500 dark:text-slate-400" colspan="9">No tasks yet. Create the first one.</td></tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        {% elif project_tab == 'timeline' %}
+          <div class="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800/60" data-gantt-root>
+            <div class="flex flex-col gap-3 xl:flex-row xl:items-start xl:justify-between">
+              <div>
+                <h2 class="font-semibold">Gantt timeline</h2>
+                <p class="text-xs text-slate-500 dark:text-slate-400">{{ timeline_start }} to {{ timeline_end }} grouped by department</p>
+                {% if gantt_is_capped %}
+                  <p class="mt-1 text-xs text-amber-700 dark:text-amber-300">Showing the first 6 months. Later dated tasks are hidden until the project window moves forward.</p>
+                {% endif %}
+              </div>
+              <div class="grid gap-2 md:grid-cols-2 xl:grid-cols-4">
+                <input data-gantt-filter="query" type="search" placeholder="Search tasks" class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100" />
+                <select data-gantt-filter="department" class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100">
+                  <option value="">All departments</option>
+                  <option value="__none__">Cross-functional</option>
+                  {% for department in department_cards %}
+                    <option value="{{ department.id }}">{{ department.name }}</option>
+                  {% endfor %}
+                </select>
+                <select data-gantt-filter="person" class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100">
+                  <option value="">All people</option>
+                  {% for member in member_cards %}
+                    <option value="{{ member.id }}">{{ member.display_name }}</option>
+                  {% endfor %}
+                </select>
+                <select data-gantt-filter="window" class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100">
+                  <option value="">All dates</option>
+                  <option value="overdue">Overdue</option>
+                  <option value="30">Next 30 days</option>
+                  <option value="dependencies">Has dependencies</option>
+                  <option value="blocked">Stuck</option>
+                </select>
+                <select data-gantt-filter="status" class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100">
+                  <option value="">All statuses</option>
+                  {% for value, label in project_task_status_options %}
+                    <option value="{{ value }}">{{ label }}</option>
+                  {% endfor %}
+                </select>
+                <select data-gantt-filter="priority" class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100">
+                  <option value="">All priorities</option>
+                  {% for value, label in project_task_priority_options %}
+                    <option value="{{ value }}">{{ label }}</option>
+                  {% endfor %}
+                </select>
+                <select data-gantt-filter="risk" class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100">
+                  <option value="">All risks</option>
+                  {% for value, label in project_task_risk_options %}
+                    <option value="{{ value }}">{{ label }}</option>
+                  {% endfor %}
+                </select>
+                <label class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900" style="background: var(--pm-button-subtle-bg); border-color: var(--pm-border); color: var(--pm-button-subtle-text);">
+                  <input type="checkbox" data-gantt-filter="hideDone" class="h-4 w-4 rounded border-slate-300" />
+                  <span>Hide done</span>
+                </label>
+              </div>
+            </div>
+
+            <div class="mt-5 overflow-x-auto rounded-xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900">
+              <div data-gantt-grid-frame style="--gantt-label-width: 21rem; --gantt-column-width: 3.5rem; --gantt-columns: {{ gantt_business_days|length }}; --gantt-chart-width: calc(var(--gantt-columns) * var(--gantt-column-width)); --gantt-template: var(--gantt-label-width) var(--gantt-chart-width); {% if gantt_today_grid_start %}--gantt-today-start: {{ gantt_today_grid_start }};{% endif %} width: calc(var(--gantt-label-width) + var(--gantt-chart-width)); min-width: calc(var(--gantt-label-width) + var(--gantt-chart-width));">
+                <div class="gantt-layout sticky top-0 z-10 grid border-b border-slate-200 bg-white text-xs font-medium text-slate-500 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400" style="background: var(--pm-panel-bg-strong); border-color: var(--pm-border); color: var(--pm-muted);">
+                  <div class="border-r border-slate-200 px-4 py-3 dark:border-slate-700" style="background: var(--pm-panel-bg-strong); border-color: var(--pm-border);">Department / Task</div>
+                  <div class="gantt-chart-cell py-2">
+                    <div class="gantt-track grid overflow-hidden rounded-t-lg border border-blue-950 bg-blue-900 text-center text-white shadow-sm dark:border-blue-800 dark:bg-blue-950" style="background: var(--pm-gantt-week-bg); border-color: var(--pm-gantt-week-border); color: var(--pm-text);">
+                      {% for week in gantt_weeks %}
+                        <div class="border-r border-blue-950/70 px-2 py-3 text-sm font-semibold uppercase tracking-wide dark:border-blue-800" style="grid-column: {{ week.start }} / span {{ week.span }}; border-color: var(--pm-gantt-week-border);">{{ week.label }}</div>
+                      {% endfor %}
+                    </div>
+                    <div class="gantt-track grid overflow-hidden rounded-b-lg border-x border-b border-slate-300 bg-sky-50 text-center text-slate-900 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100" style="background: var(--pm-gantt-day-bg); border-color: var(--pm-border); color: var(--pm-gantt-day-text);">
+                      {% for day in gantt_business_days %}
+                        <div class="border-r border-slate-300 px-1 py-1.5 {% if day.is_today %}bg-rose-100 text-rose-800 dark:bg-rose-950/40 dark:text-rose-200{% endif %} dark:border-slate-800" style="border-color: var(--pm-gantt-grid-line); {% if day.is_today %}background: linear-gradient(90deg, transparent 0, transparent calc(50% - 1px), var(--pm-today-line) calc(50% - 1px), var(--pm-today-line) calc(50% + 1px), transparent calc(50% + 1px)), var(--pm-today-bg); color: var(--pm-text);{% endif %}">
+                          <div class="text-[0.65rem] uppercase tracking-wide text-slate-500 dark:text-slate-400">{{ day.label }}</div>
+                          <div class="text-sm font-bold">{{ day.date_short }}</div>
+                        </div>
+                      {% endfor %}
+                    </div>
+                  </div>
+                </div>
+
+                <div class="gantt-body relative divide-y divide-slate-200 dark:divide-slate-700">
+                  {% if gantt_today_grid_start %}
+                    <div class="gantt-today-overlay" aria-hidden="true"></div>
+                  {% endif %}
+                  {% for group in gantt_departments %}
+                    <section data-gantt-group data-department-id="{{ group.id or '' }}" data-group-key="{{ group.key }}" data-default-collapsed="{{ 1 if group.collapsed_default else 0 }}">
+                      <button type="button" class="gantt-layout grid w-full bg-slate-50 text-left transition hover:bg-slate-100 dark:bg-slate-800/70 dark:hover:bg-slate-800" data-gantt-group-toggle>
+                        <div class="border-r border-slate-200 px-4 py-3 dark:border-slate-700">
+                          <div class="flex items-center justify-between gap-3">
+                            <div class="min-w-0">
+                              <div class="flex items-center gap-2">
+                                <span class="gantt-caret" aria-hidden="true"></span>
+                                {{ department_badge(group.name, group.color) }}
+                              </div>
+                              <div class="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                                {{ group.open }} open / {{ group.done }} done{% if group.overdue %} / {{ group.overdue }} late{% endif %}{% if group.blocked %} / {{ group.blocked }} stuck{% endif %}
+                              </div>
+                            </div>
+                            <div class="shrink-0 text-right">
+                              <div class="text-lg font-semibold">{{ group.avg_completion }}%</div>
+                              <div class="text-[0.65rem] uppercase tracking-wide text-slate-500 dark:text-slate-400">Complete</div>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="gantt-chart-cell py-3">
+                          <div class="gantt-track grid rounded-lg border border-slate-200 bg-emerald-50/70 dark:border-slate-700 dark:bg-slate-950" style="background: var(--pm-gantt-grid-bg); border-color: var(--pm-gantt-grid-line);">
+                            {% for day in gantt_business_days %}
+                              <div class="min-h-9 border-r border-slate-300/80 dark:border-slate-700/70" style="border-color: var(--pm-gantt-grid-line); {% if day.is_today %}background: linear-gradient(90deg, transparent 0, transparent calc(50% - 1px), var(--pm-today-line) calc(50% - 1px), var(--pm-today-line) calc(50% + 1px), transparent calc(50% + 1px)), var(--pm-today-bg);{% endif %}"></div>
+                            {% endfor %}
+                          </div>
+                          {% if group.gantt_days %}
+                            <div class="gantt-track -mt-9 grid h-9 items-center">
+                              <div class="relative z-10 h-5 overflow-hidden rounded-sm bg-blue-700/85 dark:bg-blue-300/80" style="grid-column: {{ group.gantt_grid_start }} / span {{ group.gantt_grid_span }}; grid-row: 1; background: var(--pm-gantt-rollup);">
+                                <div class="h-full bg-cyan-300" style="width: {{ group.avg_completion }}%; background: var(--pm-gantt-rollup-progress);"></div>
+                              </div>
+                            </div>
+                          {% else %}
+                            <div class="relative flex h-9 items-center text-xs text-slate-500 dark:text-slate-400">No dated tasks</div>
+                          {% endif %}
+                        </div>
+                      </button>
+
+                      <div data-gantt-group-body>
+                        {% for task in group.tasks %}
+                          <div class="gantt-layout grid bg-white dark:bg-slate-900" data-gantt-task data-pm-task data-query="{{ task.title|lower }} {{ task.owner_name|lower }} {{ task.supporter_summary|lower }} {{ task.description|lower }}" data-status="{{ task.status }}" data-priority="{{ task.priority }}" data-risk="{{ task.risk_level }}" data-department-id="{{ task.department_id or '' }}" data-owner-id="{{ task.owner_participant_id or '' }}" data-supporter-ids="{{ task.supporter_ids|join(',') }}" data-overdue="{{ 1 if task.is_overdue else 0 }}" data-high-risk="{{ 1 if task.risk_level in ['critical', 'high'] else 0 }}" data-has-dependency="{{ 1 if task.dependency_note else 0 }}" data-due-offset="{{ task.due_offset if task.due_offset is not none else '' }}">
+                            <div class="border-r border-slate-200 px-4 py-3 dark:border-slate-700">
+                              <a href="/projects/{{ project.id }}/tasks/{{ task.id }}" class="block truncate text-sm font-semibold text-slate-900 hover:underline dark:text-slate-100">{{ task.title }}</a>
+                              <div class="mt-1 flex flex-wrap gap-1">{{ status_badge(task.status, task.status_label) }} {{ priority_badge(task.priority, task.priority_label) }}</div>
+                              <div class="mt-1 text-xs text-slate-500 dark:text-slate-400">{{ task.owner_name or "Unassigned" }}{% if task.supporter_summary %} / {{ task.supporter_summary }}{% endif %}</div>
+                            </div>
+                            <div class="gantt-chart-cell py-3">
+                              <div class="gantt-track grid border-y border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950/50" style="background: var(--pm-gantt-grid-bg); border-color: var(--pm-gantt-grid-line);">
+                                {% for day in gantt_business_days %}
+                                  <div class="min-h-12 border-r border-slate-200 dark:border-slate-800" style="border-color: var(--pm-gantt-grid-line); {% if day.is_today %}background: linear-gradient(90deg, transparent 0, transparent calc(50% - 1px), var(--pm-today-line) calc(50% - 1px), var(--pm-today-line) calc(50% + 1px), transparent calc(50% + 1px)), var(--pm-today-bg);{% endif %}"></div>
+                                {% endfor %}
+                              </div>
+                              <div class="gantt-track -mt-12 grid h-12 items-center">
+                                <div class="relative z-10 h-6 overflow-hidden rounded-sm shadow-sm {% if task.status == 'blocked' %}bg-red-500{% elif task.status == 'done' %}bg-emerald-500{% else %}bg-blue-600{% endif %}" style="grid-column: {{ task.gantt_grid_start }} / span {{ task.gantt_grid_span }}; grid-row: 1;">
+                                  <div class="h-full bg-white/35" style="width: {{ task.percent_complete }}%"></div>
+                                  <span class="absolute inset-0 flex items-center truncate px-2 text-xs font-medium text-white">{{ task.percent_complete }}%</span>
+                                </div>
+                              </div>
+                              <div class="flex justify-between text-[0.65rem] text-slate-500 dark:text-slate-400">
+                                <span>{{ task.timeline_start_label }}</span>
+                                <span>{{ task.gantt_days }} day{{ '' if task.gantt_days == 1 else 's' }}</span>
+                                <span>{{ task.timeline_end_label }}</span>
+                              </div>
+                              {% if task.dependency_note %}<div class="mt-1 truncate text-xs text-slate-500 dark:text-slate-400">Depends on: {{ task.dependency_note }}</div>{% endif %}
+                            </div>
+                          </div>
+                        {% else %}
+                          <div class="gantt-layout grid bg-white dark:bg-slate-900">
+                            <div class="border-r border-slate-200 px-4 py-3 text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400">No dated tasks in this department.</div>
+                            <div></div>
+                          </div>
+                        {% endfor %}
+                      </div>
+                    </section>
+                  {% else %}
+                    <p class="p-6 text-sm text-slate-500 dark:text-slate-400">Timeline appears after tasks have dates.</p>
+                  {% endfor %}
+                </div>
+              </div>
+            </div>
+          </div>
+
+        {% elif project_tab == 'people' %}
+          <div class="grid gap-5 xl:grid-cols-[minmax(0,1fr)_24rem]">
+            <div class="space-y-3">
+              {% for member in member_cards %}
+                {% set counts = namespace(owned=0, supported=0) %}
+                {% for task in task_cards %}
+                  {% if task.status != 'done' and task.owner_participant_id == member.id %}{% set counts.owned = counts.owned + 1 %}{% endif %}
+                  {% if task.status != 'done' and member.id in task.supporter_ids %}{% set counts.supported = counts.supported + 1 %}{% endif %}
+                {% endfor %}
+                <div class="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800/60">
+                  <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <div class="font-semibold">{{ member.display_name }}</div>
+                      <div class="text-sm text-slate-500 dark:text-slate-400">{{ counts.owned }} owned / {{ counts.supported }} supporting</div>
+                    </div>
+                  </div>
+                </div>
+              {% else %}
+                <p class="text-sm text-slate-500 dark:text-slate-400">No people are assigned yet.</p>
+              {% endfor %}
+            </div>
+            {% if can_manage_projects %}
+              <div class="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-700 dark:bg-slate-800/60">
+                <h2 class="font-semibold">Add people to project</h2>
+                <form class="mt-4 flex flex-col gap-3" action="/projects/{{ project.id }}/participants" method="post">
+                  <input name="display_name" maxlength="200" required placeholder="Type their name" class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-950 dark:text-slate-100" />
+                  <button class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white" type="submit">Add person</button>
+                </form>
+              </div>
+            {% endif %}
+          </div>
+
+        {% elif project_tab == 'manager' %}
+          <div class="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,24rem)_minmax(0,1fr)]">
+            <div class="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-600 dark:bg-slate-800/50">
+              <div class="text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-400">Project settings</div>
+              <form class="mt-4 flex flex-col gap-4" action="/projects/{{ project.id }}/details" method="post">
+                <input name="name" maxlength="200" required value="{{ project.name }}" class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-950 dark:text-slate-100" />
+                <input name="client_name" maxlength="200" value="{{ project.client_name or '' }}" placeholder="Client / Internal Department" class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-950 dark:text-slate-100" />
+                <select name="status" class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-950 dark:text-slate-100">
+                  {% for value, label in project_status_options %}
+                    <option value="{{ value }}" {% if (project.status or 'planning') == value %}selected{% endif %}>{{ label }}</option>
+                  {% endfor %}
+                </select>
+                <textarea name="description" rows="7" maxlength="4000" class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-950 dark:text-slate-100">{{ project.notes or '' }}</textarea>
+                <button class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white" type="submit">Save project details</button>
+              </form>
+            </div>
+            <div class="space-y-6">
+              <div class="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-600 dark:bg-slate-800/50">
+                <h2 class="font-semibold">Departments</h2>
+                <form class="mt-4 grid gap-3 md:grid-cols-[minmax(0,1fr)_10rem_auto]" action="/projects/{{ project.id }}/departments" method="post">
+                  <input name="name" maxlength="160" required placeholder="Example: Operations" class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-950 dark:text-slate-100" />
+                  <select name="color" class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-950 dark:text-slate-100">
+                    {% for color in project_department_colors %}
+                      <option value="{{ color }}">{{ color|title }}</option>
+                    {% endfor %}
+                  </select>
+                  <button class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white" type="submit">Add</button>
+                </form>
+                <div class="mt-4 grid gap-2 sm:grid-cols-2">
+                  {% for department in department_cards %}
+                    <div class="flex items-center justify-between gap-2 rounded-lg border border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-900">
+                      {{ department_badge(department.name, department.color) }}
+                      <form method="post" action="/projects/{{ project.id }}/departments/{{ department.id }}/delete">
+                        <button type="submit" class="rounded-lg border border-red-200 bg-white px-2.5 py-1.5 text-xs font-medium text-red-800 hover:bg-red-50 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-300">Remove</button>
+                      </form>
+                    </div>
+                  {% else %}
+                    <p class="text-sm text-slate-500 dark:text-slate-400">No departments yet.</p>
+                  {% endfor %}
+                </div>
+              </div>
+              <div class="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-600 dark:bg-slate-800/50">
+                <h2 class="font-semibold">Assigned people</h2>
+                <div class="mt-4 space-y-3">
+                  {% for member in member_cards %}
+                    <div class="flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-900">
+                      <span class="font-medium">{{ member.display_name }}</span>
+                      <form method="post" action="/projects/{{ project.id }}/participants/{{ member.id }}/remove">
+                        <button type="submit" class="rounded-lg border border-red-200 bg-white px-3 py-2 text-sm font-medium text-red-800 hover:bg-red-50 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-300">Remove</button>
+                      </form>
+                    </div>
+                  {% else %}
+                    <p class="text-sm text-slate-500 dark:text-slate-400">No people yet.</p>
+                  {% endfor %}
+                </div>
+              </div>
+            </div>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  {% if can_manage_projects and project_tab == 'board' %}
+    <div id="project-task-modal" class="fixed inset-0 z-[80] hidden" role="dialog" aria-modal="true" aria-labelledby="project-task-modal-title">
+      <div class="absolute inset-0 bg-slate-950/60 backdrop-blur-sm" data-close-task-modal></div>
+      <div class="relative flex min-h-full items-center justify-center p-3 sm:p-6">
+        <div class="flex max-h-[calc(100vh-2rem)] w-full max-w-6xl flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl dark:border-slate-700 dark:bg-slate-900">
+          <div class="flex items-center justify-between gap-4 border-b border-slate-200 px-5 py-4 dark:border-slate-700">
+            <div>
+              <h2 id="project-task-modal-title" class="text-lg font-semibold">Create task</h2>
+              <p class="text-sm text-slate-500 dark:text-slate-400">{{ project.name }}</p>
+            </div>
+            <button type="button" data-close-task-modal class="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-300 dark:hover:bg-slate-800" title="Close" aria-label="Close">
+              <svg class="h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          <div class="overflow-y-auto p-5">
+            {{ task_form(None, project, member_cards, department_cards, project_task_status_options, project_task_priority_options, project_task_risk_options, 'board') }}
+          </div>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+  <script>
+    (function () {
+      function bindProjectTabLinks(root) {
+        root.querySelectorAll("[data-project-tab-link]").forEach(function (link) {
+          if (link.dataset.projectTabBound === "1") return;
+          link.dataset.projectTabBound = "1";
+          link.addEventListener("click", function (event) {
+            if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || link.target === "_blank") return;
+            var url = new URL(link.href, window.location.href);
+            if (url.origin !== window.location.origin) return;
+            event.preventDefault();
+            loadProjectTab(url.href, true);
+          });
+        });
+      }
+
+      function loadProjectTab(url, pushHistory) {
+        var workspace = document.querySelector("[data-project-workspace]");
+        if (!workspace) {
+          window.location.href = url;
+          return;
+        }
+        workspace.classList.add("project-tab-loading");
+        fetch(url, {
+          credentials: "same-origin",
+          headers: { "X-Project-Tab": "1" }
+        }).then(function (response) {
+          if (!response.ok) throw new Error("Tab load failed");
+          return response.text();
+        }).then(function (html) {
+          var doc = new DOMParser().parseFromString(html, "text/html");
+          var nextWorkspace = doc.querySelector("[data-project-workspace]");
+          if (!nextWorkspace) throw new Error("Missing project workspace");
+          workspace.innerHTML = nextWorkspace.innerHTML;
+          var currentModal = document.getElementById("project-task-modal");
+          var nextModal = doc.getElementById("project-task-modal");
+          if (currentModal && nextModal) {
+            currentModal.replaceWith(nextModal);
+          } else if (currentModal && !nextModal) {
+            currentModal.remove();
+          } else if (!currentModal && nextModal) {
+            document.body.appendChild(nextModal);
+          }
+          document.title = doc.title || document.title;
+          if (pushHistory) window.history.pushState({ projectTab: true }, "", url);
+          window.initProjectPageInteractions(workspace);
+          requestAnimationFrame(function () {
+            workspace.classList.remove("project-tab-loading");
+          });
+        }).catch(function () {
+          window.location.href = url;
+        });
+      }
+
+      function initProjectPageInteractions(root) {
+        root = root || document;
+        bindProjectTabLinks(root);
+
+        var modal = document.getElementById("project-task-modal");
+        function openTaskModal() {
+          if (!modal) return;
+          modal.classList.remove("hidden");
+          document.documentElement.classList.add("overflow-hidden");
+          var titleInput = modal.querySelector('input[name="title"]');
+          if (titleInput) {
+            window.setTimeout(function () {
+              titleInput.focus();
+            }, 40);
+          }
+        }
+        function closeTaskModal() {
+          if (!modal) return;
+          modal.classList.add("hidden");
+          document.documentElement.classList.remove("overflow-hidden");
+        }
+        root.querySelectorAll("[data-open-task-modal]").forEach(function (button) {
+          if (button.dataset.taskModalBound === "1") return;
+          button.dataset.taskModalBound = "1";
+          button.addEventListener("click", openTaskModal);
+        });
+        if (modal && modal.dataset.taskModalBound !== "1") {
+          modal.dataset.taskModalBound = "1";
+          modal.querySelectorAll("[data-close-task-modal]").forEach(function (button) {
+            button.addEventListener("click", closeTaskModal);
+          });
+        }
+        if (!window.projectTaskModalEscapeBound) {
+          window.projectTaskModalEscapeBound = true;
+          document.addEventListener("keydown", function (event) {
+            var activeModal = document.getElementById("project-task-modal");
+            if (event.key === "Escape" && activeModal && !activeModal.classList.contains("hidden")) {
+              activeModal.classList.add("hidden");
+              document.documentElement.classList.remove("overflow-hidden");
+            }
+          });
+        }
+
+        var compactStorageKey = "projectWorkspaceCompact";
+        var workspaceRoot = (root.closest ? root.closest("[data-project-workspace]") : null) || root.querySelector("[data-project-workspace]") || document.querySelector("[data-project-workspace]");
+        var toggles = {};
+        var filterInputs = {};
+        root.querySelectorAll("[data-pm-toggle]").forEach(function (input) {
+          toggles[input.getAttribute("data-pm-toggle")] = input;
+        });
+        root.querySelectorAll("[data-pm-filter]").forEach(function (input) {
+          filterInputs[input.getAttribute("data-pm-filter")] = input;
+        });
+        if (toggles.compact) {
+          try {
+            toggles.compact.checked = localStorage.getItem(compactStorageKey) === "1";
+          } catch (e) {}
+        }
+        function enabled(name) {
+          return Boolean(toggles[name] && toggles[name].checked);
+        }
+        function applyCompactMode() {
+          var compact = enabled("compact");
+          if (workspaceRoot) workspaceRoot.classList.toggle("pm-compact", compact);
+          try {
+            localStorage.setItem(compactStorageKey, compact ? "1" : "0");
+          } catch (e) {}
+        }
+        function applyFilters() {
+          var compact = enabled("compact");
+          root.querySelectorAll("[data-pm-task]").forEach(function (item) {
+            var hide = false;
+            if (enabled("hideDone") && item.getAttribute("data-status") === "done") hide = true;
+            if (enabled("onlyOverdue") && item.getAttribute("data-overdue") !== "1") hide = true;
+            if (enabled("onlyHighRisk") && item.getAttribute("data-high-risk") !== "1") hide = true;
+            var queryValue = filterInputs.query ? filterInputs.query.value.trim().toLowerCase() : "";
+            if (queryValue && (item.getAttribute("data-query") || "").indexOf(queryValue) === -1) hide = true;
+            var statusValue = filterInputs.status ? filterInputs.status.value : "";
+            if (statusValue && item.getAttribute("data-status") !== statusValue) hide = true;
+            var priorityValue = filterInputs.priority ? filterInputs.priority.value : "";
+            if (priorityValue && item.getAttribute("data-priority") !== priorityValue) hide = true;
+            var riskValue = filterInputs.risk ? filterInputs.risk.value : "";
+            if (riskValue && item.getAttribute("data-risk") !== riskValue) hide = true;
+            var completionValue = filterInputs.completion ? filterInputs.completion.value : "";
+            if (completionValue) {
+              var percentComplete = parseInt(item.getAttribute("data-percent") || "0", 10);
+              if (Number.isNaN(percentComplete)) percentComplete = 0;
+              if (completionValue === "not_started" && percentComplete !== 0) hide = true;
+              if (completionValue === "started" && (percentComplete <= 0 || percentComplete >= 100)) hide = true;
+              if (completionValue === "complete" && percentComplete !== 100) hide = true;
+            }
+            var departmentValue = filterInputs.department ? filterInputs.department.value : "";
+            if (departmentValue === "__none__" && item.getAttribute("data-department-id")) hide = true;
+            if (departmentValue && departmentValue !== "__none__" && item.getAttribute("data-department-id") !== departmentValue) hide = true;
+            var personValue = filterInputs.person ? filterInputs.person.value : "";
+            if (personValue) {
+              var supporterValues = (item.getAttribute("data-supporter-ids") || "").split(",").filter(Boolean);
+              if (item.getAttribute("data-owner-id") !== personValue && supporterValues.indexOf(personValue) === -1) hide = true;
+            }
+            item.classList.toggle("hidden", hide);
+            var taskId = item.getAttribute("data-task-id");
+            if (taskId) {
+              var editRow = root.querySelector('[data-task-edit-row="' + taskId + '"]');
+              var editButton = root.querySelector('[data-task-edit-toggle="' + taskId + '"]');
+              if (editRow && hide) {
+                editRow.dataset.editOpen = "0";
+                editRow.classList.add("hidden");
+                if (editButton) editButton.setAttribute("aria-expanded", "false");
+              } else if (editRow) {
+                editRow.classList.toggle("hidden", editRow.dataset.editOpen !== "1");
+              }
+            }
+            item.classList.toggle("py-2", compact && !hide);
+            item.classList.toggle("p-2", compact && !hide && item.tagName !== "TR");
+          });
+          applyCompactMode();
+        }
+        function setFilterValue(name, value) {
+          if (filterInputs[name]) filterInputs[name].value = value || "";
+        }
+        function setToggleValue(name, value) {
+          if (toggles[name]) toggles[name].checked = Boolean(value);
+        }
+        function resetTaskFilters() {
+          Object.keys(filterInputs).forEach(function (name) {
+            filterInputs[name].value = "";
+          });
+          ["hideDone", "onlyOverdue", "onlyHighRisk"].forEach(function (name) {
+            setToggleValue(name, false);
+          });
+        }
+        function setCurrentSavedView(label) {
+          root.querySelectorAll("[data-saved-view-current]").forEach(function (target) {
+            target.textContent = label || "All tasks";
+          });
+        }
+        Object.keys(toggles).forEach(function (name) {
+          toggles[name].addEventListener("change", applyFilters);
+        });
+        Object.keys(filterInputs).forEach(function (name) {
+          filterInputs[name].addEventListener("input", applyFilters);
+          filterInputs[name].addEventListener("change", applyFilters);
+        });
+        root.querySelectorAll("[data-pm-clear-filters]").forEach(function (button) {
+          button.addEventListener("click", function () {
+            resetTaskFilters();
+            setCurrentSavedView("All tasks");
+            applyFilters();
+          });
+        });
+        var viewsCollapseStorageKey = "projectViewsCollapsed:{{ project.id }}";
+        var viewsCollapsedState = {};
+        try {
+          viewsCollapsedState = JSON.parse(window.localStorage.getItem(viewsCollapseStorageKey) || "{}") || {};
+        } catch (error) {
+          viewsCollapsedState = {};
+        }
+        function setViewsCollapsedState(name, collapsed) {
+          root.querySelectorAll('[data-views-collapse-panel="' + name + '"]').forEach(function (panel) {
+            panel.classList.toggle("hidden", collapsed);
+          });
+          root.querySelectorAll('[data-views-collapse-toggle="' + name + '"]').forEach(function (toggle) {
+            toggle.setAttribute("aria-expanded", collapsed ? "false" : "true");
+          });
+          root.querySelectorAll('[data-views-collapse-icon="' + name + '"]').forEach(function (icon) {
+            icon.textContent = collapsed ? "+" : "-";
+          });
+          viewsCollapsedState[name] = collapsed;
+          try {
+            window.localStorage.setItem(viewsCollapseStorageKey, JSON.stringify(viewsCollapsedState));
+          } catch (error) {}
+        }
+        root.querySelectorAll("[data-views-collapse-section]").forEach(function (section) {
+          var name = section.getAttribute("data-views-collapse-section");
+          if (name) setViewsCollapsedState(name, Boolean(viewsCollapsedState[name]));
+        });
+        root.querySelectorAll("[data-views-collapse-toggle]").forEach(function (button) {
+          if (button.dataset.viewsCollapseBound === "1") return;
+          button.dataset.viewsCollapseBound = "1";
+          button.addEventListener("click", function () {
+            var name = button.getAttribute("data-views-collapse-toggle");
+            if (!name) return;
+            setViewsCollapsedState(name, !Boolean(viewsCollapsedState[name]));
+          });
+        });
+        root.querySelectorAll("[data-saved-view]").forEach(function (button) {
+          button.addEventListener("click", function () {
+            resetTaskFilters();
+            setFilterValue("department", button.getAttribute("data-saved-department") || "");
+            setFilterValue("person", button.getAttribute("data-saved-person") || "");
+            setToggleValue("hideDone", button.getAttribute("data-saved-hide-done") === "1");
+            setToggleValue("onlyOverdue", button.getAttribute("data-saved-overdue") === "1");
+            setToggleValue("onlyHighRisk", button.getAttribute("data-saved-high-risk") === "1");
+            setCurrentSavedView(button.getAttribute("data-saved-view-name") || "Saved view");
+            applyFilters();
+            var results = root.querySelector("[data-saved-views-root] table");
+            if (results && results.scrollIntoView) {
+              results.scrollIntoView({ behavior: "smooth", block: "start" });
+            }
+          });
+        });
+        root.querySelectorAll("[data-task-edit-toggle]").forEach(function (button) {
+          button.addEventListener("click", function () {
+            var taskId = button.getAttribute("data-task-edit-toggle");
+            var editRow = root.querySelector('[data-task-edit-row="' + taskId + '"]');
+            if (!editRow) return;
+            var shouldOpen = editRow.dataset.editOpen !== "1";
+            root.querySelectorAll("[data-task-edit-row]").forEach(function (row) {
+              row.dataset.editOpen = "0";
+              row.classList.add("hidden");
+            });
+            root.querySelectorAll("[data-task-edit-toggle]").forEach(function (toggle) {
+              toggle.setAttribute("aria-expanded", "false");
+            });
+            editRow.dataset.editOpen = shouldOpen ? "1" : "0";
+            editRow.classList.toggle("hidden", !shouldOpen);
+            button.setAttribute("aria-expanded", shouldOpen ? "true" : "false");
+          });
+        });
+        root.querySelectorAll("[data-task-edit-close]").forEach(function (button) {
+          button.addEventListener("click", function () {
+            var taskId = button.getAttribute("data-task-edit-close");
+            var editRow = root.querySelector('[data-task-edit-row="' + taskId + '"]');
+            var editButton = root.querySelector('[data-task-edit-toggle="' + taskId + '"]');
+            if (editRow) {
+              editRow.dataset.editOpen = "0";
+              editRow.classList.add("hidden");
+            }
+            if (editButton) editButton.setAttribute("aria-expanded", "false");
+          });
+        });
+        applyFilters();
+
+        var ganttRoot = root.querySelector("[data-gantt-root]");
+        if (ganttRoot) {
+          var ganttStorageKey = "projectGanttCollapsed:{{ project.id }}";
+          var collapsedMap = {};
+          try {
+            collapsedMap = JSON.parse(localStorage.getItem(ganttStorageKey) || "{}") || {};
+          } catch (e) {
+            collapsedMap = {};
+          }
+          function saveGanttCollapsed() {
+            try {
+              localStorage.setItem(ganttStorageKey, JSON.stringify(collapsedMap));
+            } catch (e) {}
+          }
+          function ganttValue(name) {
+            var input = ganttRoot.querySelector('[data-gantt-filter="' + name + '"]');
+            if (!input) return "";
+            if (input.type === "checkbox") return input.checked ? "1" : "";
+            return (input.value || "").trim();
+          }
+          function setGroupCollapsed(group, collapsed) {
+            var key = group.getAttribute("data-group-key") || "";
+            var body = group.querySelector("[data-gantt-group-body]");
+            var caret = group.querySelector(".gantt-caret");
+            var toggle = group.querySelector("[data-gantt-group-toggle]");
+            group.classList.toggle("gantt-collapsed", collapsed);
+            if (body) body.classList.toggle("hidden", collapsed);
+            if (caret) caret.classList.toggle("gantt-caret-collapsed", collapsed);
+            if (toggle) toggle.setAttribute("aria-expanded", collapsed ? "false" : "true");
+            if (key) collapsedMap[key] = collapsed;
+          }
+          function applyGanttFilters() {
+            var query = ganttValue("query").toLowerCase();
+            var departmentValue = ganttValue("department");
+            var personValue = ganttValue("person");
+            var statusValue = ganttValue("status");
+            var priorityValue = ganttValue("priority");
+            var riskValue = ganttValue("risk");
+            var windowValue = ganttValue("window");
+            var hideDone = Boolean(ganttValue("hideDone"));
+            ganttRoot.querySelectorAll("[data-gantt-group]").forEach(function (group) {
+              var visibleCount = 0;
+              var groupDepartment = group.getAttribute("data-department-id") || "";
+              group.querySelectorAll("[data-gantt-task]").forEach(function (task) {
+                var hide = false;
+                if (query && (task.getAttribute("data-query") || "").indexOf(query) === -1) hide = true;
+                if (departmentValue === "__none__" && task.getAttribute("data-department-id")) hide = true;
+                if (departmentValue && departmentValue !== "__none__" && task.getAttribute("data-department-id") !== departmentValue) hide = true;
+                if (personValue) {
+                  var supporterValues = (task.getAttribute("data-supporter-ids") || "").split(",").filter(Boolean);
+                  if (task.getAttribute("data-owner-id") !== personValue && supporterValues.indexOf(personValue) === -1) hide = true;
+                }
+                if (statusValue && task.getAttribute("data-status") !== statusValue) hide = true;
+                if (priorityValue && task.getAttribute("data-priority") !== priorityValue) hide = true;
+                if (riskValue && task.getAttribute("data-risk") !== riskValue) hide = true;
+                if (hideDone && task.getAttribute("data-status") === "done") hide = true;
+                if (windowValue === "overdue" && task.getAttribute("data-overdue") !== "1") hide = true;
+                if (windowValue === "dependencies" && task.getAttribute("data-has-dependency") !== "1") hide = true;
+                if (windowValue === "blocked" && task.getAttribute("data-status") !== "blocked") hide = true;
+                if (windowValue === "30") {
+                  var dueOffset = parseInt(task.getAttribute("data-due-offset") || "", 10);
+                  if (Number.isNaN(dueOffset) || dueOffset < 0 || dueOffset > 30) hide = true;
+                }
+                task.classList.toggle("hidden", hide);
+                if (!hide) visibleCount += 1;
+              });
+              var groupHidden = visibleCount === 0;
+              if (departmentValue === "__none__" && groupDepartment) groupHidden = true;
+              if (departmentValue && departmentValue !== "__none__" && groupDepartment !== departmentValue) groupHidden = true;
+              group.classList.toggle("hidden", groupHidden);
+            });
+          }
+          ganttRoot.querySelectorAll("[data-gantt-group]").forEach(function (group) {
+            var key = group.getAttribute("data-group-key") || "";
+            var defaultCollapsed = group.getAttribute("data-default-collapsed") === "1";
+            setGroupCollapsed(group, Object.prototype.hasOwnProperty.call(collapsedMap, key) ? Boolean(collapsedMap[key]) : defaultCollapsed);
+          });
+          ganttRoot.querySelectorAll("[data-gantt-group-toggle]").forEach(function (button) {
+            button.addEventListener("click", function () {
+              var group = button.closest("[data-gantt-group]");
+              if (!group) return;
+              setGroupCollapsed(group, !group.classList.contains("gantt-collapsed"));
+              saveGanttCollapsed();
+            });
+          });
+          ganttRoot.querySelectorAll("[data-gantt-filter]").forEach(function (input) {
+            input.addEventListener("input", applyGanttFilters);
+            input.addEventListener("change", applyGanttFilters);
+          });
+          applyGanttFilters();
+        }
+
+        var draggedCard = null;
+        var columnLists = Array.prototype.slice.call(root.querySelectorAll("[data-pm-column-list]"));
+        function taskIdsInColumn(list) {
+          return Array.prototype.slice.call(list.querySelectorAll("[data-pm-card]")).map(function (card) {
+            return parseInt(card.getAttribute("data-task-id"), 10);
+          }).filter(function (id) {
+            return !Number.isNaN(id);
+          });
+        }
+        function updateColumnCounts() {
+          columnLists.forEach(function (list) {
+            var status = list.getAttribute("data-pm-column-list");
+            var count = root.querySelector('[data-pm-column-count="' + status + '"]');
+            if (count) count.textContent = String(taskIdsInColumn(list).length);
+          });
+        }
+        function insertionTarget(container, y) {
+          var cards = Array.prototype.slice.call(container.querySelectorAll("[data-pm-card]:not(.pm-dragging)"));
+          return cards.reduce(function (closest, child) {
+            var box = child.getBoundingClientRect();
+            var offset = y - box.top - box.height / 2;
+            if (offset < 0 && offset > closest.offset) {
+              return { offset: offset, element: child };
+            }
+            return closest;
+          }, { offset: Number.NEGATIVE_INFINITY, element: null }).element;
+        }
+        function saveBoardMove(card, list) {
+          if (!card || !list) return;
+          var taskId = card.getAttribute("data-task-id");
+          var status = list.getAttribute("data-pm-column-list");
+          card.setAttribute("data-status", status);
+          var quickButton = card.querySelector("[data-pm-quick-status]");
+          if (quickButton) {
+            if (status === "done") {
+              quickButton.setAttribute("data-pm-quick-status", "in_progress");
+              quickButton.textContent = "Reopen";
+            } else {
+              quickButton.setAttribute("data-pm-quick-status", "done");
+              quickButton.textContent = "Done";
+            }
+          }
+          updateColumnCounts();
+          fetch("/projects/{{ project.id }}/tasks/" + taskId + "/move", {
+            method: "POST",
+            credentials: "same-origin",
+            headers: {
+              "Accept": "application/json",
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ status: status, ordered_ids: taskIdsInColumn(list) })
+          }).then(function (response) {
+            if (!response.ok) throw new Error("Move failed");
+            return response.json();
+          }).catch(function () {
+            window.location.reload();
+          });
+          applyFilters();
+        }
+        root.querySelectorAll("[data-pm-card]").forEach(function (card) {
+          card.addEventListener("dragstart", function () {
+            draggedCard = card;
+            card.classList.add("opacity-50", "pm-dragging");
+          });
+          card.addEventListener("dragend", function () {
+            card.classList.remove("opacity-50", "pm-dragging");
+            draggedCard = null;
+            columnLists.forEach(function (list) {
+              list.classList.remove("border-slate-300", "bg-slate-100", "dark:border-slate-600", "dark:bg-slate-900");
+            });
+          });
+        });
+        columnLists.forEach(function (list) {
+          list.addEventListener("dragover", function (event) {
+            if (!draggedCard) return;
+            event.preventDefault();
+            list.classList.add("border-slate-300", "bg-slate-100", "dark:border-slate-600", "dark:bg-slate-900");
+            var after = insertionTarget(list, event.clientY);
+            if (after == null) {
+              list.appendChild(draggedCard);
+            } else {
+              list.insertBefore(draggedCard, after);
+            }
+          });
+          list.addEventListener("drop", function (event) {
+            if (!draggedCard) return;
+            event.preventDefault();
+            saveBoardMove(draggedCard, list);
+          });
+        });
+        root.querySelectorAll("[data-pm-quick-status]").forEach(function (button) {
+          button.addEventListener("click", function () {
+            var card = button.closest("[data-pm-card]");
+            var status = button.getAttribute("data-pm-quick-status");
+            var list = root.querySelector('[data-pm-column-list="' + status + '"]');
+            if (!card || !list) return;
+            list.appendChild(card);
+            saveBoardMove(card, list);
+          });
+        });
+      }
+
+      window.initProjectPageInteractions = initProjectPageInteractions;
+      window.addEventListener("popstate", function () {
+        if (/\/projects\/\d+/.test(window.location.pathname)) {
+          loadProjectTab(window.location.href, false);
+        }
+      });
+      initProjectPageInteractions(document);
+    })();
+  </script>
+{% endblock %}
+

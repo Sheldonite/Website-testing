@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+{% block content %}
+  <div class="flex flex-col gap-6">
+    <div class="rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-700 dark:bg-slate-900">
+      <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h1 class="text-xl font-semibold">Project Management</h1>
+          <p class="text-sm text-slate-600 dark:text-slate-300">
+            Track project health, task progress, blockers, owners, deadlines, and planning notes in one workspace.
+          </p>
+        </div>
+        {% if created %}
+          <div class="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm text-emerald-900 dark:border-emerald-900/60 dark:bg-emerald-950/30 dark:text-emerald-200">
+            Project created.
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-6">
+      <div class="rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
+        <div class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Total projects</div>
+        <div class="mt-1 text-2xl font-semibold">{{ projects_count }}</div>
+      </div>
+      <div class="rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
+        <div class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Active projects</div>
+        <div class="mt-1 text-2xl font-semibold">{{ active_projects_count }}</div>
+      </div>
+      <div class="rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
+        <div class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Open tasks</div>
+        <div class="mt-1 text-2xl font-semibold">{{ portfolio_open_tasks }}</div>
+        <div class="mt-1 text-xs text-slate-500 dark:text-slate-400">{{ portfolio_total_tasks }} total</div>
+      </div>
+      <div class="rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
+        <div class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Stuck / overdue</div>
+        <div class="mt-1 text-2xl font-semibold {% if portfolio_blocked_tasks or portfolio_overdue_tasks %}text-red-700 dark:text-red-300{% endif %}">{{ portfolio_blocked_tasks }} / {{ portfolio_overdue_tasks }}</div>
+      </div>
+      <div class="rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
+        <div class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Avg completion</div>
+        <div class="mt-1 text-2xl font-semibold">{{ portfolio_avg_completion }}%</div>
+        <div class="mt-3 h-2 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+          <div class="h-full rounded-full bg-cyan-500" style="width: {{ portfolio_avg_completion }}%"></div>
+        </div>
+      </div>
+      <div class="rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
+        <div class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Latest project</div>
+        <div class="mt-1 text-sm text-slate-700 dark:text-slate-300">
+          {% if projects %}
+            {{ projects[0].name }}<br />
+            <span class="text-xs text-slate-500 dark:text-slate-400">{{ projects[0].created_at }}</span>
+          {% else %}
+            None yet
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 gap-6 {% if can_manage_projects %}xl:grid-cols-[minmax(0,24rem)_minmax(0,1fr)]{% endif %}">
+      {% if can_manage_projects %}
+      <div class="rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-700 dark:bg-slate-900">
+        <div class="flex flex-col gap-1">
+          <h2 class="text-lg font-semibold">Create New Project</h2>
+          <p class="text-sm text-slate-600 dark:text-slate-300">Start with a workspace, then add tasks, people, dates, and notes.</p>
+        </div>
+
+        <form class="mt-5 flex flex-col gap-4" action="/projects" method="post">
+          <div class="grid gap-2">
+            <label class="text-sm font-medium" for="project_name">Project name</label>
+            <input id="project_name" class="block w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100" type="text" name="name" maxlength="200" placeholder="Example: ATS Website Refresh" required />
+          </div>
+
+          <div class="grid gap-2">
+            <label class="text-sm font-medium" for="project_client_name">Client / Internal Department</label>
+            <input id="project_client_name" class="block w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100" type="text" name="client_name" maxlength="200" placeholder="Optional" />
+          </div>
+
+          <div class="grid gap-2">
+            <label class="text-sm font-medium" for="project_status">Status</label>
+            <select id="project_status" name="status" class="block w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100">
+              {% for value, label in project_status_options %}
+                <option value="{{ value }}" {% if value == 'planning' %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="grid gap-2">
+            <label class="text-sm font-medium" for="project_notes">Description</label>
+            <textarea id="project_notes" name="notes" rows="5" maxlength="4000" placeholder="Goals, owner, next steps, or anything else you want to remember." class="block w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"></textarea>
+          </div>
+
+          <button class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white" type="submit">
+            Create project
+          </button>
+        </form>
+      </div>
+      {% endif %}
+
+      <div class="rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-700 dark:bg-slate-900">
+        <div class="flex items-center justify-between gap-3">
+          <h2 class="text-lg font-semibold">Projects</h2>
+          <div class="text-sm text-slate-500 dark:text-slate-400">{{ projects_count }} total</div>
+        </div>
+
+        <div class="mt-4 overflow-x-auto">
+          <table class="w-full min-w-[920px] text-sm">
+            <thead class="text-left text-xs text-slate-500 dark:text-slate-400">
+              <tr>
+                <th class="py-2 pr-3">Project</th>
+                <th class="py-2 pr-3">Client / Internal Department</th>
+                <th class="py-2 pr-3">Status</th>
+                <th class="py-2 pr-3">Progress</th>
+                <th class="py-2 pr-3">Open Tasks</th>
+                <th class="py-2 pr-3">Stuck / Overdue</th>
+                <th class="py-2 pr-3">Next Due</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for card in project_cards %}
+                {% set project = card.project %}
+                <tr class="border-t border-slate-200 align-top dark:border-slate-700">
+                  <td class="py-3 pr-3">
+                    <a class="font-medium text-slate-900 hover:underline dark:text-slate-100" href="/projects/{{ project.id }}">{{ project.name }}</a>
+                    {% if project.notes %}
+                      <div class="mt-1 max-w-xl text-xs text-slate-500 dark:text-slate-400">{{ project.notes }}</div>
+                    {% endif %}
+                  </td>
+                  <td class="py-3 pr-3 text-slate-700 dark:text-slate-300">{{ project.client_name or "-" }}</td>
+                  <td class="py-3 pr-3">
+                    <span class="inline-flex rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-medium capitalize text-slate-700 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200">
+                      {{ (project.status or 'planning')|replace('_', ' ') }}
+                    </span>
+                  </td>
+                  <td class="py-3 pr-3">
+                    <div class="flex items-center gap-2">
+                      <div class="h-2 w-24 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+                        <div class="h-full rounded-full bg-slate-900 dark:bg-slate-100" style="width: {{ card.avg_completion }}%"></div>
+                      </div>
+                      <span class="text-xs text-slate-500 dark:text-slate-400">{{ card.avg_completion }}%</span>
+                    </div>
+                  </td>
+                  <td class="py-3 pr-3 text-slate-700 dark:text-slate-300">{{ card.open_tasks }} / {{ card.total_tasks }}</td>
+                  <td class="py-3 pr-3">
+                    {% if card.blocked_tasks or card.overdue_tasks %}
+                      <span class="inline-flex rounded-full border border-red-200 bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-800 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-200">
+                        {{ card.blocked_tasks }} stuck / {{ card.overdue_tasks }} overdue
+                      </span>
+                    {% else %}
+                      <span class="text-slate-500 dark:text-slate-400">Clear</span>
+                    {% endif %}
+                  </td>
+                  <td class="py-3 pr-3 whitespace-nowrap text-slate-700 dark:text-slate-300">
+                    {% if card.next_due %}
+                      {{ card.next_due.due_date }}<br />
+                      <span class="text-xs text-slate-500 dark:text-slate-400">{{ card.next_due.title }}</span>
+                    {% else %}
+                      -
+                    {% endif %}
+                  </td>
+                </tr>
+              {% else %}
+                <tr class="border-t border-slate-200 dark:border-slate-700">
+                  <td class="py-3 text-slate-500 dark:text-slate-400" colspan="7">No projects yet. Create your first one here.</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}

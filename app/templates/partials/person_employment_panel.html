@@ -1,0 +1,430 @@
+<div class="flex flex-col gap-6">
+  {% if (person.talent_status or 'active') == 'terminated' %}
+    {% if show_termination_form %}
+    <div class="w-full max-w-2xl rounded-xl border border-red-200 bg-red-50/80 p-4 dark:border-red-900/60 dark:bg-red-950/35">
+      <div class="text-xs font-semibold uppercase tracking-wide text-red-800 dark:text-red-200">Termination</div>
+      <p class="mt-1 text-xs text-red-700/90 dark:text-red-300/90">Enter end date and reason, then save. The end date is also saved as the assignment end date below.</p>
+      <form method="post" action="/people/{{ person.id }}/termination-details" class="mt-3 space-y-3">
+        <div>
+          <label class="block text-xs font-medium text-slate-600 dark:text-slate-400" for="termination_end_date">End date</label>
+          <input
+            type="date"
+            id="termination_end_date"
+            name="termination_end_date"
+            value="{% if person.employment_prior_end_date or person.termination_end_date %}{{ (person.employment_prior_end_date or person.termination_end_date).isoformat() }}{% endif %}"
+            class="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500/40 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
+          />
+        </div>
+        <div>
+          <label class="block text-xs font-medium text-slate-600 dark:text-slate-400" for="termination_end_reason">End reason</label>
+          <select
+            id="termination_end_reason"
+            name="termination_end_reason"
+            class="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-red-500/40 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
+          >
+            <option value="" {% if not person.termination_end_reason %}selected{% endif %}>Select end reason…</option>
+            {% for value, label in termination_end_reason_options %}
+              <option value="{{ value }}" {% if person.termination_end_reason == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <button
+            type="submit"
+            class="w-full rounded-lg bg-red-700 px-3 py-2 text-sm font-medium text-white shadow-sm hover:bg-red-800 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900 sm:flex-1"
+          >
+            Save termination details
+          </button>
+          {% if termination_details_saved %}
+          <a
+            href="/people/{{ person.id }}?tab=employment"
+            class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-center text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800 sm:w-auto"
+          >
+            Cancel
+          </a>
+          {% endif %}
+        </div>
+      </form>
+    </div>
+    {% else %}
+    <div class="w-full max-w-2xl rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-600 dark:bg-slate-800/50">
+      <div class="text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-400">Termination</div>
+      <dl class="mt-3 space-y-3 text-sm">
+        <div>
+          <dt class="text-xs font-medium text-slate-500 dark:text-slate-400">End date</dt>
+          <dd class="mt-0.5 font-medium text-slate-900 dark:text-slate-100">
+            {% if person.employment_prior_end_date or person.termination_end_date %}
+              {{ (person.employment_prior_end_date or person.termination_end_date).strftime('%B %d, %Y') }}
+            {% else %}
+              <span class="font-normal text-slate-400 dark:text-slate-500">—</span>
+            {% endif %}
+            <span class="mt-1 block text-xs font-normal text-slate-500 dark:text-slate-400">Mirrors assignment end date in this tab.</span>
+          </dd>
+        </div>
+        <div>
+          <dt class="text-xs font-medium text-slate-500 dark:text-slate-400">End reason</dt>
+          <dd class="mt-0.5 text-slate-900 dark:text-slate-100">
+            {% if termination_reason_display %}
+              {{ termination_reason_display }}
+            {% else %}
+              <span class="text-slate-400 dark:text-slate-500">—</span>
+            {% endif %}
+          </dd>
+        </div>
+      </dl>
+      {% if can_manage_people %}
+      <div class="mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+        <form method="post" action="/people/{{ person.id }}/rehire" class="inline w-full sm:w-auto">
+          <button
+            type="submit"
+            class="w-full rounded-lg bg-emerald-700 px-3 py-2 text-sm font-medium text-white shadow-sm hover:bg-emerald-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900"
+          >
+            Re-hire
+          </button>
+        </form>
+        <a
+          href="/people/{{ person.id }}?tab=employment&edit_termination=1"
+          class="inline-flex w-full items-center justify-center rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-800 shadow-sm hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800 sm:w-auto"
+        >
+          Edit
+        </a>
+      </div>
+      {% endif %}
+    </div>
+    {% endif %}
+  {% endif %}
+
+{% if employment_archives_display %}
+  <div class="w-full max-w-2xl space-y-3">
+    <div class="text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-400">Past assignments</div>
+    <p class="text-xs text-slate-500 dark:text-slate-400">
+      Each stint was saved when you used <span class="font-medium text-slate-600 dark:text-slate-300">Re-hire</span>. You can edit or delete records here. New periods are entered under <span class="font-medium text-slate-600 dark:text-slate-300">Current assignment</span> below.
+    </p>
+    {% for stint in employment_archives_display %}
+      <div class="rounded-xl border border-slate-200 bg-slate-100/90 p-4 dark:border-slate-600 dark:bg-slate-800/80">
+        <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+          <div class="text-xs font-medium text-slate-600 dark:text-slate-300">
+            Assignment {{ loop.index }} of {{ employment_archives_display|length }}
+            {% if stint.archived_at %}
+              <span class="block mt-0.5 font-normal text-slate-500 dark:text-slate-400">Archived {{ stint.archived_at.strftime('%b %d, %Y') }}</span>
+            {% endif %}
+          </div>
+          {% if edit_archive_id == stint.id %}
+            <a href="/people/{{ person.id }}?tab=employment" class="shrink-0 text-xs font-medium text-slate-600 hover:underline dark:text-slate-400">Cancel</a>
+          {% elif can_manage_people %}
+            <div class="flex flex-wrap gap-2">
+              <a
+                href="/people/{{ person.id }}?tab=employment&edit_archive={{ stint.id }}"
+                class="rounded-lg border border-slate-300 bg-white px-2.5 py-1 text-xs font-medium text-slate-800 shadow-sm hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
+              >Edit</a>
+              <form
+                method="post"
+                action="/people/{{ person.id }}/employment-archive/{{ stint.id }}/delete"
+                class="inline"
+                onsubmit="return confirm('Delete this past assignment record? This cannot be undone.');"
+              >
+                <button
+                  type="submit"
+                  class="rounded-lg border border-red-200 bg-white px-2.5 py-1 text-xs font-medium text-red-800 shadow-sm hover:bg-red-50 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-300 dark:hover:bg-red-950/40"
+                >
+                  Delete
+                </button>
+              </form>
+            </div>
+          {% endif %}
+        </div>
+        {% if edit_archive_id == stint.id %}
+          <form method="post" action="/people/{{ person.id }}/employment-archive/{{ stint.id }}/edit" class="mt-3 space-y-3">
+            <div>
+              <label class="block text-xs font-medium text-slate-600 dark:text-slate-400" for="arch-prior-{{ stint.id }}">Previous assignment</label>
+              <input
+                type="text"
+                id="arch-prior-{{ stint.id }}"
+                name="prior_assignment"
+                value="{{ stint.prior_assignment or '' }}"
+                autocomplete="organization"
+                class="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-400/40 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
+              />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-600 dark:text-slate-400" for="arch-hire-{{ stint.id }}">Initial hire date</label>
+              <input
+                type="date"
+                id="arch-hire-{{ stint.id }}"
+                name="initial_hire_date"
+                value="{% if stint.initial_hire_date %}{{ stint.initial_hire_date.isoformat() }}{% endif %}"
+                class="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-400/40 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
+              />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-600 dark:text-slate-400" for="arch-assign-end-{{ stint.id }}">End date (on that job)</label>
+              <input
+                type="date"
+                id="arch-assign-end-{{ stint.id }}"
+                name="assignment_end_date"
+                value="{% if stint.assignment_end_date %}{{ stint.assignment_end_date.isoformat() }}{% endif %}"
+                class="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-400/40 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
+              />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-600 dark:text-slate-400" for="arch-title-{{ stint.id }}">Job title</label>
+              <input
+                type="text"
+                id="arch-title-{{ stint.id }}"
+                name="job_title"
+                value="{{ stint.job_title or '' }}"
+                class="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-400/40 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
+              />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-600 dark:text-slate-400" for="arch-term-{{ stint.id }}">Termination end date</label>
+              <input
+                type="date"
+                id="arch-term-{{ stint.id }}"
+                name="termination_end_date"
+                value="{% if stint.termination_end_date %}{{ stint.termination_end_date.isoformat() }}{% endif %}"
+                class="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-400/40 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
+              />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-600 dark:text-slate-400" for="arch-reason-{{ stint.id }}">Termination end reason</label>
+              <select
+                id="arch-reason-{{ stint.id }}"
+                name="termination_end_reason"
+                class="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-400/40 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
+              >
+                <option value="">—</option>
+                {% for value, label in termination_end_reason_options %}
+                  <option value="{{ value }}" {% if stint.termination_end_reason == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              <button
+                type="submit"
+                class="rounded-lg bg-slate-900 px-3 py-2 text-sm font-medium text-white shadow-sm hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:ring-offset-2 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white dark:focus:ring-offset-slate-900"
+              >
+                Save
+              </button>
+              <a
+                href="/people/{{ person.id }}?tab=employment"
+                class="inline-flex items-center rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-800 shadow-sm hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
+              >Cancel</a>
+            </div>
+          </form>
+        {% else %}
+          <dl class="mt-3 space-y-3 text-sm">
+            <div>
+              <dt class="text-xs font-medium text-slate-500 dark:text-slate-400">Previous assignment</dt>
+              <dd class="mt-0.5 text-slate-900 dark:text-slate-100">
+                {% if stint.prior_assignment %}{{ stint.prior_assignment }}{% else %}<span class="text-slate-400 dark:text-slate-500">—</span>{% endif %}
+              </dd>
+            </div>
+            <div>
+              <dt class="text-xs font-medium text-slate-500 dark:text-slate-400">Initial hire date</dt>
+              <dd class="mt-0.5 font-medium text-slate-900 dark:text-slate-100">
+                {% if stint.initial_hire_date %}{{ stint.initial_hire_date.strftime('%B %d, %Y') }}{% else %}<span class="font-normal text-slate-400 dark:text-slate-500">—</span>{% endif %}
+              </dd>
+            </div>
+            <div>
+              <dt class="text-xs font-medium text-slate-500 dark:text-slate-400">End date (on that job)</dt>
+              <dd class="mt-0.5 font-medium text-slate-900 dark:text-slate-100">
+                {% if stint.assignment_end_date %}
+                  {{ stint.assignment_end_date.strftime('%B %d, %Y') }}
+                {% elif stint.termination_end_date %}
+                  {{ stint.termination_end_date.strftime('%B %d, %Y') }}
+                {% else %}
+                  <span class="font-normal text-slate-400 dark:text-slate-500">—</span>
+                {% endif %}
+              </dd>
+            </div>
+            <div>
+              <dt class="text-xs font-medium text-slate-500 dark:text-slate-400">Job title</dt>
+              <dd class="mt-0.5 text-slate-900 dark:text-slate-100">
+                {% if stint.job_title %}{{ stint.job_title }}{% else %}<span class="text-slate-400 dark:text-slate-500">—</span>{% endif %}
+              </dd>
+            </div>
+            <div>
+              <dt class="text-xs font-medium text-slate-500 dark:text-slate-400">Termination end date</dt>
+              <dd class="mt-0.5 font-medium text-slate-900 dark:text-slate-100">
+                {% if stint.termination_end_date %}
+                  {{ stint.termination_end_date.strftime('%B %d, %Y') }}
+                {% else %}
+                  <span class="font-normal text-slate-400 dark:text-slate-500">—</span>
+                {% endif %}
+              </dd>
+            </div>
+            <div>
+              <dt class="text-xs font-medium text-slate-500 dark:text-slate-400">Termination end reason</dt>
+              <dd class="mt-0.5 text-slate-900 dark:text-slate-100">
+                {% if stint.termination_reason_display %}
+                  {{ stint.termination_reason_display }}
+                {% else %}
+                  <span class="text-slate-400 dark:text-slate-500">—</span>
+                {% endif %}
+              </dd>
+            </div>
+          </dl>
+        {% endif %}
+      </div>
+    {% endfor %}
+  </div>
+{% endif %}
+
+{% if show_employment_form %}
+  <div class="w-full max-w-2xl rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-600 dark:bg-slate-800/50">
+    <div class="text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-400">
+      {% if employment_archives_display %}Current assignment{% else %}Employment history{% endif %}
+    </div>
+    <p class="mt-1 text-xs text-slate-600 dark:text-slate-400">
+      {% if employment_details_saved %}
+        Update this assignment, hire period, and job title.
+        {% if termination_details_saved %}
+          <span class="block mt-1 text-slate-500 dark:text-slate-400">Assignment end date is set when termination details are saved above.</span>
+        {% endif %}
+      {% else %}
+        {% if employment_archives_display %}
+          Enter details for this new assignment after re-hire.
+        {% else %}
+          Enter prior assignment, hire period, and job title.
+        {% endif %}
+      {% endif %}
+    </p>
+    <form method="post" action="/people/{{ person.id }}/employment-history" class="mt-3 space-y-3">
+      <div>
+        <label class="block text-xs font-medium text-slate-600 dark:text-slate-400" for="employment_prior_assignment">Previous assignment</label>
+        <input
+          type="text"
+          id="employment_prior_assignment"
+          name="employment_prior_assignment"
+          value="{{ person.employment_prior_assignment or '' }}"
+          autocomplete="organization"
+          class="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-400/40 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
+          placeholder="e.g. client, site, or program"
+        />
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-slate-600 dark:text-slate-400" for="employment_initial_hire_date">Initial hire date</label>
+        <input
+          type="date"
+          id="employment_initial_hire_date"
+          name="employment_initial_hire_date"
+          value="{% if person.employment_initial_hire_date %}{{ person.employment_initial_hire_date.isoformat() }}{% endif %}"
+          class="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-400/40 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
+        />
+      </div>
+      <div>
+        <span class="block text-xs font-medium text-slate-600 dark:text-slate-400">End date (on that job)</span>
+        {% if termination_details_saved %}
+          <p class="mt-1 rounded-lg border border-slate-200 bg-slate-100 px-3 py-2 text-sm text-slate-800 dark:border-slate-600 dark:bg-slate-900/80 dark:text-slate-200">
+            {% if person.employment_prior_end_date %}
+              {{ person.employment_prior_end_date.strftime('%B %d, %Y') }}
+            {% else %}
+              <span class="text-slate-600 dark:text-slate-400">—</span>
+            {% endif %}
+          </p>
+          <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">Finalized when termination details are saved.</p>
+        {% else %}
+          <label class="block text-xs font-medium text-slate-600 dark:text-slate-400" for="employment_prior_end_date">End date (on that job)</label>
+          <input
+            type="date"
+            id="employment_prior_end_date"
+            name="employment_prior_end_date"
+            value="{% if person.employment_prior_end_date %}{{ person.employment_prior_end_date.isoformat() }}{% endif %}"
+            class="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-400/40 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
+          />
+        {% endif %}
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-slate-600 dark:text-slate-400" for="employment_prior_job_title">Job title</label>
+        <input
+          type="text"
+          id="employment_prior_job_title"
+          name="employment_prior_job_title"
+          value="{{ person.employment_prior_job_title or '' }}"
+          autocomplete="organization-title"
+          class="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-400/40 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
+          placeholder="Title on that assignment"
+        />
+      </div>
+      <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <button
+          type="submit"
+          class="w-full rounded-lg bg-slate-800 px-3 py-2 text-sm font-medium text-white shadow-sm hover:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2 dark:bg-slate-600 dark:hover:bg-slate-500 dark:focus:ring-offset-slate-900 sm:flex-1"
+        >
+          Save employment history
+        </button>
+        {% if employment_details_saved %}
+        <a
+          href="/people/{{ person.id }}?tab=employment"
+          class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-center text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800 sm:w-auto"
+        >
+          Cancel
+        </a>
+        {% endif %}
+      </div>
+    </form>
+  </div>
+{% else %}
+  <div class="w-full max-w-2xl rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-600 dark:bg-slate-800/50">
+    <div class="text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-400">
+      {% if employment_archives_display %}Current assignment{% else %}Employment history{% endif %}
+    </div>
+    <dl class="mt-3 space-y-3 text-sm">
+      <div>
+        <dt class="text-xs font-medium text-slate-500 dark:text-slate-400">Previous assignment</dt>
+        <dd class="mt-0.5 text-slate-900 dark:text-slate-100">
+          {% if person.employment_prior_assignment %}
+            {{ person.employment_prior_assignment }}
+          {% else %}
+            <span class="text-slate-400 dark:text-slate-500">—</span>
+          {% endif %}
+        </dd>
+      </div>
+      <div>
+        <dt class="text-xs font-medium text-slate-500 dark:text-slate-400">Initial hire date</dt>
+        <dd class="mt-0.5 font-medium text-slate-900 dark:text-slate-100">
+          {% if person.employment_initial_hire_date %}
+            {{ person.employment_initial_hire_date.strftime('%B %d, %Y') }}
+          {% else %}
+            <span class="font-normal text-slate-400 dark:text-slate-500">—</span>
+          {% endif %}
+        </dd>
+      </div>
+      <div>
+        <dt class="text-xs font-medium text-slate-500 dark:text-slate-400">End date (on that job)</dt>
+        <dd class="mt-0.5 font-medium text-slate-900 dark:text-slate-100">
+          {% if person.employment_prior_end_date %}
+            {{ person.employment_prior_end_date.strftime('%B %d, %Y') }}
+          {% else %}
+            <span class="font-normal text-slate-400 dark:text-slate-500">—</span>
+          {% endif %}
+          {% if termination_details_saved %}
+            <span class="mt-1 block text-xs font-normal text-slate-500 dark:text-slate-400">Locked when termination details are finalized above.</span>
+          {% endif %}
+        </dd>
+      </div>
+      <div>
+        <dt class="text-xs font-medium text-slate-500 dark:text-slate-400">Job title</dt>
+        <dd class="mt-0.5 text-slate-900 dark:text-slate-100">
+          {% if person.employment_prior_job_title %}
+            {{ person.employment_prior_job_title }}
+          {% else %}
+            <span class="text-slate-400 dark:text-slate-500">—</span>
+          {% endif %}
+        </dd>
+      </div>
+    </dl>
+    {% if can_manage_people %}
+    <div class="mt-4">
+      <a
+        href="/people/{{ person.id }}?tab=employment&edit_employment=1"
+        class="inline-flex w-full max-w-xs items-center justify-center rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-800 shadow-sm hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
+      >
+        Edit
+      </a>
+    </div>
+    {% endif %}
+  </div>
+{% endif %}
+</div>

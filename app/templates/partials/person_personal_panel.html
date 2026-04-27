@@ -1,0 +1,451 @@
+<div class="grid gap-6 lg:grid-cols-2 lg:items-start">
+  {% if show_personal_form %}
+  <form
+    method="post"
+    action="/people/{{ person.id }}/personal-info"
+    id="personal-info-form"
+    class="min-w-0 lg:col-span-2 grid gap-6 lg:grid-cols-2 lg:items-start"
+  >
+    <div class="min-w-0">
+      <input type="hidden" name="direct_deposit_json" id="direct-deposit-json" value="[]" />
+      <div class="w-full max-w-2xl rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-600 dark:bg-slate-800/50">
+        <div class="text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-400">Contact</div>
+        <p class="mt-1 text-xs text-slate-600 dark:text-slate-400">
+          {% if personal_details_saved %}Update contact and sensitive information below.{% else %}Enter contact and sensitive information below.{% endif %}
+        </p>
+        <div class="mt-3 space-y-3">
+          <div>
+            <label class="block text-xs font-medium text-slate-600 dark:text-slate-400" for="personal_email">Email</label>
+            <input
+              type="email"
+              id="personal_email"
+              name="email"
+              value="{{ person.email or '' }}"
+              autocomplete="email"
+              class="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-400/40 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
+            />
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-600 dark:text-slate-400" for="personal_phone">Phone</label>
+            <input
+              type="tel"
+              id="personal_phone"
+              name="phone"
+              value="{{ person.phone or '' }}"
+              autocomplete="tel"
+              class="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-400/40 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
+            />
+          </div>
+        </div>
+
+        <div class="mt-6 rounded-lg border border-amber-200/80 bg-amber-50/50 p-3 dark:border-amber-900/50 dark:bg-amber-950/25">
+          <div class="text-xs font-semibold uppercase tracking-wide text-amber-900/90 dark:text-amber-200/90">Sensitive information</div>
+          <p class="mt-1 text-xs text-amber-900/80 dark:text-amber-200/70">
+            Date of birth and Social Security number are stored only for HR use and are encrypted before they are saved. Leave SSN blank if not applicable.
+          </p>
+          <div class="mt-3 space-y-3">
+            <div>
+              <label class="block text-xs font-medium text-slate-600 dark:text-slate-400" for="personal_dob">Date of birth</label>
+              <input
+                type="date"
+                id="personal_dob"
+                name="date_of_birth"
+                value="{% if person.date_of_birth %}{{ person.date_of_birth.isoformat() }}{% endif %}"
+                class="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-400/40 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
+              />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-600 dark:text-slate-400" for="personal_ssn">Social Security number</label>
+              <input
+                type="text"
+                id="personal_ssn"
+                name="social_security_number"
+                value="{{ person.social_security_number or '' }}"
+                autocomplete="off"
+                inputmode="numeric"
+                maxlength="15"
+                placeholder="XXX-XX-XXXX or 9 digits"
+                class="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-slate-400/40 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="w-full max-w-2xl rounded-xl border border-emerald-200/80 bg-emerald-50/40 p-4 dark:border-emerald-900/50 dark:bg-emerald-950/20 min-w-0">
+      <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+        <div class="min-w-0">
+          <div class="text-xs font-semibold uppercase tracking-wide text-emerald-900/90 dark:text-emerald-200/90">Direct deposit</div>
+          <p class="mt-1 text-xs text-emerald-900/80 dark:text-emerald-200/70">
+            Bank details are sensitive and are encrypted before they are saved. Set priority (1 = first), allocation type, then account information.
+          </p>
+        </div>
+        <button
+          type="button"
+          id="direct-deposit-add"
+          class="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg border border-emerald-300 bg-white px-3 py-2 text-sm font-medium text-emerald-900 shadow-sm hover:bg-emerald-50 dark:border-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-100 dark:hover:bg-emerald-900"
+        >
+          Add another bank
+        </button>
+      </div>
+
+      <script type="application/json" id="direct-deposit-data">{{ direct_deposit_json_script | safe }}</script>
+      <div id="direct-deposit-list" class="mt-4 space-y-4"></div>
+    </div>
+
+    <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between lg:col-span-2 min-w-0">
+      <button
+        type="submit"
+        class="w-full rounded-lg bg-slate-800 px-3 py-2 text-sm font-medium text-white shadow-sm hover:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2 dark:bg-slate-600 dark:hover:bg-slate-500 dark:focus:ring-offset-slate-900 sm:max-w-xs sm:flex-initial"
+      >
+        Save personal information
+      </button>
+      {% if personal_details_saved %}
+      <a
+        href="/people/{{ person.id }}?tab=personal"
+        class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-center text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800 sm:w-auto"
+      >
+        Cancel
+      </a>
+      {% endif %}
+    </div>
+  </form>
+
+  <script>
+  (function () {
+    var dataEl = document.getElementById("direct-deposit-data");
+    var listEl = document.getElementById("direct-deposit-list");
+    var hiddenEl = document.getElementById("direct-deposit-json");
+    var formEl = document.getElementById("personal-info-form");
+    var addBtn = document.getElementById("direct-deposit-add");
+    var rows = [];
+    try {
+      rows = JSON.parse(dataEl && dataEl.textContent ? dataEl.textContent : "[]");
+    } catch (e) {
+      rows = [];
+    }
+    if (!Array.isArray(rows)) rows = [];
+    if (rows.length === 0) {
+      rows.push({
+        priority: 1,
+        allocation_type: "percent",
+        amount_value: 100,
+        bank_name: "",
+        routing_number: "",
+        account_number: "",
+      });
+    }
+
+    function escapeAttr(s) {
+      if (s === undefined || s === null) return "";
+      return String(s)
+        .replace(/&/g, "&amp;")
+        .replace(/"/g, "&quot;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+    }
+
+    function amountLabel(type) {
+      if (type === "fixed_amount") return "Amount ($)";
+      if (type === "remainder") return "Amount (not used)";
+      return "Percent of net (%)";
+    }
+
+    function rowHtml(index) {
+      var r = rows[index] || {};
+      var pri = r.priority != null ? r.priority : index + 1;
+      var at = r.allocation_type || "percent";
+      var av =
+        r.amount_value !== undefined && r.amount_value !== null && r.amount_value !== ""
+          ? r.amount_value
+          : at === "remainder"
+            ? ""
+            : at === "percent"
+              ? 100
+              : "";
+      var amtDisabled = at === "remainder" ? " disabled" : "";
+      var amtVal =
+        at === "remainder" ? "" : av === "" || av === null ? "" : String(av);
+      return (
+        '<div class="direct-deposit-row rounded-xl border border-emerald-200/90 bg-white p-4 dark:border-emerald-800/60 dark:bg-slate-900/40" data-index="' +
+        index +
+        '">' +
+        '<div class="flex items-start justify-between gap-2">' +
+        '<span class="text-xs font-medium text-slate-500 dark:text-slate-400">Bank ' +
+        (index + 1) +
+        "</span>" +
+        '<button type="button" class="dd-remove text-xs font-medium text-red-600 hover:underline dark:text-red-400">Remove</button>' +
+        "</div>" +
+        '<div class="mt-3 grid gap-3">' +
+        '<div class="grid gap-3 sm:grid-cols-2">' +
+        "<div>" +
+        '<label class="block text-xs font-medium text-slate-600 dark:text-slate-400">Priority (1–99)</label>' +
+        '<input type="number" min="1" max="99" step="1" data-dd-field="priority" class="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100" value="' +
+        escapeAttr(pri) +
+        '" />' +
+        "</div>" +
+        "<div>" +
+        '<label class="block text-xs font-medium text-slate-600 dark:text-slate-400">Allocation</label>' +
+        '<select data-dd-field="allocation_type" class="dd-alloc-select mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100">' +
+        '<option value="percent"' +
+        (at === "percent" ? " selected" : "") +
+        ">Percent of net pay</option>" +
+        '<option value="fixed_amount"' +
+        (at === "fixed_amount" ? " selected" : "") +
+        ">Fixed amount ($)</option>" +
+        '<option value="remainder"' +
+        (at === "remainder" ? " selected" : "") +
+        ">Remaining balance</option>" +
+        "</select>" +
+        "</div>" +
+        "</div>" +
+        '<div class="dd-amount-wrap">' +
+        '<label class="dd-amount-label block text-xs font-medium text-slate-600 dark:text-slate-400">' +
+        amountLabel(at) +
+        "</label>" +
+        '<input type="number" data-dd-field="amount_value" min="0" step="0.01" class="dd-amount-input mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"' +
+        amtDisabled +
+        ' value="' +
+        escapeAttr(amtVal) +
+        '" />' +
+        '<p class="dd-amount-hint mt-1 text-xs text-slate-500 dark:text-slate-400"></p>' +
+        "</div>" +
+        "<div>" +
+        '<label class="block text-xs font-medium text-slate-600 dark:text-slate-400">Bank name</label>' +
+        '<input type="text" data-dd-field="bank_name" autocomplete="organization" class="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100" value="' +
+        escapeAttr(r.bank_name) +
+        '" />' +
+        "</div>" +
+        '<div class="grid gap-3 sm:grid-cols-2">' +
+        "<div>" +
+        '<label class="block text-xs font-medium text-slate-600 dark:text-slate-400">Routing number</label>' +
+        '<input type="text" inputmode="numeric" maxlength="9" data-dd-field="routing_number" class="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100" value="' +
+        escapeAttr(r.routing_number) +
+        '" />' +
+        "</div>" +
+        "<div>" +
+        '<label class="block text-xs font-medium text-slate-600 dark:text-slate-400">Account number</label>' +
+        '<input type="text" data-dd-field="account_number" autocomplete="off" class="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100" value="' +
+        escapeAttr(r.account_number) +
+        '" />' +
+        "</div>" +
+        "</div>" +
+        "</div>" +
+        "</div>"
+      );
+    }
+
+    function syncAmountUi(rowEl) {
+      var sel = rowEl.querySelector(".dd-alloc-select");
+      var input = rowEl.querySelector(".dd-amount-input");
+      var label = rowEl.querySelector(".dd-amount-label");
+      var hint = rowEl.querySelector(".dd-amount-hint");
+      if (!sel || !input || !label) return;
+      var t = sel.value;
+      label.textContent = amountLabel(t);
+      if (t === "remainder") {
+        input.disabled = true;
+        input.value = "";
+        if (hint) hint.textContent = "This account receives whatever is left after other splits.";
+      } else {
+        input.disabled = false;
+        if (hint) hint.textContent = t === "percent" ? "Example: 50 for 50% of net pay." : "Example: 200 for $200.00 per pay period.";
+      }
+    }
+
+    function readRowFromDom(rowEl) {
+      var priRaw = (rowEl.querySelector('[data-dd-field="priority"]') || {}).value;
+      var pr = parseInt(priRaw, 10);
+      if (isNaN(pr)) pr = 1;
+      var at = (rowEl.querySelector('[data-dd-field="allocation_type"]') || {}).value || "percent";
+      var amtEl = rowEl.querySelector('[data-dd-field="amount_value"]');
+      var amtRaw = amtEl && !amtEl.disabled ? amtEl.value : "";
+      var amount_value = null;
+      if (at !== "remainder" && amtRaw !== "") {
+        var f = parseFloat(amtRaw);
+        if (!isNaN(f)) amount_value = f;
+      }
+      return {
+        priority: pr,
+        allocation_type: at,
+        amount_value: amount_value,
+        bank_name: ((rowEl.querySelector('[data-dd-field="bank_name"]') || {}).value || "").trim(),
+        routing_number: ((rowEl.querySelector('[data-dd-field="routing_number"]') || {}).value || "").trim(),
+        account_number: ((rowEl.querySelector('[data-dd-field="account_number"]') || {}).value || "").trim(),
+      };
+    }
+
+    function render() {
+      if (!listEl) return;
+      listEl.innerHTML = "";
+      for (var i = 0; i < rows.length; i++) {
+        listEl.insertAdjacentHTML("beforeend", rowHtml(i));
+      }
+      listEl.querySelectorAll(".direct-deposit-row").forEach(function (rowEl) {
+        syncAmountUi(rowEl);
+        var sel = rowEl.querySelector(".dd-alloc-select");
+        if (sel) {
+          sel.addEventListener("change", function () {
+            syncAmountUi(rowEl);
+          });
+        }
+        var rm = rowEl.querySelector(".dd-remove");
+        if (rm) {
+          rm.addEventListener("click", function () {
+            var ix = parseInt(rowEl.getAttribute("data-index"), 10);
+            if (rows.length <= 1) return;
+            rows.splice(ix, 1);
+            render();
+          });
+        }
+      });
+    }
+
+    function serialize() {
+      var out = [];
+      if (!listEl) return out;
+      listEl.querySelectorAll(".direct-deposit-row").forEach(function (rowEl) {
+        out.push(readRowFromDom(rowEl));
+      });
+      return out;
+    }
+
+    if (addBtn) {
+      addBtn.addEventListener("click", function () {
+        var maxP = 0;
+        rows.forEach(function (r) {
+          var p = parseInt(r.priority, 10);
+          if (!isNaN(p) && p > maxP) maxP = p;
+        });
+        rows.push({
+          priority: Math.min(99, maxP + 1),
+          allocation_type: "percent",
+          amount_value: 0,
+          bank_name: "",
+          routing_number: "",
+          account_number: "",
+        });
+        render();
+      });
+    }
+
+    if (formEl && hiddenEl) {
+      formEl.addEventListener("submit", function () {
+        hiddenEl.value = JSON.stringify(serialize());
+      });
+    }
+
+    render();
+  })();
+  </script>
+  {% else %}
+  <div class="w-full max-w-2xl rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-600 dark:bg-slate-800/50 lg:col-span-1">
+    <div class="text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-400">Contact</div>
+    <dl class="mt-3 space-y-3 text-sm">
+      <div>
+        <dt class="text-xs font-medium text-slate-500 dark:text-slate-400">Email</dt>
+        <dd class="mt-0.5 text-slate-900 dark:text-slate-100">
+          {% if person.email %}
+            {{ person.email }}
+          {% else %}
+            <span class="text-slate-400 dark:text-slate-500">—</span>
+          {% endif %}
+        </dd>
+      </div>
+      <div>
+        <dt class="text-xs font-medium text-slate-500 dark:text-slate-400">Phone</dt>
+        <dd class="mt-0.5 text-slate-900 dark:text-slate-100">
+          {% if person.phone %}
+            {{ person.phone }}
+          {% else %}
+            <span class="text-slate-400 dark:text-slate-500">—</span>
+          {% endif %}
+        </dd>
+      </div>
+    </dl>
+
+    <div class="mt-6 rounded-lg border border-amber-200/80 bg-amber-50/50 p-3 dark:border-amber-900/50 dark:bg-amber-950/25">
+      <div class="text-xs font-semibold uppercase tracking-wide text-amber-900/90 dark:text-amber-200/90">Sensitive information</div>
+      <dl class="mt-3 space-y-3 text-sm">
+        <div>
+          <dt class="text-xs font-medium text-slate-500 dark:text-slate-400">Date of birth</dt>
+          <dd class="mt-0.5 font-medium text-slate-900 dark:text-slate-100">
+            {% if person.date_of_birth %}
+              {{ person.date_of_birth.strftime('%B %d, %Y') }}
+            {% else %}
+              <span class="font-normal text-slate-400 dark:text-slate-500">—</span>
+            {% endif %}
+          </dd>
+        </div>
+        <div>
+          <dt class="text-xs font-medium text-slate-500 dark:text-slate-400">Social Security number</dt>
+          <dd class="mt-0.5 font-mono text-slate-900 dark:text-slate-100">
+            {% if personal_ssn_masked %}
+              {{ personal_ssn_masked }}
+            {% else %}
+              <span class="font-sans text-slate-400 dark:text-slate-500">—</span>
+            {% endif %}
+          </dd>
+        </div>
+      </dl>
+    </div>
+  </div>
+
+  <div class="w-full max-w-2xl rounded-xl border border-emerald-200/80 bg-emerald-50/40 p-4 dark:border-emerald-900/50 dark:bg-emerald-950/20 lg:col-span-1">
+    <div class="text-xs font-semibold uppercase tracking-wide text-emerald-900/90 dark:text-emerald-200/90">Direct deposit</div>
+    {% if direct_deposit_accounts %}
+      <ul class="mt-3 space-y-4">
+        {% for row in direct_deposit_accounts %}
+          <li class="rounded-lg border border-emerald-200/80 bg-white p-3 text-sm dark:border-emerald-800/60 dark:bg-slate-900/40">
+            <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Priority {{ row.priority }}</div>
+            <div class="mt-1 font-medium text-slate-900 dark:text-slate-100">{{ row.bank_name or "—" }}</div>
+            <div class="mt-2 space-y-1 text-xs text-slate-600 dark:text-slate-300">
+              <div>
+                Routing:
+                {% set rts = (row.routing_number|string)|replace(' ', '') %}
+                {% if rts|length >= 4 %}
+                  *****{{ rts[-4:] }}
+                {% else %}
+                  —
+                {% endif %}
+              </div>
+              <div>
+                Account:
+                {% set ac = row.account_number|string %}
+                {% if ac|length > 4 %}
+                  ****{{ ac[-4:] }}
+                {% elif ac %}
+                  ****
+                {% else %}
+                  —
+                {% endif %}
+              </div>
+              <div class="mt-1 font-medium text-slate-800 dark:text-slate-200">
+                {% if row.allocation_type == 'percent' %}
+                  {{ row.amount_value }}% of net pay
+                {% elif row.allocation_type == 'fixed_amount' %}
+                  Fixed ${{ "%.2f"|format(row.amount_value|float) }}
+                {% else %}
+                  Remaining balance
+                {% endif %}
+              </div>
+            </div>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="mt-3 text-sm text-slate-500 dark:text-slate-400">No direct deposit accounts on file.</p>
+    {% endif %}
+  </div>
+
+  <div class="lg:col-span-2">
+    <a
+      href="/people/{{ person.id }}?tab=personal&edit_personal=1"
+      class="inline-flex w-full max-w-xs items-center justify-center rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-800 shadow-sm hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
+    >
+      Edit
+    </a>
+  </div>
+  {% endif %}
+</div>

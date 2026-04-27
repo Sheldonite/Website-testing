@@ -1,0 +1,114 @@
+{# Quick-add person flyout — include only on /people (ids used by base.html JS). #}
+<div id="person-quick-add-dropdown" class="relative inline-flex shrink-0 items-center gap-2">
+  <span class="text-sm font-medium text-slate-700 dark:text-slate-200">Add Talent</span>
+  <button
+    type="button"
+    id="person-quick-add-btn"
+    class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+    aria-expanded="false"
+    aria-haspopup="dialog"
+    aria-controls="person-quick-add-menu"
+    title="Add talent — quick add to People"
+  >
+    <span class="sr-only">Add a person to the People list</span>
+    <svg class="h-4 w-4 sm:h-[1.15rem] sm:w-[1.15rem]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+    </svg>
+  </button>
+  <div
+    id="person-quick-add-menu"
+    role="dialog"
+    aria-modal="false"
+    aria-label="Add a person to People"
+    class="absolute right-0 top-full z-[10040] mt-1 hidden max-h-[min(32rem,calc(100vh-5rem))] w-[min(22rem,calc(100vw-1rem))] overflow-y-auto rounded-xl border border-slate-200 bg-white py-2 shadow-lg dark:border-slate-600 dark:bg-slate-900"
+  >
+    <div class="border-b border-slate-100 px-3 py-2 dark:border-slate-700">
+      <p class="text-[0.65rem] font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">People</p>
+      <p class="mt-1 text-[0.65rem] leading-snug text-slate-500 dark:text-slate-400">
+        New roster entry — not your <a class="underline hover:text-slate-700 dark:hover:text-slate-200" href="/profile">Profile</a> settings.
+      </p>
+    </div>
+    <div class="px-3 py-2">
+      <details class="person-quick-add-details rounded-lg border border-slate-200 bg-slate-50/90 dark:border-slate-600 dark:bg-slate-950/50">
+        <summary class="cursor-pointer select-none px-3 py-2 text-sm font-medium text-slate-800 dark:text-slate-100">New person</summary>
+        <div class="person-quick-add-details-body border-t border-slate-200 px-3 pb-3 pt-3 dark:border-slate-600">
+          <form id="person-quick-add-form" class="flex flex-col gap-2.5" action="/people/add" method="post">
+            <div>
+              <label class="block text-[0.65rem] font-medium text-slate-600 dark:text-slate-400" for="pqa-first-name">First name <span class="text-red-600 dark:text-red-400">*</span></label>
+              <input
+                id="pqa-first-name"
+                class="mt-1 w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-sm text-slate-900 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
+                name="first_name"
+                required
+                maxlength="100"
+                autocomplete="given-name"
+              />
+            </div>
+            <div>
+              <label class="block text-[0.65rem] font-medium text-slate-600 dark:text-slate-400" for="pqa-last-name">Last name <span class="text-red-600 dark:text-red-400">*</span></label>
+              <input
+                id="pqa-last-name"
+                class="mt-1 w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-sm text-slate-900 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
+                name="last_name"
+                required
+                maxlength="100"
+                autocomplete="family-name"
+              />
+            </div>
+            <div>
+              <label class="block text-[0.65rem] font-medium text-slate-600 dark:text-slate-400" for="pqa-email">Email <span class="text-red-600 dark:text-red-400">*</span></label>
+              <input
+                id="pqa-email"
+                class="mt-1 w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-sm text-slate-900 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
+                type="email"
+                name="email"
+                required
+                maxlength="320"
+                autocomplete="email"
+              />
+            </div>
+            <div>
+              <label class="block text-[0.65rem] font-medium text-slate-600 dark:text-slate-400" for="pqa-phone">Phone number <span class="text-red-600 dark:text-red-400">*</span></label>
+              <input
+                id="pqa-phone"
+                class="mt-1 w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-sm text-slate-900 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
+                type="tel"
+                name="phone"
+                required
+                maxlength="40"
+                autocomplete="tel"
+              />
+            </div>
+            <div>
+              <label class="block text-[0.65rem] font-medium text-slate-600 dark:text-slate-400" for="pqa-ssn">Social security number</label>
+              <input
+                id="pqa-ssn"
+                class="mt-1 w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-sm text-slate-900 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
+                name="social_security_number"
+                maxlength="20"
+                inputmode="numeric"
+                autocomplete="off"
+                placeholder="Optional — 9 digits"
+              />
+            </div>
+            <div>
+              <label class="block text-[0.65rem] font-medium text-slate-600 dark:text-slate-400" for="pqa-dob">Date of birth</label>
+              <input
+                id="pqa-dob"
+                class="mt-1 w-full rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-sm text-slate-900 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
+                type="date"
+                name="date_of_birth"
+              />
+            </div>
+            <button
+              type="submit"
+              class="mt-1 w-full rounded-lg bg-slate-900 py-2 text-sm font-medium text-white hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white"
+            >
+              Add to People
+            </button>
+          </form>
+        </div>
+      </details>
+    </div>
+  </div>
+</div>

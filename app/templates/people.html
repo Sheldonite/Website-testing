@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block content %}
+  <div class="flex flex-col gap-6">
+    <div class="relative z-20 rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-700 dark:bg-slate-900">
+      <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between lg:gap-6">
+        <div class="min-w-0 shrink">
+          <h1 class="text-xl font-semibold">People</h1>
+          <p class="text-sm text-slate-600 dark:text-slate-300">Roster from imports. Use <span class="font-medium text-slate-800 dark:text-slate-200">Add Talent</span> (+) to add someone.</p>
+        </div>
+        <div class="flex flex-1 justify-center lg:min-w-0">
+          {% if request.state.current_user.can_manage_people %}
+          {% include 'partials/person_quick_add_dropdown.html' %}
+          {% endif %}
+        </div>
+        <form class="flex w-full shrink-0 flex-wrap items-center gap-2 lg:w-auto lg:justify-end" method="get" action="/people">
+          <input class="min-w-0 flex-1 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm sm:w-72 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100" name="q" value="{{ q }}" placeholder="Search name or email" />
+          <button class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700" type="submit">Search</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-6">
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead class="text-left text-xs text-slate-500 dark:text-slate-400">
+            <tr>
+              <th class="py-2 pr-3">Name</th>
+              <th class="py-2 pr-3">Email</th>
+              <th class="py-2 pr-3">Phone</th>
+              <th class="person-talent-status-th w-[12.5rem] min-w-[12.5rem] max-w-[12.5rem] py-2 pr-3">Talent status</th>
+              <th class="w-[8rem] min-w-[8rem] py-2 px-3 text-center">Attendance records</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% set talent_select_context = 'list' %}
+            {% for person, attendance_count in rows %}
+              <tr class="border-t border-slate-200 dark:border-slate-700">
+                <td class="py-2 pr-3">
+                  <a class="font-medium text-slate-900 hover:underline dark:text-slate-100" href="/people/{{ person.id }}">{{ person.full_name }}</a>
+                </td>
+                <td class="py-2 pr-3 text-slate-700 dark:text-slate-300">{{ person.email or "" }}</td>
+                <td class="py-2 pr-3 text-slate-700 dark:text-slate-300">{{ person.phone or "" }}</td>
+                <td class="person-talent-status-td w-[12.5rem] max-w-[12.5rem] shrink-0 py-2 pr-3 align-top">
+                  {% include 'partials/talent_status_select.html' %}
+                </td>
+                <td class="py-2 px-3 text-center tabular-nums text-slate-700 dark:text-slate-300">{{ attendance_count }}</td>
+              </tr>
+            {% else %}
+              <tr class="border-t border-slate-200 dark:border-slate-700">
+                <td class="py-3 text-slate-500 dark:text-slate-400" colspan="5">No people yet. Import a CSV or use <span class="font-medium text-slate-700 dark:text-slate-300">Add Talent</span> (+) above.</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+{% endblock %}

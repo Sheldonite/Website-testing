@@ -1,0 +1,303 @@
+{% extends "base.html" %}
+{% set profile_talent_status = person.talent_status or 'active' %}
+{% set profile_end_date = person.employment_prior_end_date or person.termination_end_date %}
+{% block content %}
+  <div class="flex flex-col gap-6">
+    <div class="person-profile-hero relative z-10 overflow-visible rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-6">
+      <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between lg:gap-8">
+        <div class="relative z-10 min-w-0 flex-1 flex flex-col gap-1">
+          <div class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Person</div>
+          <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
+            <h1 class="text-xl font-semibold">{{ person.full_name }}</h1>
+            <div class="flex shrink-0 flex-wrap items-start gap-x-8 gap-y-3 sm:justify-end">
+              <div class="min-w-[7.5rem]">
+                <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Hire date</div>
+                <div class="mt-0.5 text-sm font-medium tabular-nums text-slate-900 dark:text-slate-100">
+                  {% if person.employment_initial_hire_date %}
+                    {{ person.employment_initial_hire_date.strftime('%b %d, %Y') }}
+                  {% else %}
+                    <span class="font-normal text-slate-400 dark:text-slate-500">—</span>
+                  {% endif %}
+                </div>
+              </div>
+              <div class="min-w-[7.5rem] max-w-[14rem]">
+                {% if not profile_end_date %}
+                <div class="text-xs font-medium text-slate-500 dark:text-slate-400">Assignment</div>
+                <div class="mt-0.5 text-sm font-medium text-slate-900 dark:text-slate-100">Currently on assignment</div>
+                {% else %}
+                <div class="text-xs font-medium text-slate-500 dark:text-slate-400">End date</div>
+                <div class="mt-0.5 text-sm font-medium tabular-nums text-slate-900 dark:text-slate-100">
+                  {{ profile_end_date.strftime('%b %d, %Y') }}
+                </div>
+                {% if profile_talent_status == 'terminated' %}
+                <div class="mt-2 text-xs font-medium text-slate-500 dark:text-slate-400">Termination reason</div>
+                <div class="mt-0.5 max-w-xs text-sm text-slate-800 dark:text-slate-200">
+                  {% if termination_reason_display %}
+                    {{ termination_reason_display }}
+                  {% else %}
+                    <span class="text-slate-400 dark:text-slate-500">—</span>
+                  {% endif %}
+                </div>
+                {% endif %}
+                {% endif %}
+              </div>
+            </div>
+          </div>
+          {% if can_manage_people %}
+            {% set talent_select_context = 'profile' %}
+            {% include 'partials/talent_status_select.html' %}
+          {% endif %}
+          {% if person.email or person.phone or (profile_talent_status != 'terminated' and person.roster_status) %}
+          <div class="mt-2 text-sm text-slate-600 dark:text-slate-300">
+            {% if person.email %}{{ person.email }}{% endif %}
+            {% if person.phone %}{% if person.email %} · {% endif %}{{ person.phone }}{% endif %}
+            {% if profile_talent_status != 'terminated' and person.roster_status %}
+              {% if person.email or person.phone %} · {% endif %}{{ person.roster_status }}
+            {% endif %}
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="mt-4 grid grid-cols-1 gap-3 overflow-visible md:grid-cols-3">
+        <div class="relative overflow-visible rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 p-4">
+          <details class="person-occurrences-details group relative">
+            <summary class="flex cursor-pointer list-none items-start gap-2 text-left">
+              <div class="min-w-0 flex-1">
+                <div class="text-xs text-slate-500 dark:text-slate-400">Total Occurrences for Attendance</div>
+              </div>
+              <div class="flex shrink-0 items-center gap-2">
+                <span class="text-2xl font-semibold tabular-nums">{{ attendance_occurrences_total }}</span>
+                <span class="person-occurrences-chevron inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 transition-transform group-open:rotate-180 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-400" aria-hidden="true">
+                  <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" /></svg>
+                </span>
+              </div>
+            </summary>
+            <div class="person-occurrences-dropdown absolute left-0 right-0 top-full z-50 mt-2 max-h-[min(70vh,24rem)] space-y-2 overflow-y-auto rounded-xl border border-slate-200 bg-white p-3 text-sm shadow-xl ring-1 ring-black/5 dark:border-slate-600 dark:bg-slate-900 dark:ring-white/10">
+              {% for label, count in attendance_occurrence_breakdown %}
+                <div class="flex items-center justify-between gap-3 text-slate-700 dark:text-slate-300">
+                  <span>{{ label }}</span>
+                  <span class="tabular-nums font-medium text-slate-900 dark:text-slate-100">{{ count }}</span>
+                </div>
+              {% endfor %}
+            </div>
+          </details>
+        </div>
+        <div class="relative overflow-visible rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 p-4">
+          <details class="person-occurrences-details group relative">
+            <summary class="flex cursor-pointer list-none items-start gap-2 text-left">
+              <div class="min-w-0 flex-1">
+                <div class="text-xs text-slate-500 dark:text-slate-400">Total days on assignment</div>
+              </div>
+              <div class="flex shrink-0 items-center gap-2">
+                <span class="text-2xl font-semibold tabular-nums">
+                  {% if employment_assignment_days is not none %}
+                    {{ employment_assignment_days }}
+                  {% else %}
+                    —
+                  {% endif %}
+                </span>
+                <span class="person-occurrences-chevron inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 transition-transform group-open:rotate-180 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-400" aria-hidden="true">
+                  <svg class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" /></svg>
+                </span>
+              </div>
+            </summary>
+            <div class="person-occurrences-dropdown absolute left-0 right-0 top-full z-50 mt-2 max-h-[min(70vh,24rem)] space-y-2 overflow-y-auto rounded-xl border border-slate-200 bg-white p-3 text-sm shadow-xl ring-1 ring-black/5 dark:border-slate-600 dark:bg-slate-900 dark:ring-white/10">
+              {% if employment_assignment_days is not none %}
+                <p class="text-sm text-slate-700 dark:text-slate-300">
+                  <span class="font-medium tabular-nums">{{ employment_assignment_days }}</span>
+                  calendar day{% if employment_assignment_days != 1 %}s{% endif %}
+                  from initial hire
+                  {% if person.employment_initial_hire_date %}
+                    ({{ person.employment_initial_hire_date.strftime('%b %d, %Y') }})
+                  {% endif %}
+                  {% if person.employment_prior_end_date %}
+                    through end of assignment ({{ person.employment_prior_end_date.strftime('%b %d, %Y') }}).
+                  {% else %}
+                    through today ({{ employment_assignment_today.strftime('%b %d, %Y') }}).
+                  {% endif %}
+                </p>
+              {% else %}
+                <p class="text-xs text-slate-500 dark:text-slate-400">
+                  {% if not person.employment_initial_hire_date %}
+                    Add an <span class="font-medium text-slate-600 dark:text-slate-300">initial hire date</span> in Employment history to calculate days on assignment.
+                  {% elif person.employment_prior_end_date and person.employment_initial_hire_date and person.employment_prior_end_date < person.employment_initial_hire_date %}
+                    End date cannot be before the initial hire date.
+                  {% elif not person.employment_prior_end_date and person.employment_initial_hire_date and employment_assignment_today < person.employment_initial_hire_date %}
+                    Initial hire date is in the future—days on assignment will show once that date arrives.
+                  {% else %}
+                    Days on assignment could not be calculated from the current employment dates.
+                  {% endif %}
+                </p>
+              {% endif %}
+              <p class="text-xs text-slate-500 dark:text-slate-400">Last week (Mon–Sun): {{ last_week_range_label }}. One row per day from attendance imports.</p>
+              <div class="overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-600">
+                <table class="w-full min-w-[18rem] text-left text-xs sm:text-sm">
+                  <thead class="bg-white text-slate-500 dark:bg-slate-900/80 dark:text-slate-400">
+                    <tr>
+                      <th class="py-2 pl-2 pr-2 font-medium">Day</th>
+                      <th class="py-2 pr-2 font-medium">Date</th>
+                      <th class="py-2 pr-2 font-medium">Punch / status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for row in last_week_punches %}
+                      <tr class="border-t border-slate-200 dark:border-slate-600">
+                        <td class="py-1.5 pl-2 pr-2 whitespace-nowrap text-slate-700 dark:text-slate-300">{{ row.weekday }}</td>
+                        <td class="py-1.5 pr-2 whitespace-nowrap text-slate-700 dark:text-slate-300">{{ row.date.strftime('%b %d, %Y') }}</td>
+                        <td class="py-1.5 pr-2 text-slate-900 dark:text-slate-100">
+                          {% if row.status %}
+                            {{ row.status }}
+                          {% else %}
+                            <span class="text-slate-400 dark:text-slate-500">—</span>
+                          {% endif %}
+                        </td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </details>
+        </div>
+        <div class="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 p-4">
+          <div class="text-xs text-slate-500 dark:text-slate-400">First seen</div>
+          <div class="mt-1 text-sm text-slate-700 dark:text-slate-300">
+            {% if attendance %}
+              {{ attendance[-1].attended_on }}
+            {% else %}
+              —
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="relative z-0 rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-6">
+      <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+        <nav class="person-profile-tabs -mx-1 flex max-w-full flex-1 flex-nowrap gap-1 overflow-x-auto border-b border-slate-200 pb-px dark:border-slate-600" aria-label="Person record sections">
+          <a
+            href="/people/{{ person.id }}?tab=attendance"
+            class="whitespace-nowrap border-b-2 px-3 py-2 text-sm font-medium transition-colors {% if (profile_tab|default('attendance')) == 'attendance' %}border-slate-900 text-slate-900 dark:border-slate-100 dark:text-slate-100{% else %}border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-800 dark:text-slate-400 dark:hover:border-slate-600 dark:hover:text-slate-200{% endif %}"
+          >Attendance History</a>
+          <a
+            href="/people/{{ person.id }}?tab=employment"
+            class="whitespace-nowrap border-b-2 px-3 py-2 text-sm font-medium transition-colors {% if profile_tab == 'employment' %}border-slate-900 text-slate-900 dark:border-slate-100 dark:text-slate-100{% else %}border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-800 dark:text-slate-400 dark:hover:border-slate-600 dark:hover:text-slate-200{% endif %}"
+          >Employment History</a>
+          <a
+            href="/people/{{ person.id }}?tab=hours"
+            class="whitespace-nowrap border-b-2 px-3 py-2 text-sm font-medium transition-colors {% if profile_tab == 'hours' %}border-slate-900 text-slate-900 dark:border-slate-100 dark:text-slate-100{% else %}border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-800 dark:text-slate-400 dark:hover:border-slate-600 dark:hover:text-slate-200{% endif %}"
+          >Hours History</a>
+          <a
+            href="/people/{{ person.id }}?tab=payroll"
+            class="whitespace-nowrap border-b-2 px-3 py-2 text-sm font-medium transition-colors {% if profile_tab == 'payroll' %}border-slate-900 text-slate-900 dark:border-slate-100 dark:text-slate-100{% else %}border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-800 dark:text-slate-400 dark:hover:border-slate-600 dark:hover:text-slate-200{% endif %}"
+          >Payroll History</a>
+          {% if can_view_sensitive_people %}
+          <a
+            href="/people/{{ person.id }}?tab=onboarding"
+            class="whitespace-nowrap border-b-2 px-3 py-2 text-sm font-medium transition-colors {% if profile_tab == 'onboarding' %}border-slate-900 text-slate-900 dark:border-slate-100 dark:text-slate-100{% else %}border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-800 dark:text-slate-400 dark:hover:border-slate-600 dark:hover:text-slate-200{% endif %}"
+          >Onboarding Documents</a>
+          <a
+            href="/people/{{ person.id }}?tab=personal"
+            class="whitespace-nowrap border-b-2 px-3 py-2 text-sm font-medium transition-colors {% if profile_tab == 'personal' %}border-slate-900 text-slate-900 dark:border-slate-100 dark:text-slate-100{% else %}border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-800 dark:text-slate-400 dark:hover:border-slate-600 dark:hover:text-slate-200{% endif %}"
+          >Personal information</a>
+          <a
+            href="/people/{{ person.id }}?tab=emergency"
+            class="whitespace-nowrap border-b-2 px-3 py-2 text-sm font-medium transition-colors {% if profile_tab == 'emergency' %}border-slate-900 text-slate-900 dark:border-slate-100 dark:text-slate-100{% else %}border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-800 dark:text-slate-400 dark:hover:border-slate-600 dark:hover:text-slate-200{% endif %}"
+          >Emergency contacts</a>
+          {% endif %}
+        </nav>
+        <a class="shrink-0 text-sm text-slate-700 hover:underline dark:text-slate-300" href="/people">Back to people</a>
+      </div>
+
+      <div class="mt-6">
+        {% if (profile_tab|default('attendance')) == 'attendance' %}
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead class="text-left text-xs text-slate-500 dark:text-slate-400">
+                <tr>
+                  <th class="py-2 pr-3">Date</th>
+                  <th class="py-2 pr-3">Status</th>
+                  <th class="py-2 pr-3">Source file</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for a in attendance %}
+                  <tr class="border-t border-slate-200 dark:border-slate-700">
+                    <td class="py-2 pr-3 whitespace-nowrap">{{ a.attended_on }}</td>
+                    <td class="py-2 pr-3">{{ a.status }}</td>
+                    <td class="py-2 pr-3 text-slate-700 dark:text-slate-300">{{ a.source_filename or "" }}</td>
+                  </tr>
+                {% else %}
+                  <tr class="border-t border-slate-200 dark:border-slate-700">
+                    <td class="py-3 text-slate-500 dark:text-slate-400" colspan="3">No attendance records yet.</td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% elif profile_tab == 'employment' %}
+          {% include 'partials/person_employment_panel.html' %}
+        {% elif profile_tab == 'hours' %}
+          <p class="text-sm text-slate-600 dark:text-slate-300">Hours history is not available yet.</p>
+        {% elif profile_tab == 'payroll' %}
+          <p class="text-sm text-slate-600 dark:text-slate-300">Payroll history is not available yet.</p>
+        {% elif profile_tab == 'onboarding' %}
+          {% include 'partials/person_onboarding_panel.html' %}
+        {% elif profile_tab == 'personal' %}
+          {% include 'partials/person_personal_panel.html' %}
+        {% elif profile_tab == 'emergency' %}
+          {% include 'partials/person_emergency_panel.html' %}
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  <script>
+    (function () {
+      var personId = "{{ person.id }}";
+      var prefix = "/people/" + personId + "?";
+      var storageKey = "personProfileScrollY:" + personId;
+
+      function saveScroll() {
+        try {
+          var y = window.scrollY || window.pageYOffset || 0;
+          sessionStorage.setItem(storageKey, String(y));
+        } catch (e) {}
+      }
+
+      function restoreScroll() {
+        try {
+          var raw = sessionStorage.getItem(storageKey);
+          if (raw == null) return;
+          sessionStorage.removeItem(storageKey);
+          var y = parseInt(raw, 10);
+          if (Number.isNaN(y) || y < 0) return;
+          requestAnimationFrame(function () {
+            requestAnimationFrame(function () {
+              window.scrollTo(0, y);
+            });
+          });
+        } catch (e) {}
+      }
+
+      document.addEventListener(
+        "click",
+        function (e) {
+          var a = e.target.closest("a[href]");
+          if (!a) return;
+          var href = a.getAttribute("href") || "";
+          if (href.indexOf(prefix) !== 0) return;
+          saveScroll();
+        },
+        true
+      );
+
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", restoreScroll);
+      } else {
+        restoreScroll();
+      }
+    })();
+  </script>
+{% endblock %}
+

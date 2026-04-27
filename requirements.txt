@@ -1,0 +1,10 @@
+fastapi
+uvicorn[standard]
+jinja2
+python-multipart
+sqlalchemy>=2.0
+cryptography
+itsdangerous
+pandas
+openpyxl
+xlrd

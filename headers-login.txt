@@ -1,0 +1,8 @@
+HTTP/1.1 303 See Other
+date: Tue, 21 Apr 2026 16:32:42 GMT
+server: uvicorn
+content-length: 0
+location: /projects
+vary: Cookie
+set-cookie: ats_session=eyJ1c2VyX2lkIjogMn0=.aeemqg.jpZR7nBvNJalQIEnhsNtD1HZCQw; path=/; Max-Age=43200; httponly; samesite=lax
+

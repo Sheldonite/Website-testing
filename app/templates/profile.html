@@ -1,0 +1,496 @@
+{% extends "base.html" %}
+{% block content %}
+  <div class="flex flex-col gap-6">
+    <div class="invoice-crossref-hero rounded-2xl border border-slate-200 bg-white px-5 py-4 dark:border-slate-700 dark:bg-slate-900">
+      <div class="text-xs uppercase tracking-wide text-slate-600 dark:text-slate-400">Administrator</div>
+      <h1 class="mt-1 text-xl font-semibold text-slate-900 dark:text-slate-100">Administrator profile</h1>
+      <p class="mt-1 text-sm text-slate-600 dark:text-slate-300">
+        Manage the operator profile, user accounts, permissions, and impersonation access for this installation.
+      </p>
+    </div>
+
+    {% if saved and not editing %}
+      <div class="rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-sm text-emerald-900 dark:border-emerald-900/60 dark:bg-emerald-950/30 dark:text-emerald-200">
+        Operator profile saved.
+      </div>
+    {% endif %}
+
+    {% if access_saved %}
+      <div class="rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-sm text-emerald-900 dark:border-emerald-900/60 dark:bg-emerald-950/30 dark:text-emerald-200">
+        User access updated.
+      </div>
+    {% endif %}
+
+    {% if access_error %}
+      <div
+        id="account-access-error-bubble"
+        class="fixed inset-0 z-[110] flex items-center justify-center bg-slate-950/35 px-4"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="account-access-error-title"
+      >
+        <div class="w-full max-w-md rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-900 shadow-2xl dark:border-red-900/60 dark:bg-red-950 dark:text-red-200">
+          <div class="flex items-start justify-between gap-3">
+            <div class="min-w-0">
+              <div id="account-access-error-title" class="text-xs font-semibold uppercase tracking-wide text-red-700 dark:text-red-300">Account error</div>
+              <div class="mt-1">{{ access_error }}</div>
+            </div>
+            <button
+              type="button"
+              id="account-access-error-close"
+              class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-red-200 bg-white text-red-700 hover:bg-red-100 dark:border-red-800 dark:bg-red-950/40 dark:text-red-200 dark:hover:bg-red-900/50"
+              aria-label="Dismiss account error"
+            >
+              <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+
+    <div class="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,22rem)_minmax(0,1fr)]">
+      <section class="rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-700 dark:bg-slate-900">
+        <div class="flex items-start justify-between gap-3">
+          <div>
+            <h2 class="text-sm font-semibold text-slate-900 dark:text-slate-100">Current access</h2>
+            <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">This is the account currently controlling the screen.</p>
+          </div>
+          {% if current_user.is_superuser %}
+            <span class="inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-900 dark:border-emerald-900/60 dark:bg-emerald-950/30 dark:text-emerald-200">Super Admin</span>
+          {% endif %}
+        </div>
+        <dl class="mt-4 space-y-3 text-sm">
+          <div>
+            <dt class="text-xs text-slate-500 dark:text-slate-400">Signed in as</dt>
+            <dd class="font-medium text-slate-900 dark:text-slate-100">{{ current_user.display_name }}</dd>
+          </div>
+          <div>
+            <dt class="text-xs text-slate-500 dark:text-slate-400">Username</dt>
+            <dd class="font-medium text-slate-900 dark:text-slate-100">{{ current_user.username }}</dd>
+          </div>
+          <div>
+            <dt class="text-xs text-slate-500 dark:text-slate-400">Role</dt>
+            <dd class="font-medium text-slate-900 dark:text-slate-100">{{ current_user.role_display }}</dd>
+          </div>
+          <div>
+            <dt class="text-xs text-slate-500 dark:text-slate-400">Permissions</dt>
+            <dd class="mt-1 flex flex-wrap gap-2">
+              {% for permission in current_user.permissions|sort %}
+                <span class="inline-flex rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-xs font-medium text-slate-700 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200">
+                  {% for group_name, group_permissions in permission_groups %}
+                    {% for key, label in group_permissions %}
+                      {% if key == permission %}{{ label }}{% endif %}
+                    {% endfor %}
+                  {% endfor %}
+                </span>
+              {% else %}
+                <span class="text-slate-500 dark:text-slate-400">No assigned permissions.</span>
+              {% endfor %}
+            </dd>
+          </div>
+          {% if current_user.last_login_at %}
+          <div>
+            <dt class="text-xs text-slate-500 dark:text-slate-400">Last login</dt>
+            <dd class="font-medium text-slate-900 dark:text-slate-100">{{ current_user.last_login_at.strftime("%Y-%m-%d %H:%M") }}</dd>
+          </div>
+          {% endif %}
+        </dl>
+      </section>
+
+      {% if editing %}
+        <form
+          class="rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-700 dark:bg-slate-900"
+          action="/profile"
+          method="post"
+        >
+          <div class="flex items-start justify-between gap-3">
+            <div>
+              <h2 class="text-sm font-semibold text-slate-900 dark:text-slate-100">Edit operator profile</h2>
+              <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">Contact information for whoever runs this install.</p>
+            </div>
+          </div>
+          <div class="mt-4 space-y-4">
+            <div>
+              <label class="block text-xs font-medium text-slate-600 dark:text-slate-400" for="full_name">Full name</label>
+              <input
+                id="full_name"
+                name="full_name"
+                type="text"
+                autocomplete="name"
+                value="{{ admin_profile.full_name or '' }}"
+                class="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-950 dark:text-slate-100"
+              />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-600 dark:text-slate-400" for="email">Email</label>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                autocomplete="email"
+                value="{{ admin_profile.email or '' }}"
+                class="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-950 dark:text-slate-100"
+              />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-600 dark:text-slate-400" for="phone">Phone</label>
+              <input
+                id="phone"
+                name="phone"
+                type="tel"
+                autocomplete="tel"
+                value="{{ admin_profile.phone or '' }}"
+                class="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-950 dark:text-slate-100"
+              />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-600 dark:text-slate-400" for="notes">Notes</label>
+              <textarea
+                id="notes"
+                name="notes"
+                rows="4"
+                class="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-950 dark:text-slate-100"
+              >{{ admin_profile.notes or '' }}</textarea>
+            </div>
+          </div>
+          <div class="mt-6 flex flex-wrap items-center gap-3">
+            <button
+              type="submit"
+              class="inline-flex items-center justify-center rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium"
+            >
+              Save
+            </button>
+            <a
+              class="inline-flex items-center justify-center rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white no-underline hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white"
+              href="/profile"
+            >Cancel</a>
+          </div>
+        </form>
+      {% else %}
+        <section class="rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-700 dark:bg-slate-900">
+          <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <h2 class="text-sm font-semibold text-slate-900 dark:text-slate-100">Operator profile</h2>
+              {% if admin_profile.updated_at %}
+                <p class="mt-0.5 text-xs text-slate-500 dark:text-slate-400">Last updated {{ admin_profile.updated_at.strftime("%Y-%m-%d %H:%M") }}</p>
+              {% endif %}
+            </div>
+            {% if can_manage_users %}
+              <a
+                class="inline-flex shrink-0 items-center justify-center rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium no-underline"
+                href="/profile?edit=1"
+              >
+                Edit
+              </a>
+            {% endif %}
+          </div>
+          {% if admin_profile_has_contact %}
+            <dl class="mt-4 grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
+              {% if admin_profile.full_name %}
+                <div>
+                  <dt class="text-xs text-slate-500 dark:text-slate-400">Name</dt>
+                  <dd class="font-medium text-slate-700 dark:text-slate-100">{{ admin_profile.full_name }}</dd>
+                </div>
+              {% endif %}
+              {% if admin_profile.email %}
+                <div>
+                  <dt class="text-xs text-slate-500 dark:text-slate-400">Email</dt>
+                  <dd class="font-medium text-slate-700 dark:text-slate-100"><a class="hover:underline" href="mailto:{{ admin_profile.email }}">{{ admin_profile.email }}</a></dd>
+                </div>
+              {% endif %}
+              {% if admin_profile.phone %}
+                <div>
+                  <dt class="text-xs text-slate-500 dark:text-slate-400">Phone</dt>
+                  <dd class="font-medium text-slate-700 dark:text-slate-100">{{ admin_profile.phone }}</dd>
+                </div>
+              {% endif %}
+            </dl>
+            {% if admin_profile.notes %}
+              <div class="mt-4 border-t border-slate-100 pt-4 dark:border-slate-700">
+                <div class="text-xs text-slate-500 dark:text-slate-400">Notes</div>
+                <div class="mt-1 whitespace-pre-wrap text-sm">{{ admin_profile.notes }}</div>
+              </div>
+            {% endif %}
+          {% else %}
+            <p class="mt-4 text-sm text-slate-500 dark:text-slate-400">Nothing saved yet.</p>
+          {% endif %}
+        </section>
+      {% endif %}
+    </div>
+
+    {% if can_manage_users %}
+      <div class="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,26rem)_minmax(0,1fr)]">
+        <section class="rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-700 dark:bg-slate-900">
+          <h2 class="text-sm font-semibold text-slate-900 dark:text-slate-100">Create account</h2>
+          <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">Add a user, assign a role label, and choose exactly what they can access.</p>
+          <form method="post" action="/profile/users" class="mt-4 space-y-4" data-preserve-scroll="true">
+            <div>
+              <label class="block text-xs font-medium text-slate-600 dark:text-slate-400" for="new_username">Username</label>
+              <input id="new_username" name="username" type="text" required class="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-950 dark:text-slate-100" />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-600 dark:text-slate-400" for="new_full_name">Full name</label>
+              <input id="new_full_name" name="full_name" type="text" class="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-950 dark:text-slate-100" />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-600 dark:text-slate-400" for="new_role_name">Role label</label>
+              <input id="new_role_name" name="role_name" type="text" placeholder="Examples: HR Manager, Project Lead" class="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-950 dark:text-slate-100" />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-600 dark:text-slate-400" for="new_person_id">Linked person (for project access)</label>
+              <select id="new_person_id" name="person_id" class="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-950 dark:text-slate-100">
+                <option value="">— None —</option>
+                {% for person in person_rows %}
+                  <option value="{{ person.id }}">{{ person.full_name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-600 dark:text-slate-400" for="new_project_manager_person_id">Project manager (for all projects)</label>
+              <select id="new_project_manager_person_id" name="project_manager_person_id" class="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-950 dark:text-slate-100">
+                <option value="">— None —</option>
+                {% for person in person_rows %}
+                  <option value="{{ person.id }}">{{ person.full_name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-600 dark:text-slate-400" for="new_password">Password</label>
+              <input id="new_password" name="password" type="password" required class="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-950 dark:text-slate-100" />
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-600 dark:text-slate-400" for="new_confirm_password">Confirm password</label>
+              <input id="new_confirm_password" name="confirm_password" type="password" required class="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-950 dark:text-slate-100" />
+            </div>
+            <label class="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-800/50">
+              <input type="checkbox" name="is_superuser" value="1" class="h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-slate-500 dark:border-slate-600 dark:bg-slate-900" />
+              <span>Make this account a super admin</span>
+            </label>
+            <div class="space-y-4 rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-600 dark:bg-slate-800/50">
+              <div class="text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-400">Permissions</div>
+              {% for group_name, group_permissions in permission_groups %}
+                <div>
+                  <div class="text-xs font-medium text-slate-500 dark:text-slate-400">{{ group_name }}</div>
+                  <div class="mt-2 space-y-2">
+                    {% for key, label in group_permissions %}
+                      <label class="flex items-start gap-2 text-sm text-slate-700 dark:text-slate-200">
+                        <input type="checkbox" name="permissions" value="{{ key }}" class="mt-0.5 h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-slate-500 dark:border-slate-600 dark:bg-slate-900" />
+                        <span>{{ label }}</span>
+                      </label>
+                    {% endfor %}
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+            <button type="submit" class="inline-flex w-full items-center justify-center rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white">
+              Create account
+            </button>
+          </form>
+        </section>
+
+        <div class="space-y-6">
+          <section class="rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-700 dark:bg-slate-900">
+            <div class="flex items-center justify-between gap-3">
+              <div>
+                <h2 class="text-sm font-semibold text-slate-900 dark:text-slate-100">Accounts</h2>
+                <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">Review access, edit permissions, and impersonate another user.</p>
+              </div>
+              <div class="text-xs text-slate-500 dark:text-slate-400">{{ account_rows|length }} total</div>
+            </div>
+            <div class="mt-4 space-y-3">
+              {% for account in account_rows %}
+                <div class="rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-600 dark:bg-slate-800/50">
+                  <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div class="min-w-0">
+                      <div class="flex flex-wrap items-center gap-2">
+                        <div class="font-medium text-slate-900 dark:text-slate-100">{{ account.display_name }}</div>
+                        {% if account.is_superuser %}
+                          <span class="inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[0.7rem] font-medium text-emerald-900 dark:border-emerald-900/60 dark:bg-emerald-950/30 dark:text-emerald-200">Super Admin</span>
+                        {% endif %}
+                        {% if not account.is_active %}
+                          <span class="inline-flex rounded-full border border-red-200 bg-red-50 px-2 py-0.5 text-[0.7rem] font-medium text-red-900 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-200">Inactive</span>
+                        {% endif %}
+                        {% if account.is_current_user %}
+                          <span class="inline-flex rounded-full border border-sky-200 bg-sky-50 px-2 py-0.5 text-[0.7rem] font-medium text-sky-900 dark:border-sky-900/60 dark:bg-sky-950/30 dark:text-sky-200">Current</span>
+                        {% endif %}
+                        {% if account.is_acting_user and is_impersonating %}
+                          <span class="inline-flex rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[0.7rem] font-medium text-amber-900 dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-200">Original session</span>
+                        {% endif %}
+                      </div>
+                      <div class="mt-1 text-sm text-slate-600 dark:text-slate-300">@{{ account.username }}</div>
+                      <div class="mt-1 text-xs text-slate-500 dark:text-slate-400">{{ account.role_display }}</div>
+                      <div class="mt-3 flex flex-wrap gap-2">
+                        {% for permission in account.permissions %}
+                          <span class="inline-flex rounded-full border border-slate-200 bg-white px-2 py-1 text-[0.7rem] font-medium text-slate-700 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200">
+                            {% for group_name, group_permissions in permission_groups %}
+                              {% for key, label in group_permissions %}
+                                {% if key == permission %}{{ label }}{% endif %}
+                              {% endfor %}
+                            {% endfor %}
+                          </span>
+                        {% else %}
+                          <span class="text-xs text-slate-500 dark:text-slate-400">No assigned permissions.</span>
+                        {% endfor %}
+                      </div>
+                    </div>
+                    <div class="flex shrink-0 flex-wrap gap-2">
+                      <a href="/profile?user_edit={{ account.id }}" class="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-slate-800 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800">Edit access</a>
+                      {% if can_impersonate_users and account.is_active and not account.is_current_user %}
+                        <form method="post" action="/profile/users/{{ account.id }}/impersonate">
+                          <button type="submit" class="inline-flex items-center justify-center rounded-lg border border-amber-300 bg-white px-3 py-2 text-sm font-medium text-amber-900 hover:bg-amber-50 dark:border-amber-700 dark:bg-amber-950/20 dark:text-amber-100 dark:hover:bg-amber-900/30">Impersonate</button>
+                        </form>
+                      {% endif %}
+                    </div>
+                  </div>
+                  <div class="mt-3 grid grid-cols-1 gap-2 text-xs text-slate-500 dark:text-slate-400 sm:grid-cols-2">
+                    <div>Created {{ account.created_at.strftime("%Y-%m-%d %H:%M") if account.created_at else "—" }}</div>
+                    <div>Last login {{ account.last_login_at.strftime("%Y-%m-%d %H:%M") if account.last_login_at else "Never" }}</div>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          </section>
+
+          {% if edited_user %}
+            <section class="rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-700 dark:bg-slate-900">
+              <div class="flex items-center justify-between gap-3">
+                <div>
+                  <h2 class="text-sm font-semibold text-slate-900 dark:text-slate-100">Edit account</h2>
+                  <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">Update role, permissions, status, or reset the password for {{ edited_user.username }}.</p>
+                </div>
+                <a href="/profile" class="text-sm text-slate-600 hover:underline dark:text-slate-400">Close</a>
+              </div>
+              <form method="post" action="/profile/users/{{ edited_user.id }}" class="mt-4 space-y-4" data-preserve-scroll="true">
+                <div>
+                  <label class="block text-xs font-medium text-slate-600 dark:text-slate-400" for="edit_full_name">Full name</label>
+                  <input id="edit_full_name" name="full_name" type="text" value="{{ edited_user.full_name or '' }}" class="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-950 dark:text-slate-100" />
+                </div>
+                <div>
+                  <label class="block text-xs font-medium text-slate-600 dark:text-slate-400" for="edit_role_name">Role label</label>
+                  <input id="edit_role_name" name="role_name" type="text" value="{{ edited_user.role_name or '' }}" class="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-950 dark:text-slate-100" />
+                </div>
+                <div>
+                  <label class="block text-xs font-medium text-slate-600 dark:text-slate-400" for="edit_person_id">Linked person (for project access)</label>
+                  <select id="edit_person_id" name="person_id" class="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-950 dark:text-slate-100">
+                    <option value="">— None —</option>
+                    {% for person in person_rows %}
+                      <option value="{{ person.id }}" {% if edited_user.person_id == person.id %}selected{% endif %}>{{ person.full_name }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-xs font-medium text-slate-600 dark:text-slate-400" for="edit_project_manager_person_id">Project manager (for all projects)</label>
+                  <select id="edit_project_manager_person_id" name="project_manager_person_id" class="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-950 dark:text-slate-100">
+                    <option value="">— None —</option>
+                    {% for person in person_rows %}
+                      <option value="{{ person.id }}" {% if edited_user.project_manager_person_id == person.id %}selected{% endif %}>{{ person.full_name }}</option>
+                    {% endfor %}
+                  </select>
+                </div>
+                <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div>
+                    <label class="block text-xs font-medium text-slate-600 dark:text-slate-400" for="edit_password">New password</label>
+                    <input id="edit_password" name="password" type="password" class="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-950 dark:text-slate-100" />
+                  </div>
+                  <div>
+                    <label class="block text-xs font-medium text-slate-600 dark:text-slate-400" for="edit_confirm_password">Confirm new password</label>
+                    <input id="edit_confirm_password" name="confirm_password" type="password" class="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-950 dark:text-slate-100" />
+                  </div>
+                </div>
+                <label class="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-800/50">
+                  <input type="checkbox" name="is_active" value="1" {% if edited_user.is_active %}checked{% endif %} class="h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-slate-500 dark:border-slate-600 dark:bg-slate-900" />
+                  <span>Account is active</span>
+                </label>
+                <label class="flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-800/50">
+                  <input type="checkbox" name="is_superuser" value="1" {% if edited_user.is_superuser %}checked{% endif %} class="h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-slate-500 dark:border-slate-600 dark:bg-slate-900" />
+                  <span>Super admin</span>
+                </label>
+                <div class="space-y-4 rounded-xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-600 dark:bg-slate-800/50">
+                  <div class="text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-400">Permissions</div>
+                  {% for group_name, group_permissions in permission_groups %}
+                    <div>
+                      <div class="text-xs font-medium text-slate-500 dark:text-slate-400">{{ group_name }}</div>
+                      <div class="mt-2 space-y-2">
+                        {% for key, label in group_permissions %}
+                          <label class="flex items-start gap-2 text-sm text-slate-700 dark:text-slate-200">
+                            <input type="checkbox" name="permissions" value="{{ key }}" {% if key in edited_user_permissions %}checked{% endif %} class="mt-0.5 h-4 w-4 rounded border-slate-300 text-slate-900 focus:ring-slate-500 dark:border-slate-600 dark:bg-slate-900" />
+                            <span>{{ label }}</span>
+                          </label>
+                        {% endfor %}
+                      </div>
+                    </div>
+                  {% endfor %}
+                </div>
+                <div class="flex flex-wrap gap-3">
+                  <button type="submit" class="inline-flex items-center justify-center rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white">Save access</button>
+                  <a href="/profile" class="inline-flex items-center justify-center rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-800 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800">Cancel</a>
+                </div>
+              </form>
+            </section>
+          {% endif %}
+        </div>
+      </div>
+    {% else %}
+      <section class="rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-700 dark:bg-slate-900">
+        <h2 class="text-sm font-semibold text-slate-900 dark:text-slate-100">Your account</h2>
+        <p class="mt-1 text-sm text-slate-600 dark:text-slate-300">
+          User management is limited to admins with account-management permission. Your role and permissions are shown above.
+        </p>
+      </section>
+    {% endif %}
+
+    <div class="rounded-2xl border border-slate-200 bg-white px-5 py-3 dark:border-slate-700 dark:bg-slate-900">
+      <a class="text-sm text-slate-600 hover:underline dark:text-slate-400" href="{{ '/' if current_user.can_view_imports else '/profile' }}">Back</a>
+    </div>
+  </div>
+  {% if access_error %}
+  <script>
+    (function () {
+      var bubble = document.getElementById("account-access-error-bubble");
+      var closeBtn = document.getElementById("account-access-error-close");
+      if (!bubble || !closeBtn) return;
+      closeBtn.addEventListener("click", function () {
+        bubble.remove();
+      });
+      bubble.addEventListener("click", function (e) {
+        if (e.target === bubble) bubble.remove();
+      });
+    })();
+  </script>
+  {% endif %}
+  <script>
+    (function () {
+      var STORAGE_KEY = "profileAccountFormsScrollY";
+      function restoreScroll() {
+        try {
+          var raw = sessionStorage.getItem(STORAGE_KEY);
+          if (raw == null) return;
+          sessionStorage.removeItem(STORAGE_KEY);
+          var y = parseInt(raw, 10);
+          if (Number.isNaN(y) || y < 0) return;
+          requestAnimationFrame(function () {
+            requestAnimationFrame(function () {
+              window.scrollTo(0, y);
+            });
+          });
+        } catch (e) {}
+      }
+
+      document.querySelectorAll('form[data-preserve-scroll="true"]').forEach(function (form) {
+        form.addEventListener("submit", function () {
+          try {
+            sessionStorage.setItem(STORAGE_KEY, String(window.scrollY || window.pageYOffset || 0));
+          } catch (e) {}
+        });
+      });
+
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", restoreScroll);
+      } else {
+        restoreScroll();
+      }
+    })();
+  </script>
+{% endblock %}

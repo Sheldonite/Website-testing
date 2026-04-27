@@ -1,0 +1,1014 @@
+{% extends "base.html" %}
+{% block content %}
+  <div class="invoice-crossref-page flex min-w-0 max-w-full flex-col gap-6 overflow-x-hidden">
+    <div class="invoice-crossref-hero rounded-2xl border border-slate-200 bg-white px-5 py-4 dark:border-slate-700 dark:bg-slate-900">
+      <h1 class="text-xl font-semibold text-slate-900 dark:text-slate-100">Invoice Crossreferencing</h1>
+      <p class="mt-1 text-sm text-slate-600 dark:text-slate-300">
+        Upload both invoice files and compare by <span class="font-mono">External Timesheet ID (VMS ID)</span> + <span class="font-mono">Pay Type</span>.
+      </p>
+    </div>
+
+    <details
+      id="invoice-crossref-custom-settings"
+      class="invoice-crossref-settings invoice-crossref-panel rounded-2xl border border-slate-200 bg-white overflow-hidden dark:border-slate-700 dark:bg-slate-900"
+      {% if crossref_settings_open %}open{% endif %}
+    >
+      <summary class="flex cursor-pointer items-center justify-between gap-3 px-6 py-4 hover:bg-slate-50 dark:hover:bg-slate-800">
+        <span class="text-left">
+          <span class="block text-sm font-semibold text-slate-900 dark:text-slate-100">Company Selection</span>
+        </span>
+        <svg
+          class="invoice-crossref-chevron h-5 w-5 shrink-0 text-slate-400 transition-transform duration-200 dark:text-slate-500"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke-width="2"
+          stroke="currentColor"
+          aria-hidden="true"
+        >
+          <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+        </svg>
+      </summary>
+
+      <div class="invoice-crossref-panel-body border-t border-slate-100 px-6 pb-6 pt-2 dark:border-slate-700">
+      <h2 class="sr-only">Company selection and invoice crossreference settings</h2>
+
+      <form id="invoice-company-layout-form" method="post" class="mt-4 max-w-2xl">
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:gap-3">
+          <div class="min-w-0 flex-1">
+            <label class="text-xs font-medium text-slate-600 dark:text-slate-300" for="invoice-active-layout-select">Company workflow</label>
+            <select
+              id="invoice-active-layout-select"
+              name="target_layout"
+              class="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-950 dark:text-slate-100"
+            >
+              <option value="default" {% if active_invoice_layout == "default" %}selected{% endif %}>Default</option>
+              <option value="material_motion" {% if active_invoice_layout == "material_motion" %}selected{% endif %}>Material in Motion</option>
+              <option value="shoals" {% if active_invoice_layout == "shoals" %}selected{% endif %}>Shoals</option>
+            </select>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            <button
+              type="submit"
+              formaction="/invoice-crossreferencing/layout-switch"
+              formmethod="post"
+              class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white"
+            >
+              Apply
+            </button>
+            <button
+              type="submit"
+              formaction="/invoice-crossreferencing/layout-settings/save"
+              formmethod="post"
+              class="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700"
+            >
+              Save settings for workflow
+            </button>
+          </div>
+        </div>
+      </form>
+      <p class="mt-2 max-w-2xl text-xs text-slate-500 dark:text-slate-400">
+        <span class="font-medium text-slate-600 dark:text-slate-300">Apply</span> sets the active import/export paths and loads saved tolerance, company filter, and pay-type mappings for that workflow (if you have saved them). Switching may remove incompatible payroll imports; paid/billed imports are kept.
+        <span class="font-medium text-slate-600 dark:text-slate-300">Save settings for workflow</span> stores the <em>current</em> tolerance, filter, and mappings under the workflow selected in the list (you can save for another workflow without applying it first).
+      </p>
+
+      <p class="mt-6 text-xs font-medium text-slate-600 dark:text-slate-400">Edit active settings</p>
+      <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">
+        Map equivalent pay types so they match (example: <span class="font-mono">OVT</span> → <span class="font-mono">OT</span>). Use <span class="font-medium">Save settings for workflow</span> above to remember these for a company workflow; <span class="font-medium">Apply</span> loads the saved set for the workflow you switch to.
+      </p>
+
+      <form class="mt-4 grid grid-cols-1 gap-3 md:grid-cols-3" action="/invoice-crossreferencing/settings/tolerance" method="post">
+        <div>
+          <label class="text-xs text-slate-600 dark:text-slate-300">Allowed difference before red flag</label>
+          <input
+            class="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-950 dark:text-slate-100"
+            type="number"
+            step="0.01"
+            min="0"
+            name="mismatch_tolerance"
+            value="{{ mismatch_tolerance }}"
+            required
+          />
+        </div>
+        <div class="md:self-end">
+          <button class="w-full rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700" type="submit">Save tolerance</button>
+        </div>
+        <div class="md:col-span-3 text-xs text-slate-500 dark:text-slate-400">
+          Differences with absolute value less than or equal to this amount are treated as a match.
+        </div>
+      </form>
+
+      <form class="mt-4 grid grid-cols-1 gap-3 md:grid-cols-3" action="/invoice-crossreferencing/settings/company-filter" method="post">
+        <div>
+          <label class="text-xs text-slate-600 dark:text-slate-300">Paid/Billed company filter</label>
+          <select class="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-950 dark:text-slate-100" name="company_name">
+            <option value="">All companies</option>
+            {% if selected_company and selected_company not in paid_billed_companies %}
+              <option value="{{ selected_company }}" selected>{{ selected_company }} (saved filter)</option>
+            {% endif %}
+            {% for c in paid_billed_companies %}
+              <option value="{{ c }}" {% if selected_company == c %}selected{% endif %}>{{ c }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="md:self-end">
+          <button class="w-full rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700" type="submit">Apply company filter</button>
+        </div>
+        <div class="md:col-span-3 text-xs text-slate-500 dark:text-slate-400">
+          Only Paid/Billed rows from the selected company will be used in matching.
+        </div>
+      </form>
+
+      <form class="mt-4 grid grid-cols-1 gap-3 md:grid-cols-3" action="/invoice-crossreferencing/paytype-mappings/add" method="post">
+        <div>
+          <label class="text-xs text-slate-600 dark:text-slate-300">Source value</label>
+          <select class="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-950 dark:text-slate-100" name="source_value" required>
+            <option value="">Select pay type...</option>
+            {% for p in available_pay_types %}
+              <option value="{{ p }}">{{ p }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div>
+          <label class="text-xs text-slate-600 dark:text-slate-300">Map to</label>
+          <select class="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-950 dark:text-slate-100" name="target_value" required>
+            <option value="">Select target...</option>
+            {% for p in available_pay_types %}
+              <option value="{{ p }}">{{ p }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="md:self-end">
+          <button class="w-full rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:hover:bg-slate-700" type="submit">Save mapping</button>
+        </div>
+      </form>
+
+      <div class="mt-4 overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead class="text-left text-xs text-slate-500 dark:text-slate-400">
+            <tr>
+              <th class="py-2 pr-3">Source</th>
+              <th class="py-2 pr-3">Target</th>
+              <th class="py-2 pr-3"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for m in pay_type_mappings %}
+              <tr class="border-t border-slate-200 dark:border-slate-700">
+                <td class="py-2 pr-3 font-mono">{{ m.source_value }}</td>
+                <td class="py-2 pr-3 font-mono">{{ m.target_value }}</td>
+                <td class="py-2 pr-3 text-right">
+                  <form action="/invoice-crossreferencing/paytype-mappings/{{ m.id }}/delete" method="post">
+                    <button class="rounded border border-slate-200 px-2 py-1 text-xs hover:bg-slate-50 dark:border-slate-600 dark:hover:bg-slate-800" type="submit">Delete</button>
+                  </form>
+                </td>
+              </tr>
+            {% else %}
+              <tr class="border-t border-slate-200 dark:border-slate-700">
+                <td class="py-3 text-slate-500 dark:text-slate-400" colspan="3">No mappings yet.</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      </div>
+    </details>
+
+    {% if active_invoice_layout == "material_motion" %}
+      <div class="flex flex-col gap-4">
+        <h2 class="invoice-crossref-imports-section-title text-base font-semibold">Imports</h2>
+        <div class="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:items-stretch">
+          <div class="invoice-crossref-panel flex flex-col rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
+            <h3 class="text-sm font-semibold text-slate-900 dark:text-slate-100">Paid and Billed Invoice</h3>
+            <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">
+              BO Invoice report or similar (<span class="font-mono">.xls</span> / <span class="font-mono">.xlsx</span>).
+            </p>
+            <form class="mt-4 flex flex-col gap-3" action="/invoice-crossreferencing/import/paid-billed" method="post" enctype="multipart/form-data">
+              <input
+                class="block w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-950 dark:text-slate-100"
+                type="file"
+                name="file"
+                accept=".xls,.xlsx"
+                required
+              />
+              <button class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white" type="submit">Upload paid/billed</button>
+            </form>
+            <p class="mt-3 text-xs text-slate-600 dark:text-slate-300">
+              Latest: {% if paid_billed_batch %}<span class="font-medium">{{ paid_billed_batch.filename }}</span>{% else %}None{% endif %}
+            </p>
+          </div>
+
+          <div class="invoice-crossref-panel flex flex-col rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
+            <h3 class="text-sm font-semibold text-slate-900 dark:text-slate-100">Material in Motion import</h3>
+            <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">Shiftfillers Payroll Report or similar (<span class="font-mono">.xls</span> / <span class="font-mono">.xlsx</span>).</p>
+            <form class="mt-4 flex flex-col gap-3" action="/invoice-crossreferencing/import/mim" method="post" enctype="multipart/form-data">
+              <input
+                class="block w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-950 dark:text-slate-100"
+                type="file"
+                name="file"
+                accept=".xls,.xlsx"
+                required
+              />
+              <button class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white" type="submit">Upload MIM file</button>
+            </form>
+            <p class="mt-3 text-xs text-slate-600 dark:text-slate-300">
+              Latest: {% if mim_batch %}<span class="font-medium">{{ mim_batch.filename }}</span>{% else %}None{% endif %}
+            </p>
+          </div>
+
+          <div class="invoice-crossref-panel flex flex-col rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
+            <h3 class="text-sm font-semibold text-slate-900 dark:text-slate-100">PPE deductions import</h3>
+            <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">PPE–Shiftfillers weekly deduction CSV.</p>
+            <form class="mt-4 flex flex-col gap-3" action="/invoice-crossreferencing/import/ppe" method="post" enctype="multipart/form-data">
+              <input
+                class="block w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-950 dark:text-slate-100"
+                type="file"
+                name="file"
+                accept=".csv,text/csv"
+                required
+              />
+              <button class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white" type="submit">Upload PPE file</button>
+            </form>
+            <p class="mt-3 text-xs text-slate-600 dark:text-slate-300">
+              Latest: {% if ppe_batch %}<span class="font-medium">{{ ppe_batch.filename }}</span>{% else %}None{% endif %}
+            </p>
+          </div>
+        </div>
+      </div>
+    {% elif active_invoice_layout == "shoals" %}
+      <div class="flex flex-col gap-4">
+        <h2 class="invoice-crossref-imports-section-title text-base font-semibold">Imports</h2>
+        <div class="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:items-stretch">
+          <div class="invoice-crossref-panel flex flex-col rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
+            <h3 class="text-sm font-semibold text-slate-900 dark:text-slate-100">Paid and Billed Invoice</h3>
+            <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">
+              BO Invoice report or similar (<span class="font-mono">.xls</span> / <span class="font-mono">.xlsx</span>).
+            </p>
+            <form class="mt-4 flex flex-col gap-3" action="/invoice-crossreferencing/import/paid-billed" method="post" enctype="multipart/form-data">
+              <input
+                class="block w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-950 dark:text-slate-100"
+                type="file"
+                name="file"
+                accept=".xls,.xlsx"
+                required
+              />
+              <button class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white" type="submit">Upload paid/billed</button>
+            </form>
+            <p class="mt-3 text-xs text-slate-600 dark:text-slate-300">
+              Latest: {% if paid_billed_batch %}<span class="font-medium">{{ paid_billed_batch.filename }}</span>{% else %}None{% endif %}
+            </p>
+          </div>
+
+          <div class="invoice-crossref-panel flex flex-col rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
+            <h3 class="text-sm font-semibold text-slate-900 dark:text-slate-100">Shoals core group import</h3>
+            <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">Payroll workbook (<span class="font-mono">.xls</span> / <span class="font-mono">.xlsx</span>).</p>
+            <form class="mt-4 flex flex-col gap-3" action="/invoice-crossreferencing/import/shoals-core" method="post" enctype="multipart/form-data">
+              <input
+                class="block w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-950 dark:text-slate-100"
+                type="file"
+                name="file"
+                accept=".xls,.xlsx"
+                required
+              />
+              <button class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white" type="submit">Upload Shoals core</button>
+            </form>
+            <p class="mt-3 text-xs text-slate-600 dark:text-slate-300">
+              Latest: {% if shoals_core_batch %}<span class="font-medium">{{ shoals_core_batch.filename }}</span>{% else %}None{% endif %}
+            </p>
+          </div>
+
+          <div class="invoice-crossref-panel flex flex-col rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
+            <h3 class="text-sm font-semibold text-slate-900 dark:text-slate-100">Shoals weekend group import</h3>
+            <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">Payroll workbook (<span class="font-mono">.xls</span> / <span class="font-mono">.xlsx</span>).</p>
+            <form class="mt-4 flex flex-col gap-3" action="/invoice-crossreferencing/import/shoals-weekend" method="post" enctype="multipart/form-data">
+              <input
+                class="block w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-950 dark:text-slate-100"
+                type="file"
+                name="file"
+                accept=".xls,.xlsx"
+                required
+              />
+              <button class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white" type="submit">Upload Shoals weekend</button>
+            </form>
+            <p class="mt-3 text-xs text-slate-600 dark:text-slate-300">
+              Latest: {% if shoals_weekend_batch %}<span class="font-medium">{{ shoals_weekend_batch.filename }}</span>{% else %}None{% endif %}
+            </p>
+          </div>
+        </div>
+      </div>
+    {% else %}
+      <div class="flex flex-col gap-4">
+        <h2 class="invoice-crossref-imports-section-title text-base font-semibold">Imports</h2>
+        <div class="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:items-stretch">
+          <div class="invoice-crossref-panel flex flex-col rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
+            <h3 class="text-sm font-semibold text-slate-900 dark:text-slate-100">Paid and Billed Invoice</h3>
+            <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">
+              BO Invoice report or similar (<span class="font-mono">.xls</span> / <span class="font-mono">.xlsx</span>). Use <span class="font-medium">Company Selection</span> above and apply <span class="font-medium">Material in Motion</span> or <span class="font-medium">Shoals</span> for the full three-import workflow.
+            </p>
+            <form class="mt-4 flex flex-col gap-3" action="/invoice-crossreferencing/import/paid-billed" method="post" enctype="multipart/form-data">
+              <input
+                class="block w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-950 dark:text-slate-100"
+                type="file"
+                name="file"
+                accept=".xls,.xlsx"
+                required
+              />
+              <button class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white" type="submit">Upload paid/billed</button>
+            </form>
+            <p class="mt-3 text-xs text-slate-600 dark:text-slate-300">
+              Latest: {% if paid_billed_batch %}<span class="font-medium">{{ paid_billed_batch.filename }}</span>{% else %}None{% endif %}
+            </p>
+          </div>
+          <div
+            class="invoice-crossref-panel flex flex-col rounded-2xl border border-dashed border-slate-200 bg-slate-50/80 p-5 dark:border-slate-600 dark:bg-slate-950/40"
+          >
+            <h3 class="text-sm font-semibold text-slate-700 dark:text-slate-300">Client invoice</h3>
+            <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">
+              Reserved for a future client-invoice import on the default workflow. Switch to <span class="font-medium">Material in Motion</span> or <span class="font-medium">Shoals</span> for the supported multi-file imports.
+            </p>
+          </div>
+        </div>
+      </div>
+    {% endif %}
+
+    <div class="invoice-crossref-panel rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
+      <h2 class="text-sm font-semibold text-slate-900 dark:text-slate-100">Cross-reference run</h2>
+      <p class="mt-1 text-xs text-slate-500 dark:text-slate-400">
+        After imports and settings, click <span class="font-medium">Calculate Cross-Reference</span> once to build a snapshot. The results table below loads from that snapshot so the page stays fast. Column resize and order are still saved in your browser.
+      </p>
+      <div class="mt-4 flex flex-wrap items-center gap-3">
+        <form action="/invoice-crossreferencing/calculate" method="post">
+          <button
+            type="submit"
+            class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white"
+          >
+            Calculate Cross-Reference
+          </button>
+        </form>
+        <form
+          action="/invoice-crossreferencing/clear"
+          method="post"
+          onsubmit="return confirm('Clear all invoice import data (paid/billed, MIM, PPE) and the saved cross-reference snapshot? This cannot be undone.');"
+        >
+          <button
+            type="submit"
+            class="rounded-lg border border-red-200 bg-white px-4 py-2 text-sm font-medium text-red-800 hover:bg-red-50 dark:border-red-900 dark:bg-red-950/30 dark:text-red-300 dark:hover:bg-red-950/40"
+          >
+            Clear all data
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <div class="invoice-crossref-panel invoice-crossref-results-panel min-w-0 max-w-full rounded-2xl border border-slate-200 bg-white p-4 sm:p-5 dark:border-slate-700 dark:bg-slate-900">
+      <div class="flex min-w-0 flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 class="text-sm font-semibold">Crossreference results</h2>
+          <p class="text-xs text-slate-500 dark:text-slate-400">
+            {% if has_snapshot %}
+              {{ row_count }} matched/unmatched keys total — paginate below the table. Snapshot tolerance: {{ crossref_tolerance_display }}.
+              {% if snapshot_at %}Built {{ snapshot_at.strftime("%Y-%m-%d %H:%M") }}.{% endif %}
+            {% else %}
+              No snapshot loaded — use <span class="font-medium">Calculate Cross-Reference</span> above after you are ready.
+            {% endif %}
+          </p>
+        </div>
+        {% if active_invoice_layout == "material_motion" %}
+          <a
+            class="invoice-crossref-export-xlsx inline-flex items-center gap-1 rounded border border-slate-200 px-2 py-1 text-xs no-underline text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800"
+            href="/invoice-crossreferencing/export"
+          >Export XLSX</a>
+        {% elif active_invoice_layout == "shoals" %}
+          <a
+            class="invoice-crossref-export-xlsx inline-flex items-center gap-1 rounded border border-slate-200 px-2 py-1 text-xs no-underline text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800"
+            href="/invoice-crossreferencing/export/shoals"
+          >Export XLSX</a>
+        {% else %}
+          <span
+            class="invoice-crossref-export-xlsx inline-flex cursor-not-allowed items-center rounded border border-slate-200 px-2 py-1 text-xs text-slate-400 opacity-60 dark:border-slate-600 dark:text-slate-500"
+            title="Apply Material in Motion or Shoals in Company Selection to use export"
+            role="text"
+            aria-disabled="true"
+          >Export XLSX</span>
+        {% endif %}
+      </div>
+      <p class="mt-2 text-xs text-slate-500 dark:text-slate-400">
+        Table fits the page width (no sideways scroll). Drag headers to reorder; drag between headers to shift space between columns. Hover headers for full names.
+      </p>
+
+      {% if crossref_error == "note_required" %}
+        <p class="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-100">
+          Add a note before marking a row as solved.
+        </p>
+      {% elif crossref_error == "invalid_key" %}
+        <p class="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-900 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-100">
+          Could not update that row — refresh the page and try again.
+        </p>
+      {% endif %}
+
+      <div class="invoice-crossref-results-scroll mt-4 w-full min-w-0 max-w-full overflow-x-hidden">
+        <table id="invoice-crossref-table" class="invoice-crossref-results-table w-full">
+          <thead class="text-left text-slate-500 dark:text-slate-400">
+            <tr>
+              <th data-col="invoice_number" class="relative cursor-grab select-none py-1 pr-1 active:cursor-grabbing" title="Invoice number — drag to reorder; drag right edge to resize">Inv</th>
+              <th data-col="vms_id" class="relative cursor-grab select-none py-1 pr-1 active:cursor-grabbing" title="VMS ID">VMS</th>
+              <th data-col="pay_type" class="relative cursor-grab select-none py-1 pr-1 active:cursor-grabbing" title="Pay type">Pay</th>
+              <th data-col="week_ended" class="relative cursor-grab select-none py-1 pr-1 active:cursor-grabbing" title="{% if active_invoice_layout == 'shoals' %}Week ending on Paid/Billed (BO) vs Paycom timecards{% else %}Week ending on Paid/Billed (BO) vs MIM — can differ for corrections{% endif %}">Week end</th>
+              <th data-col="employee_name" class="relative cursor-grab select-none py-1 pr-1 active:cursor-grabbing" title="Employee">Emp</th>
+              <th data-col="paid_pay_rate" class="relative cursor-grab select-none py-1 pr-1 active:cursor-grabbing{% if active_invoice_layout == "shoals" %} invoice-crossref-col-shoals-hide{% endif %}" title="Paid pay rate">P pay</th>
+              <th data-col="mim_pay_rate" class="relative cursor-grab select-none py-1 pr-1 active:cursor-grabbing{% if active_invoice_layout == "shoals" %} invoice-crossref-col-shoals-hide{% endif %}" title="{% if active_invoice_layout == 'shoals' %}Paycom (hours import; rates not used){% else %}MIM pay rate{% endif %}">{% if active_invoice_layout == "shoals" %}PC pay{% else %}M pay{% endif %}</th>
+              <th data-col="paid_bill_rate" class="relative cursor-grab select-none py-1 pr-1 active:cursor-grabbing{% if active_invoice_layout == "shoals" %} invoice-crossref-col-shoals-hide{% endif %}" title="Paid bill rate">P bill</th>
+              <th data-col="mim_bill_rate" class="relative cursor-grab select-none py-1 pr-1 active:cursor-grabbing{% if active_invoice_layout == "shoals" %} invoice-crossref-col-shoals-hide{% endif %}" title="{% if active_invoice_layout == 'shoals' %}Paycom (not used for Shoals){% else %}MIM bill rate{% endif %}">M bill</th>
+              <th data-col="paid_qty" class="relative cursor-grab select-none py-1 pr-1 active:cursor-grabbing" title="Paid hours">PH</th>
+              <th data-col="mim_qty" class="relative cursor-grab select-none py-1 pr-1 active:cursor-grabbing" title="{% if active_invoice_layout == 'shoals' %}Paycom hours (EarnHours){% else %}MIM quantity{% endif %}">{% if active_invoice_layout == "shoals" %}PC hrs{% else %}MQ{% endif %}</th>
+              <th data-col="qty_diff" class="relative cursor-grab select-none py-1 pr-1 active:cursor-grabbing" title="Quantity difference">ΔQ</th>
+              <th data-col="paid_total" class="relative cursor-grab select-none py-1 pr-1 active:cursor-grabbing{% if active_invoice_layout == "shoals" %} invoice-crossref-col-shoals-hide{% endif %}" title="Paid total">P$</th>
+              <th data-col="mim_total" class="relative cursor-grab select-none py-1 pr-1 active:cursor-grabbing{% if active_invoice_layout == "shoals" %} invoice-crossref-col-shoals-hide{% endif %}" title="MIM total">M$</th>
+              <th data-col="total_diff" class="relative cursor-grab select-none py-1 pr-1 active:cursor-grabbing{% if active_invoice_layout == "shoals" %} invoice-crossref-col-shoals-hide{% endif %}" title="Total difference">Δ$</th>
+              <th data-col="crossref_note" class="relative cursor-grab select-none py-1 pr-1 active:cursor-grabbing" title="Note — mismatch rows only">Note</th>
+              <th data-col="crossref_solved" class="relative cursor-grab select-none py-1 pr-1 active:cursor-grabbing" title="Lock to save note and mark OK — mismatch rows only">OK</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for c in comparisons %}
+              {% set crossref_row_base = 'soft' if c.mim_no_paid_zero_mim_qty else ('mismatch' if c.any_mismatch else 'none') %}
+              <tr
+                id="invoice-crossref-row-{{ loop.index0 }}"
+                class="border-t border-slate-200 dark:border-slate-700 {% if c.crossref_solved %}invoice-crossref-row--solved{% elif c.any_mismatch %}invoice-crossref-row--mismatch{% elif c.mim_no_paid_zero_mim_qty %}invoice-crossref-row--soft{% endif %}"
+                data-crossref-row-base="{{ crossref_row_base }}"
+              >
+                <td data-col="invoice_number" class="py-1 pr-1" title="{{ c.invoice_number }}">{{ c.invoice_number }}</td>
+                <td data-col="vms_id" class="py-1 pr-1" title="{{ c.external_timesheet_id }}">{{ c.external_timesheet_id }}</td>
+                <td data-col="pay_type" class="py-1 pr-1" title="{{ c.pay_type }}">{{ c.pay_type }}</td>
+                <td data-col="week_ended" class="py-1 pr-1 leading-snug">
+                  {% set pw = c.paid_week_ended|default('', true) %}
+                  {% set mw = c.mim_week_ended|default('', true) %}
+                  {% if pw or mw %}
+                    {% if pw %}<div class="whitespace-nowrap"><span class="text-slate-500 dark:text-slate-400">BO</span> {{ pw }}</div>{% endif %}
+                    {% if mw %}<div class="whitespace-nowrap"><span class="text-slate-500 dark:text-slate-400">{% if active_invoice_layout == "shoals" %}Paycom{% else %}MIM{% endif %}</span> {{ mw }}</div>{% endif %}
+                  {% elif c.week_ended %}
+                    <div class="whitespace-nowrap">{{ c.week_ended }}</div>
+                  {% elif c.week_ended_iso %}
+                    <div class="whitespace-nowrap">{{ (c.week_ended_iso|string)[:10] }}</div>
+                  {% endif %}
+                </td>
+                <td data-col="employee_name" class="py-1 pr-1" title="{{ c.employee_name }}">{{ c.employee_name }}</td>
+                <td data-col="paid_pay_rate" class="py-1 pr-1{% if active_invoice_layout == "shoals" %} invoice-crossref-col-shoals-hide{% endif %} {% if c.pay_rate_mismatch %}invoice-crossref-cell-alert font-semibold{% endif %}">{{ c.paid_pay_rate | invoice_money }}</td>
+                <td data-col="mim_pay_rate" class="py-1 pr-1{% if active_invoice_layout == "shoals" %} invoice-crossref-col-shoals-hide{% endif %} {% if c.pay_rate_mismatch %}invoice-crossref-cell-alert font-semibold{% endif %}">{{ c.mim_pay_rate | invoice_money }}</td>
+                <td data-col="paid_bill_rate" class="py-1 pr-1{% if active_invoice_layout == "shoals" %} invoice-crossref-col-shoals-hide{% endif %} {% if c.bill_rate_mismatch %}invoice-crossref-cell-alert font-semibold{% endif %}">{{ c.paid_bill_rate | invoice_money }}</td>
+                <td data-col="mim_bill_rate" class="py-1 pr-1{% if active_invoice_layout == "shoals" %} invoice-crossref-col-shoals-hide{% endif %} {% if c.bill_rate_mismatch %}invoice-crossref-cell-alert font-semibold{% endif %}">{{ c.mim_bill_rate | invoice_money }}</td>
+                <td data-col="paid_qty" class="py-1 pr-1">{{ c.paid_qty | invoice_num }}</td>
+                <td data-col="mim_qty" class="py-1 pr-1">{{ c.mim_qty | invoice_num }}</td>
+                <td data-col="qty_diff" class="py-1 pr-1">{{ c.qty_diff | invoice_num }}</td>
+                <td data-col="paid_total" class="py-1 pr-1{% if active_invoice_layout == "shoals" %} invoice-crossref-col-shoals-hide{% endif %} {% if c.total_mismatch or c.markup_mismatch %}invoice-crossref-cell-alert font-semibold{% endif %}">{{ c.paid_total | invoice_money }}</td>
+                <td data-col="mim_total" class="py-1 pr-1{% if active_invoice_layout == "shoals" %} invoice-crossref-col-shoals-hide{% endif %} {% if c.total_mismatch or c.markup_mismatch %}invoice-crossref-cell-alert font-semibold{% endif %}">{{ c.mim_total | invoice_money }}</td>
+                <td data-col="total_diff" class="py-1 pr-1{% if active_invoice_layout == "shoals" %} invoice-crossref-col-shoals-hide{% endif %} {% if c.total_mismatch or c.markup_mismatch %}invoice-crossref-cell-alert font-semibold{% endif %}">{{ c.total_diff | invoice_money }}</td>
+                <td data-col="crossref_note" class="align-top pl-1 pr-2">
+                  {% if c.any_mismatch %}
+                    {% if c.crossref_solved %}
+                      <div class="invoice-crossref-note-cell w-full min-w-0">
+                        <textarea
+                          form="invoice-crossref-unlock-{{ loop.index0 }}"
+                          name="note"
+                          readonly
+                          rows="3"
+                          class="invoice-crossref-note-input invoice-crossref-note-input--readonly w-full min-h-[2.5rem] resize-none rounded border border-slate-200 bg-slate-50 px-2 py-1.5 text-sm text-slate-800 cursor-default dark:border-slate-600 dark:bg-slate-900/60 dark:text-slate-100"
+                          aria-label="Note (locked)"
+                        >{{ c.crossref_note }}</textarea>
+                      </div>
+                    {% else %}
+                      <div class="invoice-crossref-note-cell w-full min-w-0">
+                        <form
+                          id="invoice-crossref-note-{{ loop.index0 }}"
+                          class="invoice-crossref-note-form w-full min-w-0"
+                          method="post"
+                          action="/invoice-crossreferencing/row-note"
+                        >
+                          <input type="hidden" name="row_key" value="{{ c.crossref_row_key_b64 }}" />
+                          <input type="hidden" name="page" value="{{ crossref_page }}" />
+                          <input type="hidden" name="per_page" value="{{ crossref_per_page }}" />
+                          <input type="hidden" name="scroll_anchor" value="{{ loop.index0 }}" />
+                          <input type="hidden" name="solved" value="1" />
+                          <textarea
+                            name="note"
+                            rows="3"
+                            class="invoice-crossref-note-input w-full min-h-[2.5rem] resize-none rounded border border-slate-200 bg-white px-2 py-1.5 text-sm text-slate-800 dark:border-slate-600 dark:bg-slate-950 dark:text-slate-100"
+                          >{{ c.crossref_note }}</textarea>
+                        </form>
+                      </div>
+                    {% endif %}
+                  {% else %}
+                    <span class="text-slate-300 dark:text-slate-600">—</span>
+                  {% endif %}
+                </td>
+                <td data-col="crossref_solved" class="py-1 pl-1 pr-2 align-top">
+                  {% if c.any_mismatch %}
+                    {% if c.crossref_solved %}
+                      <form
+                        id="invoice-crossref-unlock-{{ loop.index0 }}"
+                        class="flex min-h-[2.5rem] items-center pl-0.5"
+                        method="post"
+                        action="/invoice-crossreferencing/row-note"
+                      >
+                        <input type="hidden" name="row_key" value="{{ c.crossref_row_key_b64 }}" />
+                        <input type="hidden" name="page" value="{{ crossref_page }}" />
+                        <input type="hidden" name="per_page" value="{{ crossref_per_page }}" />
+                        <input type="hidden" name="scroll_anchor" value="{{ loop.index0 }}" />
+                        <button
+                          type="submit"
+                          class="invoice-crossref-unlock-btn inline-flex items-center justify-center rounded border border-slate-200 bg-white p-1.5 text-slate-600 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+                          title="Unlock — clear OK until you lock again"
+                          aria-label="Unlock row"
+                        >
+                          <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5V6.75a4.5 4.5 0 1 1 9 0v3.75m-9 0h9.75a2.25 2.25 0 0 1 2.25 2.25v7.5a2.25 2.25 0 0 1-2.25 2.25H4.5a2.25 2.25 0 0 1-2.25-2.25v-7.5a2.25 2.25 0 0 1 2.25-2.25z" />
+                          </svg>
+                        </button>
+                      </form>
+                    {% else %}
+                      <div class="flex min-h-[2.5rem] items-center pl-0.5">
+                        <button
+                          type="submit"
+                          form="invoice-crossref-note-{{ loop.index0 }}"
+                          class="invoice-crossref-lock-btn inline-flex shrink-0 items-center justify-center rounded border border-slate-200 bg-white p-1.5 text-slate-700 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700 dark:disabled:opacity-40"
+                          title="Lock — save note and mark row OK (requires a note)"
+                          aria-label="Lock — save and mark OK"
+                          {% if not ((c.crossref_note|default('', true))|trim) %}disabled{% endif %}
+                        >
+                          <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 0 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+                          </svg>
+                        </button>
+                      </div>
+                    {% endif %}
+                  {% else %}
+                    <span class="text-slate-300 dark:text-slate-600">—</span>
+                  {% endif %}
+                </td>
+              </tr>
+            {% else %}
+              <tr class="border-t border-slate-200 dark:border-slate-700">
+                <td colspan="17" class="py-4 pr-3 text-sm text-slate-500 dark:text-slate-400">
+                  {% if not has_snapshot %}
+                    No snapshot yet — click <span class="font-medium text-slate-700 dark:text-slate-300">Calculate Cross-Reference</span> (after imports). The table is not rebuilt on every page load.
+                  {% else %}
+                    No rows in this snapshot.
+                  {% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      {% if has_snapshot and row_count > 0 %}
+        <nav
+          class="mt-4 flex flex-col gap-3 border-t border-slate-200 pt-4 dark:border-slate-700 lg:flex-row lg:flex-wrap lg:items-end lg:justify-between"
+          aria-label="Cross-reference results pagination"
+        >
+          <p class="text-xs text-slate-600 dark:text-slate-400">
+            Showing
+            <span class="font-medium text-slate-800 dark:text-slate-200">{{ crossref_range_start }}–{{ crossref_range_end }}</span>
+            of <span class="font-medium">{{ row_count }}</span> rows
+            <span class="text-slate-400 dark:text-slate-500">· Page {{ crossref_page }} of {{ crossref_total_pages }}</span>
+          </p>
+          <div class="flex flex-wrap items-center gap-2">
+            {% if crossref_page > 1 %}
+              <a
+                href="/invoice-crossreferencing?page={{ crossref_page - 1 }}&per_page={{ crossref_per_page }}{% if crossref_settings_open %}&settings=1{% endif %}"
+                class="inline-flex items-center rounded border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-700 no-underline hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+              >Previous</a>
+            {% else %}
+              <span
+                class="inline-flex cursor-not-allowed items-center rounded border border-slate-200 px-2.5 py-1 text-xs text-slate-400 opacity-50 dark:border-slate-600 dark:text-slate-500"
+                aria-disabled="true"
+              >Previous</span>
+            {% endif %}
+            {% if crossref_page < crossref_total_pages %}
+              <a
+                href="/invoice-crossreferencing?page={{ crossref_page + 1 }}&per_page={{ crossref_per_page }}{% if crossref_settings_open %}&settings=1{% endif %}"
+                class="inline-flex items-center rounded border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-700 no-underline hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+              >Next</a>
+            {% else %}
+              <span
+                class="inline-flex cursor-not-allowed items-center rounded border border-slate-200 px-2.5 py-1 text-xs text-slate-400 opacity-50 dark:border-slate-600 dark:text-slate-500"
+                aria-disabled="true"
+              >Next</span>
+            {% endif %}
+            {% if crossref_total_pages > 1 %}
+              {% if crossref_total_pages <= 150 %}
+                <form method="get" action="/invoice-crossreferencing" class="ml-1 flex items-center gap-2 text-xs">
+                  {% if crossref_settings_open %}<input type="hidden" name="settings" value="1" />{% endif %}
+                  <input type="hidden" name="per_page" value="{{ crossref_per_page }}" />
+                  <label class="flex items-center gap-1.5 text-slate-600 dark:text-slate-400">
+                    <span class="whitespace-nowrap">Go to page</span>
+                    <select
+                      name="page"
+                      class="rounded border border-slate-200 bg-white px-2 py-1 text-slate-800 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
+                      onchange="this.form.submit()"
+                      aria-label="Jump to page"
+                    >
+                      {% for p in range(1, crossref_total_pages + 1) %}
+                        <option value="{{ p }}" {% if p == crossref_page %}selected{% endif %}>{{ p }}</option>
+                      {% endfor %}
+                    </select>
+                  </label>
+                </form>
+              {% else %}
+                <form method="get" action="/invoice-crossreferencing" class="ml-1 flex flex-wrap items-center gap-2 text-xs">
+                  {% if crossref_settings_open %}<input type="hidden" name="settings" value="1" />{% endif %}
+                  <input type="hidden" name="per_page" value="{{ crossref_per_page }}" />
+                  <label class="flex items-center gap-1.5 text-slate-600 dark:text-slate-400">
+                    <span class="whitespace-nowrap">Page</span>
+                    <input
+                      type="number"
+                      name="page"
+                      min="1"
+                      max="{{ crossref_total_pages }}"
+                      value="{{ crossref_page }}"
+                      required
+                      class="w-16 rounded border border-slate-200 bg-white px-2 py-1 text-slate-800 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
+                      aria-label="Page number"
+                    />
+                  </label>
+                  <button
+                    type="submit"
+                    class="rounded border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+                  >
+                    Go
+                  </button>
+                </form>
+              {% endif %}
+            {% endif %}
+            <form method="get" action="/invoice-crossreferencing" class="ml-auto flex items-center gap-2 text-xs lg:ml-1">
+              {% if crossref_settings_open %}<input type="hidden" name="settings" value="1" />{% endif %}
+              <input type="hidden" name="page" value="1" />
+              <label class="flex items-center gap-1.5 text-slate-600 dark:text-slate-400">
+                <span class="whitespace-nowrap">Rows per page</span>
+                <select
+                  name="per_page"
+                  class="rounded border border-slate-200 bg-white px-2 py-1 text-slate-800 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100"
+                  onchange="this.form.submit()"
+                  aria-label="Rows per page"
+                >
+                  {% for n in crossref_per_page_options %}
+                    <option value="{{ n }}" {% if n == crossref_per_page %}selected{% endif %}>{{ n }}</option>
+                  {% endfor %}
+                </select>
+              </label>
+            </form>
+          </div>
+        </nav>
+      {% endif %}
+    </div>
+  </div>
+  <script>
+    (function () {
+      var STORAGE_KEY = "invoiceCrossrefColumnOrder";
+      /* Pixel widths re-scaled to container on load/resize so the table never needs horizontal scroll */
+      var STORAGE_WIDTHS = "invoiceCrossrefColumnWidthsFitV1";
+      var DEFAULT_ORDER = [
+        "invoice_number",
+        "vms_id",
+        "pay_type",
+        "week_ended",
+        "employee_name",
+        "paid_pay_rate",
+        "mim_pay_rate",
+        "paid_bill_rate",
+        "mim_bill_rate",
+        "paid_qty",
+        "mim_qty",
+        "qty_diff",
+        "paid_total",
+        "mim_total",
+        "total_diff",
+        "crossref_note",
+        "crossref_solved",
+      ];
+
+      function crossrefThIsShoalsHidden(th) {
+        return !!(th && th.classList && th.classList.contains("invoice-crossref-col-shoals-hide"));
+      }
+
+      function normalizeCrossrefTableWidths(table) {
+        var wrap = table.closest(".invoice-crossref-results-scroll");
+        if (!wrap || !table.tHead || !table.tHead.rows[0]) return;
+        var avail = Math.floor(wrap.getBoundingClientRect().width);
+        if (avail < 280) return;
+        table.style.tableLayout = "fixed";
+        table.style.width = "100%";
+        var row = table.tHead.rows[0];
+        var cells = row.cells;
+        var n = cells.length;
+        if (!n) return;
+        var visible = [];
+        var i;
+        for (i = 0; i < n; i++) {
+          if (!crossrefThIsShoalsHidden(cells[i])) visible.push(i);
+        }
+        var nv = visible.length;
+        if (nv < 1) return;
+        for (i = 0; i < n; i++) {
+          if (crossrefThIsShoalsHidden(cells[i])) cells[i].style.width = "";
+        }
+        var weights = [];
+        var sum = 0;
+        for (var vi = 0; vi < nv; vi++) {
+          var idx = visible[vi];
+          var th = cells[idx];
+          var w = parseFloat(th.style.width);
+          if (!isFinite(w) || w < 12) {
+            w = th.getBoundingClientRect().width;
+          }
+          if (!isFinite(w) || w < 12) {
+            w = avail / nv;
+          }
+          weights.push(w);
+          sum += w;
+        }
+        if (sum < 1) return;
+        var scale = avail / sum;
+        for (vi = 0; vi < nv; vi++) {
+          idx = visible[vi];
+          var nw = Math.max(12, Math.round(weights[vi] * scale));
+          cells[idx].style.width = nw + "px";
+        }
+      }
+
+      function getCurrentOrder(table) {
+        var tr = table.tHead && table.tHead.rows[0];
+        if (!tr) return [];
+        return Array.prototype.map.call(tr.cells, function (th) {
+          return th.getAttribute("data-col");
+        });
+      }
+
+      function moveColumn(table, fromIndex, toIndex) {
+        if (fromIndex === toIndex || fromIndex < 0 || toIndex < 0) return;
+        var rowCount = table.rows.length;
+        for (var r = 0; r < rowCount; r++) {
+          var row = table.rows[r];
+          if (row.cells.length <= Math.max(fromIndex, toIndex)) continue;
+          var cell = row.cells[fromIndex];
+          if (toIndex > fromIndex) {
+            row.insertBefore(cell, row.cells[toIndex + 1] || null);
+          } else {
+            row.insertBefore(cell, row.cells[toIndex]);
+          }
+        }
+      }
+
+      function applyColumnOrder(table, targetOrder) {
+        if (!table.tHead || !table.tHead.rows[0]) return;
+        var current = getCurrentOrder(table);
+        if (current.length !== targetOrder.length) return;
+        var setT = {};
+        for (var i = 0; i < targetOrder.length; i++) setT[targetOrder[i]] = true;
+        for (var j = 0; j < current.length; j++) {
+          if (!setT[current[j]]) return;
+        }
+        for (var pos = 0; pos < targetOrder.length; pos++) {
+          var want = targetOrder[pos];
+          current = getCurrentOrder(table);
+          var at = current.indexOf(want);
+          if (at === -1) return;
+          if (at !== pos) moveColumn(table, at, pos);
+        }
+      }
+
+      function saveOrder(table) {
+        try {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(getCurrentOrder(table)));
+        } catch (e) {}
+      }
+
+      function applySavedColumnWidths(table) {
+        try {
+          var raw = localStorage.getItem(STORAGE_WIDTHS);
+          if (!raw) return;
+          var map = JSON.parse(raw);
+          if (!map || typeof map !== "object") return;
+          var headerRow = table.tHead.rows[0];
+          for (var i = 0; i < headerRow.cells.length; i++) {
+            var th = headerRow.cells[i];
+            var key = th.getAttribute("data-col");
+            if (key && map[key]) th.style.width = map[key];
+          }
+        } catch (e) {}
+      }
+
+      function saveColumnWidths(table) {
+        try {
+          var headerRow = table.tHead.rows[0];
+          var map = {};
+          for (var i = 0; i < headerRow.cells.length; i++) {
+            var th = headerRow.cells[i];
+            var key = th.getAttribute("data-col");
+            if (key && th.style.width) map[key] = th.style.width;
+          }
+          if (Object.keys(map).length) localStorage.setItem(STORAGE_WIDTHS, JSON.stringify(map));
+          else localStorage.removeItem(STORAGE_WIDTHS);
+        } catch (e) {}
+      }
+
+      function syncInvoiceCrossrefLockButton(table, textarea) {
+        if (!table || !textarea) return;
+        var form = textarea.closest("form");
+        if (!form || !form.classList.contains("invoice-crossref-note-form")) return;
+        var fid = form.getAttribute("id");
+        if (!fid) return;
+        var btn = table.querySelector('button.invoice-crossref-lock-btn[form="' + fid + '"]');
+        if (!btn) return;
+        btn.disabled = textarea.value.trim().length === 0;
+      }
+
+      function syncAllInvoiceCrossrefLockButtons(table) {
+        if (!table) return;
+        table.querySelectorAll("textarea.invoice-crossref-note-input").forEach(function (ta) {
+          syncInvoiceCrossrefLockButton(table, ta);
+        });
+      }
+
+      function attachColumnResizeHandles(table) {
+        var headerRow = table.tHead.rows[0];
+        var existing = headerRow.querySelectorAll(".invoice-crossref-resize-handle");
+        for (var k = 0; k < existing.length; k++) existing[k].remove();
+        var n = headerRow.cells.length;
+        for (var i = 0; i < n - 1; i++) {
+          (function (idx) {
+            var th = headerRow.cells[idx];
+            var nextTh = headerRow.cells[idx + 1];
+            if (crossrefThIsShoalsHidden(th) || crossrefThIsShoalsHidden(nextTh)) return;
+            var handle = document.createElement("span");
+            handle.className = "invoice-crossref-resize-handle";
+            handle.setAttribute("aria-hidden", "true");
+            handle.title = "Resize column";
+            th.appendChild(handle);
+
+            handle.addEventListener("mousedown", function (e) {
+              e.preventDefault();
+              e.stopPropagation();
+              var startX = e.pageX;
+              var w0 = th.offsetWidth;
+              var w1 = nextTh.offsetWidth;
+              var total = w0 + w1;
+              var min = 48;
+              var moveRaf = null;
+              var lastPageX = startX;
+              var preview = document.createElement("div");
+              preview.className = "invoice-crossref-resize-preview";
+              preview.setAttribute("aria-hidden", "true");
+              document.body.appendChild(preview);
+              // One read at drag start — avoid getBoundingClientRect() every frame (forces table layout on large tbody).
+              var leftBase = th.getBoundingClientRect().left;
+              function positionPreview() {
+                var dx = lastPageX - startX;
+                var a = Math.max(min, Math.min(total - min, w0 + dx));
+                preview.style.left = leftBase + a + "px";
+              }
+              positionPreview();
+              function onMove(e2) {
+                lastPageX = e2.pageX;
+                if (moveRaf != null) return;
+                moveRaf = requestAnimationFrame(function () {
+                  moveRaf = null;
+                  positionPreview();
+                });
+              }
+              function onUp() {
+                if (moveRaf != null) {
+                  cancelAnimationFrame(moveRaf);
+                  moveRaf = null;
+                }
+                preview.remove();
+                var dx = lastPageX - startX;
+                var a = Math.max(min, Math.min(total - min, w0 + dx));
+                var b = total - a;
+                th.style.width = a + "px";
+                nextTh.style.width = b + "px";
+                document.removeEventListener("mousemove", onMove);
+                window.removeEventListener("mouseup", onUp);
+                // Defer localStorage until after paint: avoids stacking sync layout + sync storage on one turn (large tables).
+                requestAnimationFrame(function () {
+                  requestAnimationFrame(function () {
+                    saveColumnWidths(table);
+                  });
+                });
+              }
+              document.addEventListener("mousemove", onMove, { passive: true });
+              window.addEventListener("mouseup", onUp);
+            });
+          })(i);
+        }
+      }
+
+      function init() {
+        var table = document.getElementById("invoice-crossref-table");
+        if (!table || !table.tHead) return;
+        if (table.getAttribute("data-crossref-js-init") === "1") return;
+        table.setAttribute("data-crossref-js-init", "1");
+
+        var saved = null;
+        try {
+          saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
+        } catch (e) {
+          saved = null;
+        }
+        if (saved && Array.isArray(saved) && saved.length === DEFAULT_ORDER.length) {
+          applyColumnOrder(table, saved);
+        }
+
+        applySavedColumnWidths(table);
+        normalizeCrossrefTableWidths(table);
+        requestAnimationFrame(function () {
+          normalizeCrossrefTableWidths(table);
+          requestAnimationFrame(function () {
+            normalizeCrossrefTableWidths(table);
+          });
+        });
+
+        var headerRow = table.tHead.rows[0];
+        var headers = headerRow.cells;
+        for (var h = 0; h < headers.length; h++) {
+          headers[h].setAttribute("draggable", "true");
+        }
+
+        headerRow.addEventListener("dragstart", function (e) {
+          var th = e.target && e.target.closest ? e.target.closest("th") : null;
+          if (!th || !headerRow.contains(th)) return;
+          if (e.target && e.target.closest && e.target.closest(".invoice-crossref-resize-handle")) {
+            e.preventDefault();
+            return;
+          }
+          e.dataTransfer.effectAllowed = "move";
+          e.dataTransfer.setData(
+            "text/plain",
+            String(Array.prototype.indexOf.call(headerRow.cells, th))
+          );
+        });
+        headerRow.addEventListener("dragover", function (e) {
+          var th = e.target && e.target.closest ? e.target.closest("th") : null;
+          if (!th || !headerRow.contains(th)) return;
+          e.preventDefault();
+          e.dataTransfer.dropEffect = "move";
+        });
+        headerRow.addEventListener("drop", function (e) {
+          e.preventDefault();
+          var th = e.target && e.target.closest ? e.target.closest("th") : null;
+          if (!th || !headerRow.contains(th)) return;
+          var from = parseInt(e.dataTransfer.getData("text/plain"), 10);
+          var to = Array.prototype.indexOf.call(headerRow.cells, th);
+          if (isNaN(from) || from === to) return;
+          moveColumn(table, from, to);
+          saveOrder(table);
+          attachColumnResizeHandles(table);
+        });
+
+        attachColumnResizeHandles(table);
+
+        table.addEventListener("input", function (e) {
+          var t = e.target;
+          if (!t || !t.classList || !t.classList.contains("invoice-crossref-note-input")) return;
+          syncInvoiceCrossrefLockButton(table, t);
+        });
+
+        syncAllInvoiceCrossrefLockButtons(table);
+
+        var resizeT = null;
+        window.addEventListener("resize", function () {
+          if (resizeT != null) clearTimeout(resizeT);
+          resizeT = setTimeout(function () {
+            resizeT = null;
+            normalizeCrossrefTableWidths(table);
+          }, 100);
+        });
+      }
+
+      function scrollToRowNoteHash() {
+        if (!/^#invoice-crossref-row-\d+$/.test(location.hash)) return;
+        var id = location.hash.slice(1);
+        function go() {
+          var el = document.getElementById(id);
+          if (el) el.scrollIntoView({ block: "start", behavior: "auto" });
+        }
+        requestAnimationFrame(function () {
+          requestAnimationFrame(go);
+        });
+      }
+
+      function boot() {
+        init();
+        scrollToRowNoteHash();
+      }
+
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", boot);
+      } else {
+        boot();
+      }
+    })();
+  </script>
+{% endblock %}
+

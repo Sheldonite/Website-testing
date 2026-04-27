@@ -1,0 +1,2547 @@
+/* Keep minimal; Tailwind via CDN handles most styling. */
+html {
+  color-scheme: light;
+}
+html.theme-light {
+  color-scheme: light;
+}
+html.dark {
+  color-scheme: dark;
+}
+
+/* Wide tables: allow #page-shell-main to shrink with max-width so inner overflow-x can scroll */
+#page-shell-main {
+  min-width: 0;
+}
+
+/* Native "Choose file" button: dark label + light surface on dark themes (readable contrast). */
+html.dark input[type="file"]::file-selector-button {
+  color: rgb(15 23 42);
+  font-weight: 500;
+  background-color: rgb(226 232 240);
+  border: 1px solid rgb(148 163 184);
+  border-radius: 0.375rem;
+  padding: 0.25rem 0.75rem;
+  margin-inline-end: 0.5rem;
+}
+html.dark input[type="file"]::-webkit-file-upload-button {
+  color: rgb(15 23 42);
+  font-weight: 500;
+  background-color: rgb(226 232 240);
+  border: 1px solid rgb(148 163 184);
+  border-radius: 0.375rem;
+  padding: 0.25rem 0.75rem;
+  margin-inline-end: 0.5rem;
+}
+
+/* --- Extended themes (Settings): gradient / art backgrounds on <html>, content panels unchanged --- */
+html.theme-purple {
+  min-height: 100%;
+  background: linear-gradient(155deg, #1e1b4b 0%, #4338ca 38%, #312e81 65%, #0f172a 100%);
+  background-attachment: fixed;
+}
+html.theme-purple body {
+  background: transparent !important;
+}
+
+html.theme-pink {
+  min-height: 100%;
+  background: linear-gradient(150deg, #4a044e 0%, #9d174d 42%, #831843 72%, #1c0a12 100%);
+  background-attachment: fixed;
+}
+html.theme-pink body {
+  background: transparent !important;
+}
+
+/* Cherry blossom: user-provided sakura path scene (static/themes/cherry-blossom-scene.png) + light scrim for UI */
+html.theme-blossom {
+  --blossom-bubble-border-width: 3px;
+  /* Warm tan / light brown — softer than the old forest-green frame, still readable on cards */
+  --blossom-bubble-border: rgb(184 148 116);
+  --blossom-bubble-border-soft: rgba(184, 148, 116, 0.58);
+  --blossom-bubble-divider: rgba(184, 148, 116, 0.4);
+  min-height: 100%;
+  background-color: #f8c8d8;
+  background-image: linear-gradient(
+      to bottom,
+      rgba(80, 24, 48, 0.28) 0%,
+      rgba(60, 18, 36, 0.22) 45%,
+      rgba(45, 12, 28, 0.38) 100%
+    ),
+    radial-gradient(ellipse 85% 55% at 50% 28%, rgba(255, 255, 255, 0.18) 0%, transparent 58%),
+    url("/static/themes/cherry-blossom-scene.png");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+html.theme-blossom body {
+  background: transparent !important;
+}
+
+/* Night city: Manhattan aerial at night (bundled photo) + dark overlay for UI contrast */
+html.theme-city {
+  min-height: 100%;
+  background-color: #030711;
+  background-image: linear-gradient(
+      to bottom,
+      rgba(3, 7, 17, 0.78) 0%,
+      rgba(15, 23, 42, 0.72) 35%,
+      rgba(3, 7, 17, 0.88) 100%
+    ),
+    url("/static/themes/nyc-manhattan-night-aerial.jpg");
+  background-repeat: no-repeat, no-repeat;
+  background-position: center center, center center;
+  background-size: cover, cover;
+  background-attachment: fixed;
+}
+html.theme-city body {
+  background: transparent !important;
+}
+
+/* --- Themed top bar (matches page gradient / scene) --- */
+html.theme-purple header {
+  background: linear-gradient(90deg, rgba(30, 27, 75, 0.97) 0%, rgba(49, 46, 129, 0.94) 50%, rgba(30, 27, 75, 0.97) 100%);
+  border-bottom-color: rgba(129, 140, 248, 0.35);
+  backdrop-filter: blur(10px);
+}
+html.theme-purple header > div > a.font-semibold {
+  color: #e0e7ff !important;
+}
+html.theme-purple header nav a {
+  color: #c7d2fe !important;
+}
+html.theme-purple header nav a:hover {
+  color: #fff !important;
+}
+html.theme-purple header a.inline-flex,
+html.theme-purple header button#app-settings-menu-btn,
+html.theme-purple header button#person-quick-add-btn,
+html.theme-purple main button#person-quick-add-btn {
+  border-color: rgba(129, 140, 248, 0.45) !important;
+  background: rgba(55, 48, 163, 0.55) !important;
+  color: #e0e7ff !important;
+}
+html.theme-purple header a.inline-flex:hover,
+html.theme-purple header button#app-settings-menu-btn:hover,
+html.theme-purple header button#person-quick-add-btn:hover,
+html.theme-purple main button#person-quick-add-btn:hover {
+  background: rgba(67, 56, 202, 0.65) !important;
+}
+
+html.theme-pink header {
+  background: linear-gradient(90deg, rgba(74, 4, 78, 0.97) 0%, rgba(131, 24, 67, 0.94) 50%, rgba(74, 4, 78, 0.97) 100%);
+  border-bottom-color: rgba(244, 114, 182, 0.38);
+  backdrop-filter: blur(10px);
+}
+html.theme-pink header > div > a.font-semibold {
+  color: #fce7f3 !important;
+}
+html.theme-pink header nav a {
+  color: #fbcfe8 !important;
+}
+html.theme-pink header nav a:hover {
+  color: #fff !important;
+}
+html.theme-pink header a.inline-flex,
+html.theme-pink header button#app-settings-menu-btn,
+html.theme-pink header button#person-quick-add-btn,
+html.theme-pink main button#person-quick-add-btn {
+  border-color: rgba(244, 114, 182, 0.45) !important;
+  background: rgba(131, 24, 67, 0.55) !important;
+  color: #fce7f3 !important;
+}
+html.theme-pink header a.inline-flex:hover,
+html.theme-pink header button#app-settings-menu-btn:hover,
+html.theme-pink header button#person-quick-add-btn:hover,
+html.theme-pink main button#person-quick-add-btn:hover {
+  background: rgba(157, 23, 77, 0.65) !important;
+}
+
+html.theme-blossom header {
+  background: linear-gradient(
+    90deg,
+    rgba(45, 31, 16, 0.97) 0%,
+    rgba(61, 41, 20, 0.95) 45%,
+    rgba(52, 36, 18, 0.97) 100%
+  );
+  border-bottom-color: rgba(180, 140, 100, 0.42);
+  backdrop-filter: blur(12px);
+}
+html.theme-blossom header > div > a.font-semibold {
+  color: #f5ebe0 !important;
+}
+html.theme-blossom header nav a {
+  color: #d4c4b0 !important;
+}
+html.theme-blossom header nav a:hover {
+  color: #faf3ea !important;
+}
+html.theme-blossom header a.inline-flex,
+html.theme-blossom header button#app-settings-menu-btn,
+html.theme-blossom header button#person-quick-add-btn {
+  border-color: rgba(180, 140, 100, 0.5) !important;
+  background: rgba(35, 24, 12, 0.65) !important;
+  color: #e8d5c4 !important;
+}
+html.theme-blossom header a.inline-flex:hover,
+html.theme-blossom header button#app-settings-menu-btn:hover,
+html.theme-blossom header button#person-quick-add-btn:hover {
+  background: rgba(50, 36, 20, 0.82) !important;
+}
+
+html.theme-city header {
+  background: linear-gradient(90deg, rgba(7, 11, 20, 0.97) 0%, rgba(15, 23, 42, 0.94) 50%, rgba(7, 11, 20, 0.97) 100%);
+  border-bottom-color: rgba(51, 65, 85, 0.55);
+  backdrop-filter: blur(10px);
+}
+html.theme-city header > div > a.font-semibold {
+  color: #e2e8f0 !important;
+}
+html.theme-city header nav a {
+  color: #cbd5e1 !important;
+}
+html.theme-city header nav a:hover {
+  color: #f8fafc !important;
+}
+html.theme-city header a.inline-flex,
+html.theme-city header button#app-settings-menu-btn,
+html.theme-city header button#person-quick-add-btn,
+html.theme-city main button#person-quick-add-btn {
+  border-color: rgba(71, 85, 105, 0.6) !important;
+  background: rgba(15, 23, 42, 0.75) !important;
+  color: #cbd5e1 !important;
+}
+html.theme-city header a.inline-flex:hover,
+html.theme-city header button#app-settings-menu-btn:hover,
+html.theme-city header button#person-quick-add-btn:hover,
+html.theme-city main button#person-quick-add-btn:hover {
+  background: rgba(30, 41, 59, 0.85) !important;
+}
+
+/* Classic dark: slightly richer bar to match slate page */
+html.theme-dark header {
+  background: linear-gradient(90deg, rgb(15 23 42) 0%, rgb(17 24 39) 50%, rgb(15 23 42) 100%);
+  border-bottom-color: rgba(51, 65, 85, 0.5);
+}
+
+/* Light theme: soft cool bar */
+html.theme-light header {
+  background: linear-gradient(90deg, rgb(255 255 255) 0%, rgb(248 250 252) 50%, rgb(255 255 255) 100%);
+  border-bottom-color: rgb(226 232 240);
+}
+
+/* Header settings dropdown — same surface treatment as content panels per theme */
+html.theme-light #app-settings-menu,
+html.theme-light #person-quick-add-menu {
+  background: linear-gradient(90deg, rgb(255 255 255) 0%, rgb(248 250 252) 50%, rgb(255 255 255) 100%) !important;
+  border-color: rgba(15, 23, 42, 0.14) !important;
+  box-shadow:
+    0 10px 40px rgba(15, 23, 42, 0.1),
+    0 0 0 1px rgba(15, 23, 42, 0.04);
+}
+html.theme-light #app-settings-menu > div:first-child,
+html.theme-light #person-quick-add-menu > div:first-child {
+  border-bottom-color: rgb(226 232 240) !important;
+}
+html.theme-light #app-settings-menu label,
+html.theme-light #person-quick-add-menu label {
+  color: #475569 !important;
+}
+html.theme-light #app-settings-menu select,
+html.theme-light #person-quick-add-menu :where(input:not([type="submit"]):not([type="button"]), select, textarea) {
+  border-color: rgb(226 232 240) !important;
+  background: rgb(255 255 255) !important;
+  color: rgb(15 23 42) !important;
+}
+html.theme-light #app-settings-menu .text-slate-500,
+html.theme-light #person-quick-add-menu .text-slate-500 {
+  color: #64748b !important;
+}
+
+html.theme-dark #app-settings-menu,
+html.theme-dark #person-quick-add-menu {
+  background: linear-gradient(90deg, rgb(15 23 42) 0%, rgb(17 24 39) 50%, rgb(15 23 42) 100%) !important;
+  border-color: rgba(241, 245, 249, 0.22) !important;
+  box-shadow:
+    0 12px 48px rgba(0, 0, 0, 0.45),
+    0 0 0 1px rgba(148, 163, 184, 0.12);
+}
+html.theme-dark #app-settings-menu > div:first-child,
+html.theme-dark #person-quick-add-menu > div:first-child {
+  border-bottom-color: rgba(51, 65, 85, 0.55) !important;
+}
+html.theme-dark #app-settings-menu label,
+html.theme-dark #person-quick-add-menu label {
+  color: #94a3b8 !important;
+}
+html.theme-dark #app-settings-menu select,
+html.theme-dark #person-quick-add-menu :where(input:not([type="submit"]):not([type="button"]), select, textarea) {
+  border-color: rgba(71, 85, 105, 0.65) !important;
+  background: rgb(30 41 59) !important;
+  color: #f1f5f9 !important;
+}
+html.theme-dark #app-settings-menu .text-slate-500,
+html.theme-dark #person-quick-add-menu .text-slate-500 {
+  color: #94a3b8 !important;
+}
+
+html.theme-purple #app-settings-menu,
+html.theme-purple #person-quick-add-menu {
+  background: linear-gradient(90deg, rgba(30, 27, 75, 0.97) 0%, rgba(49, 46, 129, 0.94) 50%, rgba(30, 27, 75, 0.97) 100%) !important;
+  border-color: rgba(224, 231, 255, 0.42) !important;
+  backdrop-filter: blur(12px);
+  box-shadow:
+    0 12px 40px rgba(15, 23, 42, 0.55),
+    0 0 0 1px rgba(199, 210, 254, 0.2);
+}
+html.theme-purple #app-settings-menu > div:first-child,
+html.theme-purple #person-quick-add-menu > div:first-child {
+  border-bottom-color: rgba(199, 210, 254, 0.28) !important;
+}
+html.theme-purple #app-settings-menu label,
+html.theme-purple #person-quick-add-menu label {
+  color: #c7d2fe !important;
+}
+html.theme-purple #app-settings-menu select,
+html.theme-purple #person-quick-add-menu :where(input:not([type="submit"]):not([type="button"]), select, textarea) {
+  border-color: rgba(199, 210, 254, 0.45) !important;
+  background: rgba(15, 23, 42, 0.45) !important;
+  color: #e0e7ff !important;
+}
+html.theme-purple #app-settings-menu .text-slate-500,
+html.theme-purple #person-quick-add-menu .text-slate-500 {
+  color: #a5b4fc !important;
+}
+
+html.theme-pink #app-settings-menu,
+html.theme-pink #person-quick-add-menu {
+  background: linear-gradient(90deg, rgba(74, 4, 78, 0.97) 0%, rgba(131, 24, 67, 0.94) 50%, rgba(74, 4, 78, 0.97) 100%) !important;
+  border-color: rgba(252, 231, 243, 0.45) !important;
+  backdrop-filter: blur(12px);
+  box-shadow:
+    0 12px 40px rgba(30, 10, 25, 0.55),
+    0 0 0 1px rgba(251, 207, 232, 0.22);
+}
+html.theme-pink #app-settings-menu > div:first-child,
+html.theme-pink #person-quick-add-menu > div:first-child {
+  border-bottom-color: rgba(251, 207, 232, 0.32) !important;
+}
+html.theme-pink #app-settings-menu label,
+html.theme-pink #person-quick-add-menu label {
+  color: #fbcfe8 !important;
+}
+html.theme-pink #app-settings-menu select,
+html.theme-pink #person-quick-add-menu :where(input:not([type="submit"]):not([type="button"]), select, textarea) {
+  border-color: rgba(252, 231, 243, 0.5) !important;
+  background: rgba(30, 10, 25, 0.55) !important;
+  color: #fce7f3 !important;
+}
+html.theme-pink #app-settings-menu .text-slate-500,
+html.theme-pink #person-quick-add-menu .text-slate-500 {
+  color: #f9a8d4 !important;
+}
+
+html.theme-blossom #app-settings-menu,
+html.theme-blossom #person-quick-add-menu {
+  background: linear-gradient(
+    90deg,
+    rgba(45, 31, 16, 0.98) 0%,
+    rgba(61, 41, 20, 0.96) 45%,
+    rgba(52, 36, 18, 0.98) 100%
+  ) !important;
+  border-width: var(--blossom-bubble-border-width) !important;
+  border-color: var(--blossom-bubble-border) !important;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 12px 36px rgba(20, 12, 6, 0.55);
+}
+html.theme-blossom #app-settings-menu > div:first-child,
+html.theme-blossom #person-quick-add-menu > div:first-child {
+  border-bottom-color: var(--blossom-bubble-divider) !important;
+}
+html.theme-blossom #app-settings-menu label,
+html.theme-blossom #person-quick-add-menu label {
+  color: #d4c4b0 !important;
+}
+html.theme-blossom #app-settings-menu select,
+html.theme-blossom #person-quick-add-menu :where(input:not([type="submit"]):not([type="button"]), select, textarea) {
+  border-color: rgba(160, 125, 85, 0.5) !important;
+  background: rgba(35, 24, 12, 0.88) !important;
+  color: #f5ebe0 !important;
+}
+html.theme-blossom #app-settings-menu .text-slate-500,
+html.theme-blossom #person-quick-add-menu .text-slate-500 {
+  color: #9a8a78 !important;
+}
+
+/* Cherry blossom: footer + generic main cards — dark brown + green border */
+html.theme-blossom footer {
+  background: linear-gradient(
+    90deg,
+    rgba(45, 31, 16, 0.97) 0%,
+    rgba(61, 41, 20, 0.95) 45%,
+    rgba(52, 36, 18, 0.97) 100%
+  );
+  border-top-width: var(--blossom-bubble-border-width);
+  border-top-color: var(--blossom-bubble-border);
+}
+html.theme-blossom footer .text-slate-500 {
+  color: #9a8a78 !important;
+}
+
+html.theme-blossom main .rounded-2xl:not(.invoice-crossref-panel):not(.invoice-crossref-hero),
+html.theme-blossom main .rounded-xl:not(.invoice-crossref-panel-inner) {
+  background: linear-gradient(
+    90deg,
+    rgba(45, 31, 16, 0.94) 0%,
+    rgba(61, 41, 20, 0.92) 45%,
+    rgba(52, 36, 18, 0.94) 100%
+  ) !important;
+  border-width: var(--blossom-bubble-border-width) !important;
+  border-color: var(--blossom-bubble-border) !important;
+  backdrop-filter: blur(12px);
+  color: #d4c4b0;
+}
+html.theme-blossom main .rounded-2xl:not(.invoice-crossref-panel):not(.invoice-crossref-hero) h1,
+html.theme-blossom main .rounded-2xl:not(.invoice-crossref-panel):not(.invoice-crossref-hero) h2,
+html.theme-blossom main .rounded-xl:not(.invoice-crossref-panel-inner) h1,
+html.theme-blossom main .rounded-xl:not(.invoice-crossref-panel-inner) h2 {
+  color: #faf3ea !important;
+}
+html.theme-blossom main .rounded-2xl:not(.invoice-crossref-panel):not(.invoice-crossref-hero) .text-slate-600,
+html.theme-blossom main .rounded-2xl:not(.invoice-crossref-panel):not(.invoice-crossref-hero) .text-slate-500,
+html.theme-blossom main .rounded-xl:not(.invoice-crossref-panel-inner) .text-slate-600,
+html.theme-blossom main .rounded-xl:not(.invoice-crossref-panel-inner) .text-slate-500 {
+  color: #b8a090 !important;
+}
+html.theme-blossom main .rounded-2xl:not(.invoice-crossref-panel):not(.invoice-crossref-hero) .text-slate-700,
+html.theme-blossom main .rounded-xl:not(.invoice-crossref-panel-inner) .text-slate-700 {
+  color: #e8d5c4 !important;
+}
+html.theme-blossom main .rounded-2xl:not(.invoice-crossref-panel):not(.invoice-crossref-hero) .font-semibold,
+html.theme-blossom main .rounded-xl:not(.invoice-crossref-panel-inner) .font-semibold {
+  color: #faf3ea !important;
+}
+html.theme-blossom main .rounded-2xl:not(.invoice-crossref-panel):not(.invoice-crossref-hero) label,
+html.theme-blossom main .rounded-xl:not(.invoice-crossref-panel-inner) label {
+  color: #e8d5c4 !important;
+}
+html.theme-blossom main .rounded-2xl:not(.invoice-crossref-panel):not(.invoice-crossref-hero) :where(input, select, textarea):not([type="submit"]),
+html.theme-blossom main .rounded-xl:not(.invoice-crossref-panel-inner) :where(input, select, textarea):not([type="submit"]) {
+  border-color: rgba(160, 125, 85, 0.5) !important;
+  background: rgba(35, 24, 12, 0.85) !important;
+  color: #f5ebe0 !important;
+}
+html.theme-blossom main .rounded-2xl:not(.invoice-crossref-panel):not(.invoice-crossref-hero) button[class*="dark:bg-slate-100"],
+html.theme-blossom main .rounded-xl:not(.invoice-crossref-panel-inner) button[class*="dark:bg-slate-100"] {
+  background: #e8d5c4 !important;
+  color: #2d1f10 !important;
+  border-color: rgba(160, 125, 85, 0.45) !important;
+}
+html.theme-blossom main .rounded-2xl:not(.invoice-crossref-panel):not(.invoice-crossref-hero) button[class*="dark:bg-slate-100"]:hover,
+html.theme-blossom main .rounded-xl:not(.invoice-crossref-panel-inner) button[class*="dark:bg-slate-100"]:hover {
+  background: #faf3ea !important;
+}
+html.theme-blossom main .rounded-2xl:not(.invoice-crossref-panel):not(.invoice-crossref-hero) button[class*="dark:bg-slate-800"],
+html.theme-blossom main .rounded-xl:not(.invoice-crossref-panel-inner) button[class*="dark:bg-slate-800"] {
+  background: rgba(40, 28, 14, 0.92) !important;
+  color: #e8d5c4 !important;
+  border-color: rgba(160, 125, 85, 0.45) !important;
+}
+html.theme-blossom main .rounded-2xl:not(.invoice-crossref-panel):not(.invoice-crossref-hero) button[class*="dark:bg-slate-800"]:hover,
+html.theme-blossom main .rounded-xl:not(.invoice-crossref-panel-inner) button[class*="dark:bg-slate-800"]:hover {
+  background: rgba(55, 40, 22, 0.88) !important;
+}
+
+/* Purple: main content cards — same glass bubbles as invoice crossreferencing */
+html.theme-purple main .rounded-2xl:not(.invoice-crossref-panel):not(.invoice-crossref-hero),
+html.theme-purple main .rounded-xl:not(.invoice-crossref-panel-inner) {
+  background: linear-gradient(90deg, rgba(30, 27, 75, 0.94) 0%, rgba(49, 46, 129, 0.9) 50%, rgba(30, 27, 75, 0.94) 100%) !important;
+  border-color: rgba(224, 231, 255, 0.42) !important;
+  backdrop-filter: blur(10px);
+  color: #c7d2fe;
+}
+html.theme-purple main .rounded-2xl:not(.invoice-crossref-panel):not(.invoice-crossref-hero) h1,
+html.theme-purple main .rounded-2xl:not(.invoice-crossref-panel):not(.invoice-crossref-hero) h2,
+html.theme-purple main .rounded-xl:not(.invoice-crossref-panel-inner) h1,
+html.theme-purple main .rounded-xl:not(.invoice-crossref-panel-inner) h2 {
+  color: #e0e7ff !important;
+}
+html.theme-purple main .rounded-2xl:not(.invoice-crossref-panel):not(.invoice-crossref-hero) .text-slate-700,
+html.theme-purple main .rounded-xl:not(.invoice-crossref-panel-inner) .text-slate-700 {
+  color: #c7d2fe !important;
+}
+html.theme-purple main .rounded-2xl:not(.invoice-crossref-panel):not(.invoice-crossref-hero) .font-semibold,
+html.theme-purple main .rounded-xl:not(.invoice-crossref-panel-inner) .font-semibold {
+  color: #e0e7ff !important;
+}
+html.theme-purple main .rounded-2xl:not(.invoice-crossref-panel):not(.invoice-crossref-hero) label,
+html.theme-purple main .rounded-xl:not(.invoice-crossref-panel-inner) label {
+  color: #c7d2fe !important;
+}
+html.theme-purple main .rounded-2xl:not(.invoice-crossref-panel):not(.invoice-crossref-hero) :where(input, select, textarea):not([type="submit"]),
+html.theme-purple main .rounded-xl:not(.invoice-crossref-panel-inner) :where(input, select, textarea):not([type="submit"]) {
+  border-color: rgba(199, 210, 254, 0.45) !important;
+  background: rgba(15, 23, 42, 0.45) !important;
+  color: #e0e7ff !important;
+}
+html.theme-purple main .rounded-2xl:not(.invoice-crossref-panel):not(.invoice-crossref-hero) a,
+html.theme-purple main .rounded-xl:not(.invoice-crossref-panel-inner) a {
+  color: #e0e7ff !important;
+}
+html.theme-purple main .rounded-2xl:not(.invoice-crossref-panel):not(.invoice-crossref-hero) .text-slate-400,
+html.theme-purple main .rounded-2xl:not(.invoice-crossref-panel):not(.invoice-crossref-hero) .text-slate-500,
+html.theme-purple main .rounded-2xl:not(.invoice-crossref-panel):not(.invoice-crossref-hero) .text-slate-600,
+html.theme-purple main .rounded-xl:not(.invoice-crossref-panel-inner) .text-slate-400,
+html.theme-purple main .rounded-xl:not(.invoice-crossref-panel-inner) .text-slate-500,
+html.theme-purple main .rounded-xl:not(.invoice-crossref-panel-inner) .text-slate-600,
+html.theme-purple main .rounded-2xl:not(.invoice-crossref-panel):not(.invoice-crossref-hero) thead,
+html.theme-purple main .rounded-2xl:not(.invoice-crossref-panel):not(.invoice-crossref-hero) thead th,
+html.theme-purple main .rounded-xl:not(.invoice-crossref-panel-inner) thead,
+html.theme-purple main .rounded-xl:not(.invoice-crossref-panel-inner) thead th {
+  color: #6366f1 !important;
+}
+html.theme-purple main .rounded-2xl:not(.invoice-crossref-panel):not(.invoice-crossref-hero) .font-medium.text-slate-700 {
+  color: #818cf8 !important;
+}
+html.theme-purple main .rounded-2xl:not(.invoice-crossref-panel):not(.invoice-crossref-hero) :is(button, a)[class*="dark:bg-slate-100"],
+html.theme-purple main .rounded-xl:not(.invoice-crossref-panel-inner) :is(button, a)[class*="dark:bg-slate-100"] {
+  background: linear-gradient(180deg, #818cf8 0%, #6366f1 100%) !important;
+  color: #f8fafc !important;
+  border-color: rgba(165, 180, 252, 0.55) !important;
+  border-radius: 0.5rem;
+}
+html.theme-purple main .rounded-2xl:not(.invoice-crossref-panel):not(.invoice-crossref-hero) :is(button, a)[class*="dark:bg-slate-100"]:hover,
+html.theme-purple main .rounded-xl:not(.invoice-crossref-panel-inner) :is(button, a)[class*="dark:bg-slate-100"]:hover {
+  background: linear-gradient(180deg, #a5b4fc 0%, #4f46e5 100%) !important;
+  box-shadow: 0 0 0 1px rgba(199, 210, 254, 0.35);
+}
+html.theme-purple main .rounded-2xl:not(.invoice-crossref-panel):not(.invoice-crossref-hero) button[class*="dark:bg-slate-800"],
+html.theme-purple main .rounded-xl:not(.invoice-crossref-panel-inner) button[class*="dark:bg-slate-800"] {
+  background: rgba(30, 27, 75, 0.72) !important;
+  color: #e0e7ff !important;
+  border-color: rgba(199, 210, 254, 0.4) !important;
+  border-radius: 0.5rem;
+}
+html.theme-purple main .rounded-2xl:not(.invoice-crossref-panel):not(.invoice-crossref-hero) button[class*="dark:bg-slate-800"]:hover,
+html.theme-purple main .rounded-xl:not(.invoice-crossref-panel-inner) button[class*="dark:bg-slate-800"]:hover {
+  background: rgba(67, 56, 202, 0.55) !important;
+  border-color: rgba(224, 231, 255, 0.45) !important;
+}
+html.theme-purple main .rounded-2xl:not(.invoice-crossref-panel):not(.invoice-crossref-hero) :where(tr[class*="border-slate"], td[class*="border-slate"], th[class*="border-slate"]) {
+  border-color: rgba(199, 210, 254, 0.28) !important;
+}
+
+/* Pink: main content cards — same glass bubbles as invoice crossreferencing */
+html.theme-pink main .rounded-2xl:not(.invoice-crossref-panel):not(.invoice-crossref-hero),
+html.theme-pink main .rounded-xl:not(.invoice-crossref-panel-inner) {
+  background: linear-gradient(90deg, rgba(74, 4, 78, 0.94) 0%, rgba(131, 24, 67, 0.9) 50%, rgba(74, 4, 78, 0.94) 100%) !important;
+  border-color: rgba(252, 231, 243, 0.45) !important;
+  backdrop-filter: blur(10px);
+  color: #fbcfe8;
+}
+html.theme-pink main .rounded-2xl:not(.invoice-crossref-panel):not(.invoice-crossref-hero) h1,
+html.theme-pink main .rounded-2xl:not(.invoice-crossref-panel):not(.invoice-crossref-hero) h2,
+html.theme-pink main .rounded-xl:not(.invoice-crossref-panel-inner) h1,
+html.theme-pink main .rounded-xl:not(.invoice-crossref-panel-inner) h2 {
+  color: #fce7f3 !important;
+}
+html.theme-pink main .rounded-2xl:not(.invoice-crossref-panel):not(.invoice-crossref-hero) .text-slate-700,
+html.theme-pink main .rounded-xl:not(.invoice-crossref-panel-inner) .text-slate-700 {
+  color: #fbcfe8 !important;
+}
+html.theme-pink main .rounded-2xl:not(.invoice-crossref-panel):not(.invoice-crossref-hero) .font-semibold,
+html.theme-pink main .rounded-xl:not(.invoice-crossref-panel-inner) .font-semibold {
+  color: #fce7f3 !important;
+}
+html.theme-pink main .rounded-2xl:not(.invoice-crossref-panel):not(.invoice-crossref-hero) label,
+html.theme-pink main .rounded-xl:not(.invoice-crossref-panel-inner) label {
+  color: #fbcfe8 !important;
+}
+html.theme-pink main .rounded-2xl:not(.invoice-crossref-panel):not(.invoice-crossref-hero) :where(input, select, textarea):not([type="submit"]),
+html.theme-pink main .rounded-xl:not(.invoice-crossref-panel-inner) :where(input, select, textarea):not([type="submit"]) {
+  border-color: rgba(252, 231, 243, 0.5) !important;
+  background: rgba(30, 10, 25, 0.55) !important;
+  color: #fce7f3 !important;
+}
+html.theme-pink main .rounded-2xl:not(.invoice-crossref-panel):not(.invoice-crossref-hero) a,
+html.theme-pink main .rounded-xl:not(.invoice-crossref-panel-inner) a {
+  color: #fce7f3 !important;
+}
+html.theme-pink main .rounded-2xl:not(.invoice-crossref-panel):not(.invoice-crossref-hero) .text-slate-400,
+html.theme-pink main .rounded-2xl:not(.invoice-crossref-panel):not(.invoice-crossref-hero) .text-slate-500,
+html.theme-pink main .rounded-2xl:not(.invoice-crossref-panel):not(.invoice-crossref-hero) .text-slate-600,
+html.theme-pink main .rounded-xl:not(.invoice-crossref-panel-inner) .text-slate-400,
+html.theme-pink main .rounded-xl:not(.invoice-crossref-panel-inner) .text-slate-500,
+html.theme-pink main .rounded-xl:not(.invoice-crossref-panel-inner) .text-slate-600,
+html.theme-pink main .rounded-2xl:not(.invoice-crossref-panel):not(.invoice-crossref-hero) thead,
+html.theme-pink main .rounded-2xl:not(.invoice-crossref-panel):not(.invoice-crossref-hero) thead th,
+html.theme-pink main .rounded-xl:not(.invoice-crossref-panel-inner) thead,
+html.theme-pink main .rounded-xl:not(.invoice-crossref-panel-inner) thead th {
+  color: #db2777 !important;
+}
+html.theme-pink main .rounded-2xl:not(.invoice-crossref-panel):not(.invoice-crossref-hero) .font-medium.text-slate-700 {
+  color: #ec4899 !important;
+}
+html.theme-pink main .rounded-2xl:not(.invoice-crossref-panel):not(.invoice-crossref-hero) :is(button, a)[class*="dark:bg-slate-100"],
+html.theme-pink main .rounded-xl:not(.invoice-crossref-panel-inner) :is(button, a)[class*="dark:bg-slate-100"] {
+  background: linear-gradient(180deg, #f472b6 0%, #db2777 100%) !important;
+  color: #fff7fb !important;
+  border-color: rgba(251, 207, 232, 0.55) !important;
+  border-radius: 0.5rem;
+}
+html.theme-pink main .rounded-2xl:not(.invoice-crossref-panel):not(.invoice-crossref-hero) :is(button, a)[class*="dark:bg-slate-100"]:hover,
+html.theme-pink main .rounded-xl:not(.invoice-crossref-panel-inner) :is(button, a)[class*="dark:bg-slate-100"]:hover {
+  background: linear-gradient(180deg, #fb7185 0%, #be185d 100%) !important;
+  box-shadow: 0 0 0 1px rgba(252, 231, 243, 0.35);
+}
+html.theme-pink main .rounded-2xl:not(.invoice-crossref-panel):not(.invoice-crossref-hero) button[class*="dark:bg-slate-800"],
+html.theme-pink main .rounded-xl:not(.invoice-crossref-panel-inner) button[class*="dark:bg-slate-800"] {
+  background: rgba(74, 4, 78, 0.65) !important;
+  color: #fce7f3 !important;
+  border-color: rgba(252, 231, 243, 0.42) !important;
+  border-radius: 0.5rem;
+}
+html.theme-pink main .rounded-2xl:not(.invoice-crossref-panel):not(.invoice-crossref-hero) button[class*="dark:bg-slate-800"]:hover,
+html.theme-pink main .rounded-xl:not(.invoice-crossref-panel-inner) button[class*="dark:bg-slate-800"]:hover {
+  background: rgba(157, 23, 77, 0.5) !important;
+  border-color: rgba(252, 231, 243, 0.55) !important;
+}
+html.theme-pink main .rounded-2xl:not(.invoice-crossref-panel):not(.invoice-crossref-hero) :where(tr[class*="border-slate"], td[class*="border-slate"], th[class*="border-slate"]) {
+  border-color: rgba(251, 207, 232, 0.32) !important;
+}
+
+/* Cherry blossom: darker type on the scene where body text would otherwise be light-on-light (card / hero rules above stay more specific). */
+html.theme-blossom main > div.flex.flex-col > div.flex:first-child {
+  border: 2px solid rgba(255, 255, 255, 0.92);
+  border-radius: 0.75rem;
+  padding: 0.875rem 1rem;
+  box-sizing: border-box;
+}
+html.theme-blossom main :is(h1, h2, h3) {
+  color: #2d1f10 !important;
+}
+html.theme-blossom main > div.flex.flex-col > div.flex:first-child .text-slate-900,
+html.theme-blossom main > div.flex.flex-col > div.flex:first-child .text-slate-800,
+html.theme-blossom main > div.flex.flex-col > div.flex:first-child .text-slate-700,
+html.theme-blossom main > div.flex.flex-col > div.flex:first-child .text-slate-600,
+html.theme-blossom main > div.flex.flex-col > div.flex:first-child .text-slate-500,
+html.theme-blossom main > div.flex.flex-col > div.flex:first-child .text-slate-400 {
+  color: #4a3628 !important;
+}
+
+html.theme-city #app-settings-menu,
+html.theme-city #person-quick-add-menu {
+  background: linear-gradient(90deg, rgba(7, 11, 20, 0.97) 0%, rgba(15, 23, 42, 0.94) 50%, rgba(7, 11, 20, 0.97) 100%) !important;
+  border-color: rgba(226, 232, 240, 0.35) !important;
+  backdrop-filter: blur(12px);
+  box-shadow:
+    0 12px 48px rgba(0, 0, 0, 0.55),
+    0 0 0 1px rgba(148, 163, 184, 0.15);
+}
+html.theme-city #app-settings-menu > div:first-child,
+html.theme-city #person-quick-add-menu > div:first-child {
+  border-bottom-color: rgba(203, 213, 225, 0.28) !important;
+}
+html.theme-city #app-settings-menu label,
+html.theme-city #person-quick-add-menu label {
+  color: #cbd5e1 !important;
+}
+html.theme-city #app-settings-menu select,
+html.theme-city #person-quick-add-menu :where(input:not([type="submit"]):not([type="button"]), select, textarea) {
+  border-color: rgba(203, 213, 225, 0.42) !important;
+  background: rgba(15, 23, 42, 0.75) !important;
+  color: #e2e8f0 !important;
+}
+html.theme-city #app-settings-menu .text-slate-500,
+html.theme-city #person-quick-add-menu .text-slate-500 {
+  color: #94a3b8 !important;
+}
+
+/* Invoice crossreferencing page — hero title + panel “bubbles” track the same palette as the top bar */
+/* Borders follow the same hues as the page text (slate-900 / slate-600 family) */
+html.theme-light .invoice-crossref-hero,
+html.theme-light .invoice-crossref-panel {
+  background: linear-gradient(90deg, rgb(255 255 255) 0%, rgb(248 250 252) 50%, rgb(255 255 255) 100%) !important;
+  border-color: rgba(15, 23, 42, 0.14) !important;
+}
+html.theme-light .invoice-crossref-panel-inner {
+  background: rgba(248, 250, 252, 0.95) !important;
+  border-color: rgba(71, 85, 105, 0.22) !important;
+}
+
+html.theme-dark .invoice-crossref-hero,
+html.theme-dark .invoice-crossref-panel {
+  background: linear-gradient(90deg, rgb(15 23 42) 0%, rgb(17 24 39) 50%, rgb(15 23 42) 100%) !important;
+  border-color: rgba(241, 245, 249, 0.22) !important;
+}
+html.theme-dark .invoice-crossref-panel-inner {
+  background: rgba(15, 23, 42, 0.65) !important;
+  border-color: rgba(203, 213, 225, 0.28) !important;
+}
+html.theme-dark details.invoice-crossref-panel > summary:hover {
+  background: rgba(30, 41, 59, 0.55) !important;
+}
+html.theme-dark .invoice-crossref-panel-body {
+  border-top-color: rgba(203, 213, 225, 0.22) !important;
+}
+
+html.theme-purple .invoice-crossref-hero,
+html.theme-purple .invoice-crossref-panel {
+  background: linear-gradient(90deg, rgba(30, 27, 75, 0.94) 0%, rgba(49, 46, 129, 0.9) 50%, rgba(30, 27, 75, 0.94) 100%) !important;
+  /* #e0e7ff heading / #c7d2fe body */
+  border-color: rgba(224, 231, 255, 0.42) !important;
+  backdrop-filter: blur(10px);
+}
+html.theme-purple .invoice-crossref-hero h1,
+html.theme-purple .invoice-crossref-panel h1,
+html.theme-purple .invoice-crossref-panel h2,
+html.theme-purple .invoice-crossref-panel h3 {
+  color: #e0e7ff !important;
+}
+html.theme-purple .invoice-crossref-hero p {
+  color: #c7d2fe !important;
+}
+html.theme-purple .invoice-crossref-panel {
+  color: #c7d2fe;
+}
+html.theme-purple .invoice-crossref-panel label {
+  color: #c7d2fe !important;
+}
+html.theme-purple .invoice-crossref-panel-inner {
+  background: rgba(30, 27, 75, 0.55) !important;
+  border-color: rgba(199, 210, 254, 0.38) !important;
+}
+html.theme-purple details.invoice-crossref-panel > summary:hover {
+  background: rgba(67, 56, 202, 0.35) !important;
+}
+html.theme-purple .invoice-crossref-panel summary .font-semibold {
+  color: #e0e7ff !important;
+}
+html.theme-purple .invoice-crossref-panel summary .text-slate-500 {
+  color: #a5b4fc !important;
+}
+html.theme-purple .invoice-crossref-panel .invoice-crossref-chevron {
+  color: #a5b4fc !important;
+}
+html.theme-purple .invoice-crossref-panel-body {
+  border-top-color: rgba(199, 210, 254, 0.32) !important;
+}
+html.theme-purple .invoice-crossref-panel a,
+html.theme-purple .invoice-crossref-hero a {
+  color: #e0e7ff !important;
+}
+html.theme-purple .invoice-crossref-panel :where(input, select, textarea):not([type="submit"]) {
+  border-color: rgba(199, 210, 254, 0.45) !important;
+  background: rgba(15, 23, 42, 0.45) !important;
+  color: #e0e7ff !important;
+}
+
+html.theme-pink .invoice-crossref-hero,
+html.theme-pink .invoice-crossref-panel {
+  background: linear-gradient(90deg, rgba(74, 4, 78, 0.94) 0%, rgba(131, 24, 67, 0.9) 50%, rgba(74, 4, 78, 0.94) 100%) !important;
+  /* #fce7f3 heading / #fbcfe8 body */
+  border-color: rgba(252, 231, 243, 0.45) !important;
+  backdrop-filter: blur(10px);
+}
+html.theme-pink .invoice-crossref-hero h1,
+html.theme-pink .invoice-crossref-panel h1,
+html.theme-pink .invoice-crossref-panel h2,
+html.theme-pink .invoice-crossref-panel h3 {
+  color: #fce7f3 !important;
+}
+html.theme-pink .invoice-crossref-hero p {
+  color: #fbcfe8 !important;
+}
+html.theme-pink .invoice-crossref-panel {
+  color: #fbcfe8;
+}
+html.theme-pink .invoice-crossref-panel label {
+  color: #fbcfe8 !important;
+}
+html.theme-pink .invoice-crossref-panel-inner {
+  background: rgba(74, 4, 78, 0.5) !important;
+  border-color: rgba(251, 207, 232, 0.4) !important;
+}
+html.theme-pink details.invoice-crossref-panel > summary:hover {
+  background: rgba(157, 23, 77, 0.38) !important;
+}
+html.theme-pink .invoice-crossref-panel summary .font-semibold {
+  color: #fce7f3 !important;
+}
+html.theme-pink .invoice-crossref-panel summary .text-slate-500 {
+  color: #f9a8d4 !important;
+}
+html.theme-pink .invoice-crossref-panel .invoice-crossref-chevron {
+  color: #f9a8d4 !important;
+}
+html.theme-pink .invoice-crossref-panel-body {
+  border-top-color: rgba(251, 207, 232, 0.35) !important;
+}
+html.theme-pink .invoice-crossref-panel a,
+html.theme-pink .invoice-crossref-hero a {
+  color: #fce7f3 !important;
+}
+html.theme-pink .invoice-crossref-panel :where(input, select, textarea):not([type="submit"]) {
+  border-color: rgba(252, 231, 243, 0.5) !important;
+  background: rgba(30, 10, 25, 0.55) !important;
+  color: #fce7f3 !important;
+}
+
+/* Export XLSX: slightly deeper pink than the panel “bubbles” */
+html.theme-pink .invoice-crossref-panel a.invoice-crossref-export-xlsx,
+html.theme-pink .invoice-crossref-panel button.invoice-crossref-export-xlsx {
+  border-color: rgba(251, 207, 232, 0.55) !important;
+  background: linear-gradient(
+    135deg,
+    rgba(48, 3, 50, 0.98) 0%,
+    rgba(95, 12, 52, 0.98) 50%,
+    rgba(62, 6, 42, 0.98) 100%
+  ) !important;
+  color: #fce7f3 !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+}
+html.theme-pink .invoice-crossref-panel a.invoice-crossref-export-xlsx:hover,
+html.theme-pink .invoice-crossref-panel button.invoice-crossref-export-xlsx:hover {
+  border-color: rgba(252, 231, 243, 0.7) !important;
+  background: linear-gradient(
+    135deg,
+    rgba(58, 6, 60, 1) 0%,
+    rgba(110, 18, 58, 1) 50%,
+    rgba(75, 10, 48, 1) 100%
+  ) !important;
+  color: #fff1f7 !important;
+}
+
+html.theme-blossom .invoice-crossref-hero,
+html.theme-blossom .invoice-crossref-panel {
+  background: linear-gradient(
+    90deg,
+    rgba(45, 31, 16, 0.94) 0%,
+    rgba(61, 41, 20, 0.92) 45%,
+    rgba(52, 36, 18, 0.94) 100%
+  ) !important;
+  border-width: var(--blossom-bubble-border-width) !important;
+  border-color: var(--blossom-bubble-border) !important;
+  backdrop-filter: blur(12px);
+}
+html.theme-blossom .invoice-crossref-hero h1,
+html.theme-blossom .invoice-crossref-panel h1,
+html.theme-blossom .invoice-crossref-panel h2,
+html.theme-blossom .invoice-crossref-panel h3 {
+  color: #faf3ea !important;
+}
+html.theme-blossom .invoice-crossref-hero p {
+  color: #d4c4b0 !important;
+}
+html.theme-blossom .invoice-crossref-panel {
+  color: #d4c4b0;
+}
+html.theme-blossom .invoice-crossref-panel label {
+  color: #e8d5c4 !important;
+}
+html.theme-blossom .invoice-crossref-panel-inner {
+  background: rgba(28, 20, 10, 0.55) !important;
+  border-width: var(--blossom-bubble-border-width) !important;
+  border-color: var(--blossom-bubble-border-soft) !important;
+}
+html.theme-blossom details.invoice-crossref-panel > summary:hover {
+  background: rgba(55, 40, 22, 0.45) !important;
+}
+html.theme-blossom .invoice-crossref-panel summary .font-semibold {
+  color: #faf3ea !important;
+}
+html.theme-blossom .invoice-crossref-panel summary .text-slate-500 {
+  color: #b8a090 !important;
+}
+html.theme-blossom .invoice-crossref-panel .invoice-crossref-chevron {
+  color: #c4a882 !important;
+}
+html.theme-blossom .invoice-crossref-panel-body {
+  border-top-color: var(--blossom-bubble-divider) !important;
+}
+html.theme-blossom .invoice-crossref-panel a,
+html.theme-blossom .invoice-crossref-hero a {
+  color: #f0e0c8 !important;
+}
+html.theme-blossom .invoice-crossref-panel a:hover,
+html.theme-blossom .invoice-crossref-hero a:hover {
+  color: #ffffff !important;
+}
+html.theme-blossom .invoice-crossref-panel :where(input, select, textarea):not([type="submit"]) {
+  border-color: rgba(160, 125, 85, 0.5) !important;
+  background: rgba(35, 24, 12, 0.85) !important;
+  color: #f5ebe0 !important;
+}
+
+html.theme-blossom .invoice-crossref-panel a.invoice-crossref-export-xlsx,
+html.theme-blossom .invoice-crossref-panel button.invoice-crossref-export-xlsx {
+  border-color: rgba(180, 130, 85, 0.55) !important;
+  background: linear-gradient(
+    135deg,
+    rgba(120, 75, 45, 0.98) 0%,
+    rgba(95, 58, 32, 0.98) 50%,
+    rgba(75, 48, 28, 0.98) 100%
+  ) !important;
+  color: #faf3ea !important;
+  box-shadow: 0 1px 3px rgba(20, 12, 6, 0.45);
+}
+html.theme-blossom .invoice-crossref-panel a.invoice-crossref-export-xlsx:hover,
+html.theme-blossom .invoice-crossref-panel button.invoice-crossref-export-xlsx:hover {
+  border-color: rgba(200, 155, 105, 0.6) !important;
+  background: linear-gradient(
+    135deg,
+    rgba(140, 90, 55, 1) 0%,
+    rgba(110, 70, 42, 1) 50%,
+    rgba(90, 58, 35, 1) 100%
+  ) !important;
+  color: #ffffff !important;
+}
+
+/* Profile form: Export-style outline + white label (Save button after Save/Cancel style swap) */
+html.theme-light .invoice-crossref-panel a.invoice-crossref-export-xlsx.profile-outline-btn,
+html.theme-light .invoice-crossref-panel button.invoice-crossref-export-xlsx.profile-outline-btn {
+  color: #ffffff !important;
+  background: rgb(30 41 59) !important;
+  border-color: rgb(71 85 105) !important;
+}
+html.theme-light .invoice-crossref-panel a.invoice-crossref-export-xlsx.profile-outline-btn:hover,
+html.theme-light .invoice-crossref-panel button.invoice-crossref-export-xlsx.profile-outline-btn:hover {
+  background: rgb(51 65 85) !important;
+}
+html.theme-dark .invoice-crossref-panel a.invoice-crossref-export-xlsx.profile-outline-btn,
+html.theme-dark .invoice-crossref-panel button.invoice-crossref-export-xlsx.profile-outline-btn,
+html.theme-purple .invoice-crossref-panel a.invoice-crossref-export-xlsx.profile-outline-btn,
+html.theme-purple .invoice-crossref-panel button.invoice-crossref-export-xlsx.profile-outline-btn,
+html.theme-city .invoice-crossref-panel a.invoice-crossref-export-xlsx.profile-outline-btn,
+html.theme-city .invoice-crossref-panel button.invoice-crossref-export-xlsx.profile-outline-btn,
+html.theme-jungle .invoice-crossref-panel a.invoice-crossref-export-xlsx.profile-outline-btn,
+html.theme-jungle .invoice-crossref-panel button.invoice-crossref-export-xlsx.profile-outline-btn {
+  color: #ffffff !important;
+}
+html.theme-pink .invoice-crossref-panel a.invoice-crossref-export-xlsx.profile-outline-btn,
+html.theme-pink .invoice-crossref-panel button.invoice-crossref-export-xlsx.profile-outline-btn,
+html.theme-blossom .invoice-crossref-panel a.invoice-crossref-export-xlsx.profile-outline-btn,
+html.theme-blossom .invoice-crossref-panel button.invoice-crossref-export-xlsx.profile-outline-btn {
+  color: #ffffff !important;
+}
+html.theme-pink .invoice-crossref-panel a.invoice-crossref-export-xlsx.profile-outline-btn:hover,
+html.theme-pink .invoice-crossref-panel button.invoice-crossref-export-xlsx.profile-outline-btn:hover {
+  color: #ffffff !important;
+}
+
+/* Profile: filled primary link (Cancel) — same as former Save button; overrides themed panel <a> */
+html.theme-light .invoice-crossref-panel a.profile-primary-action {
+  color: rgb(241 245 249) !important;
+  background: rgb(15 23 42) !important;
+}
+html.theme-light .invoice-crossref-panel a.profile-primary-action:hover {
+  background: rgb(30 41 59) !important;
+}
+html.theme-dark .invoice-crossref-panel a.profile-primary-action,
+html.theme-purple .invoice-crossref-panel a.profile-primary-action,
+html.theme-pink .invoice-crossref-panel a.profile-primary-action,
+html.theme-city .invoice-crossref-panel a.profile-primary-action {
+  color: rgb(15 23 42) !important;
+  background: rgb(241 245 249) !important;
+}
+html.theme-dark .invoice-crossref-panel a.profile-primary-action:hover,
+html.theme-purple .invoice-crossref-panel a.profile-primary-action:hover,
+html.theme-pink .invoice-crossref-panel a.profile-primary-action:hover,
+html.theme-city .invoice-crossref-panel a.profile-primary-action:hover {
+  background: rgb(255 255 255) !important;
+}
+html.theme-blossom .invoice-crossref-panel a.profile-primary-action {
+  color: #2d1f10 !important;
+  background: #e8d5c4 !important;
+}
+html.theme-blossom .invoice-crossref-panel a.profile-primary-action:hover {
+  background: #faf3ea !important;
+}
+
+html.theme-city .invoice-crossref-hero,
+html.theme-city .invoice-crossref-panel {
+  background: linear-gradient(90deg, rgba(7, 11, 20, 0.94) 0%, rgba(15, 23, 42, 0.9) 50%, rgba(7, 11, 20, 0.94) 100%) !important;
+  /* #e2e8f0 headings / #cbd5e1 body */
+  border-color: rgba(226, 232, 240, 0.35) !important;
+  backdrop-filter: blur(10px);
+}
+html.theme-city .invoice-crossref-hero h1,
+html.theme-city .invoice-crossref-panel h1,
+html.theme-city .invoice-crossref-panel h2,
+html.theme-city .invoice-crossref-panel h3 {
+  color: #e2e8f0 !important;
+}
+html.theme-city .invoice-crossref-hero p {
+  color: #cbd5e1 !important;
+}
+html.theme-city .invoice-crossref-panel {
+  color: #cbd5e1;
+}
+html.theme-city .invoice-crossref-panel label {
+  color: #cbd5e1 !important;
+}
+html.theme-city .invoice-crossref-panel-inner {
+  background: rgba(15, 23, 42, 0.65) !important;
+  border-color: rgba(203, 213, 225, 0.32) !important;
+}
+html.theme-city details.invoice-crossref-panel > summary:hover {
+  background: rgba(30, 41, 59, 0.55) !important;
+}
+html.theme-city .invoice-crossref-panel summary .font-semibold {
+  color: #e2e8f0 !important;
+}
+html.theme-city .invoice-crossref-panel summary .text-slate-500 {
+  color: #94a3b8 !important;
+}
+html.theme-city .invoice-crossref-panel .invoice-crossref-chevron {
+  color: #94a3b8 !important;
+}
+html.theme-city .invoice-crossref-panel-body {
+  border-top-color: rgba(203, 213, 225, 0.28) !important;
+}
+html.theme-city .invoice-crossref-panel a,
+html.theme-city .invoice-crossref-hero a {
+  color: #e2e8f0 !important;
+}
+html.theme-city .invoice-crossref-panel :where(input, select, textarea):not([type="submit"]) {
+  border-color: rgba(203, 213, 225, 0.42) !important;
+  background: rgba(15, 23, 42, 0.75) !important;
+  color: #e2e8f0 !important;
+}
+
+/* Imports section title — frosted chip so label stays readable on busy themed backgrounds */
+h2.invoice-crossref-imports-section-title {
+  letter-spacing: 0.03em;
+  display: inline-block;
+  width: fit-content;
+  max-width: 100%;
+  box-sizing: border-box;
+  margin: 0 0 0.35rem;
+  padding: 0.4rem 0.85rem;
+  border-radius: 0.5rem;
+  border: 1px solid transparent;
+  text-shadow: none;
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+
+html.theme-light h2.invoice-crossref-imports-section-title {
+  color: #0f172a !important;
+  background: rgba(255, 255, 255, 0.92);
+  border-color: rgba(15, 23, 42, 0.12);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+}
+
+html.theme-dark h2.invoice-crossref-imports-section-title {
+  color: #f8fafc !important;
+  background: rgba(15, 23, 42, 0.82);
+  border-color: rgba(148, 163, 184, 0.28);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+}
+
+html.theme-purple h2.invoice-crossref-imports-section-title {
+  color: #eef2ff !important;
+  background: rgba(30, 27, 75, 0.82);
+  border-color: rgba(165, 180, 252, 0.38);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.35);
+}
+
+html.theme-pink h2.invoice-crossref-imports-section-title {
+  color: #fff1f7 !important;
+  background: rgba(45, 8, 30, 0.78);
+  border-color: rgba(251, 207, 232, 0.35);
+  box-shadow: 0 1px 3px rgba(30, 10, 25, 0.45);
+}
+
+html.theme-blossom main h2.invoice-crossref-imports-section-title {
+  color: #2d1f10 !important;
+  background: rgba(250, 243, 234, 0.94);
+  border-color: rgba(160, 125, 85, 0.38);
+  box-shadow: 0 1px 3px rgba(74, 54, 40, 0.12);
+}
+
+html.theme-city h2.invoice-crossref-imports-section-title {
+  color: #f1f5f9 !important;
+  background: rgba(7, 11, 20, 0.82);
+  border-color: rgba(148, 163, 184, 0.28);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+html.theme-jungle main h2.invoice-crossref-imports-section-title {
+  color: #f8fffe !important;
+  background: rgba(13, 40, 32, 0.88);
+  border-color: rgba(0, 180, 216, 0.32);
+  box-shadow: 0 1px 3px rgba(0, 25, 20, 0.45);
+}
+
+/* Invoice crossref: column headers / helper text — replace gray slate with theme accent (darker purple on indigo theme, etc.) */
+html.theme-light .invoice-crossref-hero .text-slate-600,
+html.theme-light .invoice-crossref-panel :where(.text-slate-400, .text-slate-500, .text-slate-600),
+html.theme-light .invoice-crossref-panel thead,
+html.theme-light .invoice-crossref-panel thead th,
+html.theme-light #invoice-crossref-table thead,
+html.theme-light #invoice-crossref-table thead th {
+  color: #475569 !important;
+}
+html.theme-light .invoice-crossref-panel .font-medium.text-slate-700 {
+  color: #334155 !important;
+}
+
+html.theme-dark .invoice-crossref-hero .text-slate-600,
+html.theme-dark .invoice-crossref-panel :where(.text-slate-400, .text-slate-500, .text-slate-600),
+html.theme-dark .invoice-crossref-panel thead,
+html.theme-dark .invoice-crossref-panel thead th,
+html.theme-dark #invoice-crossref-table thead,
+html.theme-dark #invoice-crossref-table thead th {
+  color: #94a3b8 !important;
+}
+html.theme-dark .invoice-crossref-panel .font-medium.text-slate-700 {
+  color: #cbd5e1 !important;
+}
+
+html.theme-purple .invoice-crossref-hero .text-slate-600,
+html.theme-purple .invoice-crossref-panel :where(.text-slate-400, .text-slate-500, .text-slate-600),
+html.theme-purple .invoice-crossref-panel thead,
+html.theme-purple .invoice-crossref-panel thead th,
+html.theme-purple #invoice-crossref-table thead,
+html.theme-purple #invoice-crossref-table thead th {
+  color: #6366f1 !important;
+}
+html.theme-purple .invoice-crossref-panel .font-medium.text-slate-700 {
+  color: #818cf8 !important;
+}
+html.theme-purple .invoice-crossref-panel summary .text-slate-500 {
+  color: #818cf8 !important;
+}
+html.theme-purple .invoice-crossref-panel .invoice-crossref-chevron {
+  color: #818cf8 !important;
+}
+
+html.theme-pink .invoice-crossref-hero .text-slate-600,
+html.theme-pink .invoice-crossref-panel :where(.text-slate-400, .text-slate-500, .text-slate-600),
+html.theme-pink .invoice-crossref-panel thead,
+html.theme-pink .invoice-crossref-panel thead th,
+html.theme-pink #invoice-crossref-table thead,
+html.theme-pink #invoice-crossref-table thead th {
+  color: #db2777 !important;
+}
+html.theme-pink .invoice-crossref-panel .font-medium.text-slate-700 {
+  color: #ec4899 !important;
+}
+html.theme-pink .invoice-crossref-panel summary .text-slate-500 {
+  color: #f472b6 !important;
+}
+html.theme-pink .invoice-crossref-panel .invoice-crossref-chevron {
+  color: #f472b6 !important;
+}
+
+html.theme-blossom .invoice-crossref-hero .text-slate-600,
+html.theme-blossom .invoice-crossref-panel :where(.text-slate-400, .text-slate-500, .text-slate-600),
+html.theme-blossom .invoice-crossref-panel thead,
+html.theme-blossom .invoice-crossref-panel thead th,
+html.theme-blossom #invoice-crossref-table thead,
+html.theme-blossom #invoice-crossref-table thead th {
+  color: #c4a882 !important;
+}
+html.theme-blossom .invoice-crossref-panel .font-medium.text-slate-700 {
+  color: #e8d5c4 !important;
+}
+html.theme-blossom .invoice-crossref-panel summary .text-slate-500 {
+  color: #b8a090 !important;
+}
+html.theme-blossom .invoice-crossref-panel .invoice-crossref-chevron {
+  color: #c4a882 !important;
+}
+
+html.theme-city .invoice-crossref-hero .text-slate-600,
+html.theme-city .invoice-crossref-panel :where(.text-slate-400, .text-slate-500, .text-slate-600),
+html.theme-city .invoice-crossref-panel thead,
+html.theme-city .invoice-crossref-panel thead th,
+html.theme-city #invoice-crossref-table thead,
+html.theme-city #invoice-crossref-table thead th {
+  color: #64748b !important;
+}
+html.theme-city .invoice-crossref-panel .font-medium.text-slate-700 {
+  color: #94a3b8 !important;
+}
+html.theme-city .invoice-crossref-panel summary .text-slate-500 {
+  color: #94a3b8 !important;
+}
+html.theme-city .invoice-crossref-panel .invoice-crossref-chevron {
+  color: #94a3b8 !important;
+}
+
+/* Crossreference results: mismatch (red) / soft (yellow) / solved (green) row bands + alert cell text — tuned per theme */
+html.theme-light #invoice-crossref-table tbody tr.invoice-crossref-row--solved {
+  background-color: rgb(220 252 231) !important;
+}
+html.theme-light #invoice-crossref-table tbody tr.invoice-crossref-row--mismatch {
+  background-color: rgb(254 226 226) !important;
+}
+html.theme-light #invoice-crossref-table tbody tr.invoice-crossref-row--soft {
+  background-color: rgb(254 249 195) !important;
+}
+html.theme-light #invoice-crossref-table .invoice-crossref-cell-alert {
+  color: #b91c1c !important;
+}
+
+html.theme-dark #invoice-crossref-table tbody tr.invoice-crossref-row--solved {
+  background-color: rgba(6, 78, 59, 0.55) !important;
+}
+html.theme-dark #invoice-crossref-table tbody tr.invoice-crossref-row--mismatch {
+  background-color: rgba(69, 10, 10, 0.72) !important;
+}
+html.theme-dark #invoice-crossref-table tbody tr.invoice-crossref-row--soft {
+  background-color: rgba(69, 26, 3, 0.62) !important;
+}
+html.theme-dark #invoice-crossref-table .invoice-crossref-cell-alert {
+  color: #f87171 !important;
+}
+
+html.theme-purple #invoice-crossref-table tbody tr.invoice-crossref-row--solved {
+  background: linear-gradient(90deg, rgba(6, 78, 59, 0.55), rgba(67, 56, 202, 0.18)) !important;
+  box-shadow: inset 0 0 0 1px rgba(52, 211, 153, 0.35);
+}
+html.theme-purple #invoice-crossref-table tbody tr.invoice-crossref-row--mismatch {
+  background: linear-gradient(90deg, rgba(69, 10, 10, 0.75), rgba(67, 56, 202, 0.22)) !important;
+  box-shadow: inset 0 0 0 1px rgba(248, 113, 113, 0.35);
+}
+html.theme-purple #invoice-crossref-table tbody tr.invoice-crossref-row--soft {
+  background: linear-gradient(90deg, rgba(69, 26, 3, 0.65), rgba(99, 102, 241, 0.16)) !important;
+  box-shadow: inset 0 0 0 1px rgba(251, 191, 36, 0.32);
+}
+html.theme-purple #invoice-crossref-table .invoice-crossref-cell-alert {
+  color: #fecaca !important;
+}
+
+html.theme-pink #invoice-crossref-table tbody tr.invoice-crossref-row--solved {
+  background: linear-gradient(90deg, rgba(6, 78, 59, 0.52), rgba(157, 23, 77, 0.22)) !important;
+  box-shadow: inset 0 0 0 1px rgba(52, 211, 153, 0.32);
+}
+html.theme-pink #invoice-crossref-table tbody tr.invoice-crossref-row--mismatch {
+  background: linear-gradient(90deg, rgba(69, 10, 10, 0.72), rgba(157, 23, 77, 0.32)) !important;
+  box-shadow: inset 0 0 0 1px rgba(251, 113, 133, 0.4);
+}
+html.theme-pink #invoice-crossref-table tbody tr.invoice-crossref-row--soft {
+  background: linear-gradient(90deg, rgba(69, 26, 3, 0.62), rgba(190, 24, 93, 0.2)) !important;
+  box-shadow: inset 0 0 0 1px rgba(253, 224, 71, 0.32);
+}
+html.theme-pink #invoice-crossref-table .invoice-crossref-cell-alert {
+  color: #fecdd3 !important;
+}
+
+html.theme-blossom #invoice-crossref-table tbody tr.invoice-crossref-row--solved {
+  background-color: rgba(16, 185, 129, 0.2) !important;
+  box-shadow: inset 0 0 0 1px rgba(5, 150, 105, 0.35);
+}
+html.theme-blossom #invoice-crossref-table tbody tr.invoice-crossref-row--mismatch {
+  background-color: rgba(190, 18, 60, 0.22) !important;
+  box-shadow: inset 0 0 0 1px rgba(159, 18, 57, 0.32);
+}
+html.theme-blossom #invoice-crossref-table tbody tr.invoice-crossref-row--soft {
+  background-color: rgba(250, 204, 21, 0.22) !important;
+  box-shadow: inset 0 0 0 1px rgba(202, 138, 4, 0.26);
+}
+html.theme-blossom #invoice-crossref-table .invoice-crossref-cell-alert {
+  color: #881337 !important;
+}
+
+html.theme-city #invoice-crossref-table tbody tr.invoice-crossref-row--solved {
+  background-color: rgba(6, 78, 59, 0.62) !important;
+  box-shadow: inset 0 0 0 1px rgba(52, 211, 153, 0.28);
+}
+html.theme-city #invoice-crossref-table tbody tr.invoice-crossref-row--mismatch {
+  background-color: rgba(69, 10, 10, 0.78) !important;
+  box-shadow: inset 0 0 0 1px rgba(248, 113, 113, 0.28);
+}
+html.theme-city #invoice-crossref-table tbody tr.invoice-crossref-row--soft {
+  background-color: rgba(69, 26, 3, 0.68) !important;
+  box-shadow: inset 0 0 0 1px rgba(253, 224, 71, 0.24);
+}
+html.theme-city #invoice-crossref-table .invoice-crossref-cell-alert {
+  color: #fca5a5 !important;
+}
+
+/* Invoice crossreference: collapsible custom settings */
+details.invoice-crossref-settings > summary {
+  list-style: none;
+}
+details.invoice-crossref-settings > summary::-webkit-details-marker {
+  display: none;
+}
+details.invoice-crossref-settings[open] > summary .invoice-crossref-chevron {
+  transform: rotate(180deg);
+}
+
+/* Crossreference: collapsed layout so row highlight (red/yellow) is continuous across the row */
+#invoice-crossref-table {
+  table-layout: fixed;
+  width: 100%;
+  border-collapse: collapse;
+}
+
+/* Limit layout invalidation scope when header widths change (large row counts). */
+#invoice-crossref-table tbody {
+  contain: layout style;
+}
+
+#invoice-crossref-table .invoice-crossref-resize-handle {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 7px;
+  cursor: col-resize;
+  z-index: 2;
+  margin-right: -3px;
+}
+#invoice-crossref-table .invoice-crossref-resize-handle:hover {
+  background: rgba(100, 116, 139, 0.22);
+}
+html.dark #invoice-crossref-table .invoice-crossref-resize-handle:hover {
+  background: rgba(148, 163, 184, 0.2);
+}
+
+/* Column resize: preview line only during drag; real widths applied once on mouseup */
+.invoice-crossref-resize-preview {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  margin-left: -1px;
+  background: rgb(59 130 246 / 0.95);
+  z-index: 99999;
+  pointer-events: none;
+}
+html.dark .invoice-crossref-resize-preview {
+  background: rgb(96 165 250 / 0.95);
+}
+
+/* Page shell: draggable vertical edges (custom width) */
+.page-shell-drag-handle {
+  position: fixed;
+  width: 8px;
+  z-index: 40;
+  cursor: ew-resize;
+  touch-action: none;
+  user-select: none;
+  background: transparent;
+  transition: background 0.12s ease;
+  border-radius: 2px;
+}
+.page-shell-drag-handle:hover,
+.page-shell-drag-handle:focus-visible {
+  background: rgb(59 130 246 / 0.28);
+  outline: none;
+}
+.page-shell-drag-handle.is-dragging {
+  background: rgb(59 130 246 / 0.45);
+}
+html.dark .page-shell-drag-handle:hover,
+html.dark .page-shell-drag-handle:focus-visible {
+  background: rgb(96 165 250 / 0.28);
+}
+html.dark .page-shell-drag-handle.is-dragging {
+  background: rgb(96 165 250 / 0.42);
+}
+
+/* ========== Jungle theme: custom backdrop + river / forest / sky palette ========== */
+html.theme-jungle {
+  --jungle-bubble-border-width: 3px;
+  /* Cerulean / turquoise (river) + forest greens */
+  --jungle-bubble-border: rgb(0 119 182);
+  --jungle-bubble-border-soft: rgba(0, 180, 216, 0.42);
+  --jungle-bubble-divider: rgba(173 232 244 / 0.38);
+  --jungle-forest-deep: #1b4332;
+  --jungle-forest-mid: #2d6a4f;
+  --jungle-river: #00b4d8;
+  --jungle-river-deep: #0077b6;
+  --jungle-lime: #9ef01a;
+  --jungle-sky: #ade8f4;
+  min-height: 100%;
+  background-color: var(--jungle-forest-deep);
+  /* Scrim keeps UI readable over detailed art; image is bottom layer */
+  background-image:
+    linear-gradient(
+      180deg,
+      rgba(13, 40, 28, 0.72) 0%,
+      rgba(15, 55, 42, 0.48) 38%,
+      rgba(8, 45, 55, 0.58) 100%
+    ),
+    radial-gradient(ellipse 100% 70% at 50% 0%, rgba(173, 232, 244, 0.12) 0%, transparent 55%),
+    url("/static/themes/jungle-backdrop.png");
+  background-size: cover, cover, cover;
+  background-position: center, center, center top;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+html.theme-jungle body {
+  background: transparent !important;
+}
+
+html.theme-jungle input[type="file"]::file-selector-button {
+  color: #023047;
+  font-weight: 600;
+  background: linear-gradient(180deg, #00b4d8 0%, #0077b6 100%);
+  border: 1px solid rgba(0, 119, 182, 0.85);
+  border-radius: 0.5rem;
+  padding: 0.25rem 0.75rem;
+  margin-inline-end: 0.5rem;
+}
+html.theme-jungle input[type="file"]::-webkit-file-upload-button {
+  color: #023047;
+  font-weight: 600;
+  background: linear-gradient(180deg, #00b4d8 0%, #0077b6 100%);
+  border: 1px solid rgba(0, 119, 182, 0.85);
+  border-radius: 0.5rem;
+  padding: 0.25rem 0.75rem;
+  margin-inline-end: 0.5rem;
+}
+
+html.theme-jungle header {
+  background: linear-gradient(
+    90deg,
+    rgba(27, 67, 50, 0.92) 0%,
+    rgba(45, 106, 79, 0.88) 50%,
+    rgba(27, 67, 50, 0.92) 100%
+  );
+  border-bottom-color: rgba(0, 180, 216, 0.4);
+  backdrop-filter: blur(14px);
+}
+html.theme-jungle header > div > a.font-semibold {
+  color: #f8fffe !important;
+}
+html.theme-jungle header nav a {
+  color: var(--jungle-sky) !important;
+}
+html.theme-jungle header nav a:hover {
+  color: #ffffff !important;
+}
+html.theme-jungle header a.inline-flex,
+html.theme-jungle header button#app-settings-menu-btn,
+html.theme-jungle header button#person-quick-add-btn,
+html.theme-jungle main button#person-quick-add-btn {
+  border-color: rgba(0, 180, 216, 0.5) !important;
+  background: rgba(27, 67, 50, 0.75) !important;
+  color: #e0f7fa !important;
+}
+html.theme-jungle header a.inline-flex:hover,
+html.theme-jungle header button#app-settings-menu-btn:hover,
+html.theme-jungle header button#person-quick-add-btn:hover,
+html.theme-jungle main button#person-quick-add-btn:hover {
+  background: rgba(45, 106, 79, 0.88) !important;
+  border-color: rgba(173, 232, 244, 0.55) !important;
+}
+
+html.theme-jungle #app-settings-menu,
+html.theme-jungle #person-quick-add-menu {
+  background: linear-gradient(
+    145deg,
+    rgba(27, 67, 50, 0.94) 0%,
+    rgba(13, 48, 40, 0.92) 50%,
+    rgba(20, 60, 52, 0.94) 100%
+  ) !important;
+  border-width: var(--jungle-bubble-border-width) !important;
+  border-color: var(--jungle-bubble-border) !important;
+  backdrop-filter: blur(16px);
+  box-shadow:
+    0 12px 40px rgba(2, 20, 15, 0.55),
+    0 0 0 1px rgba(173, 232, 244, 0.12);
+}
+html.theme-jungle #app-settings-menu > div:first-child,
+html.theme-jungle #person-quick-add-menu > div:first-child {
+  border-bottom-color: var(--jungle-bubble-divider) !important;
+}
+html.theme-jungle #app-settings-menu label,
+html.theme-jungle #person-quick-add-menu label {
+  color: #c8f5e8 !important;
+}
+html.theme-jungle #app-settings-menu select,
+html.theme-jungle #person-quick-add-menu :where(input:not([type="submit"]):not([type="button"]), select, textarea) {
+  border-color: rgba(0, 180, 216, 0.5) !important;
+  background: rgba(13, 40, 32, 0.9) !important;
+  color: #f0fffa !important;
+}
+html.theme-jungle #app-settings-menu .text-slate-500,
+html.theme-jungle #person-quick-add-menu .text-slate-500 {
+  color: #7dd3c0 !important;
+}
+
+/* Header person flyout: native <details> disclosure for “Add a person” */
+details.person-quick-add-details > summary {
+  list-style: none;
+}
+details.person-quick-add-details > summary::-webkit-details-marker {
+  display: none;
+}
+
+html.theme-jungle footer {
+  background: linear-gradient(
+    90deg,
+    rgba(27, 67, 50, 0.92) 0%,
+    rgba(45, 106, 79, 0.88) 50%,
+    rgba(27, 67, 50, 0.92) 100%
+  );
+  border-top-width: var(--jungle-bubble-border-width);
+  border-top-color: var(--jungle-bubble-border);
+  backdrop-filter: blur(12px);
+}
+html.theme-jungle footer .text-slate-500 {
+  color: #7dd3c0 !important;
+}
+
+html.theme-jungle main .rounded-2xl:not(.invoice-crossref-panel):not(.invoice-crossref-hero),
+html.theme-jungle main .rounded-xl:not(.invoice-crossref-panel-inner) {
+  background: linear-gradient(
+    145deg,
+    rgba(27, 67, 50, 0.88) 0%,
+    rgba(13, 48, 40, 0.86) 50%,
+    rgba(20, 58, 48, 0.88) 100%
+  ) !important;
+  border-width: var(--jungle-bubble-border-width) !important;
+  border-color: var(--jungle-bubble-border) !important;
+  backdrop-filter: blur(14px);
+  color: #b8e8dc;
+}
+html.theme-jungle main .rounded-2xl:not(.invoice-crossref-panel):not(.invoice-crossref-hero) h1,
+html.theme-jungle main .rounded-2xl:not(.invoice-crossref-panel):not(.invoice-crossref-hero) h2,
+html.theme-jungle main .rounded-xl:not(.invoice-crossref-panel-inner) h1,
+html.theme-jungle main .rounded-xl:not(.invoice-crossref-panel-inner) h2 {
+  color: #f8fffe !important;
+}
+html.theme-jungle main .rounded-2xl:not(.invoice-crossref-panel):not(.invoice-crossref-hero) .text-slate-600,
+html.theme-jungle main .rounded-2xl:not(.invoice-crossref-panel):not(.invoice-crossref-hero) .text-slate-500,
+html.theme-jungle main .rounded-xl:not(.invoice-crossref-panel-inner) .text-slate-600,
+html.theme-jungle main .rounded-xl:not(.invoice-crossref-panel-inner) .text-slate-500 {
+  color: #7dd3c0 !important;
+}
+html.theme-jungle main .rounded-2xl:not(.invoice-crossref-panel):not(.invoice-crossref-hero) .text-slate-700,
+html.theme-jungle main .rounded-xl:not(.invoice-crossref-panel-inner) .text-slate-700 {
+  color: #d5f5ee !important;
+}
+html.theme-jungle main .rounded-2xl:not(.invoice-crossref-panel):not(.invoice-crossref-hero) .font-semibold,
+html.theme-jungle main .rounded-xl:not(.invoice-crossref-panel-inner) .font-semibold {
+  color: #f0fffa !important;
+}
+html.theme-jungle main .rounded-2xl:not(.invoice-crossref-panel):not(.invoice-crossref-hero) label,
+html.theme-jungle main .rounded-xl:not(.invoice-crossref-panel-inner) label {
+  color: #c8f5e8 !important;
+}
+html.theme-jungle main .rounded-2xl:not(.invoice-crossref-panel):not(.invoice-crossref-hero) :where(input, select, textarea):not([type="submit"]),
+html.theme-jungle main .rounded-xl:not(.invoice-crossref-panel-inner) :where(input, select, textarea):not([type="submit"]) {
+  border-color: rgba(0, 180, 216, 0.45) !important;
+  background: rgba(13, 40, 32, 0.92) !important;
+  color: #f8fffe !important;
+}
+/* Primary actions: river turquoise */
+html.theme-jungle main .rounded-2xl:not(.invoice-crossref-panel):not(.invoice-crossref-hero) button[class*="dark:bg-slate-100"],
+html.theme-jungle main .rounded-xl:not(.invoice-crossref-panel-inner) button[class*="dark:bg-slate-100"] {
+  background: linear-gradient(180deg, #00b4d8 0%, #0077b6 100%) !important;
+  color: #f8fffe !important;
+  border-color: rgba(0, 119, 182, 0.75) !important;
+  border-radius: 0.5rem;
+}
+html.theme-jungle main .rounded-2xl:not(.invoice-crossref-panel):not(.invoice-crossref-hero) button[class*="dark:bg-slate-100"]:hover,
+html.theme-jungle main .rounded-xl:not(.invoice-crossref-panel-inner) button[class*="dark:bg-slate-100"]:hover {
+  background: linear-gradient(180deg, #48cae4 0%, #0096c7 100%) !important;
+  box-shadow: 0 0 0 1px rgba(173, 232, 244, 0.35);
+}
+html.theme-jungle main .rounded-2xl:not(.invoice-crossref-panel):not(.invoice-crossref-hero) button[class*="dark:bg-slate-800"],
+html.theme-jungle main .rounded-xl:not(.invoice-crossref-panel-inner) button[class*="dark:bg-slate-800"] {
+  background: rgba(27, 67, 50, 0.92) !important;
+  color: #d5f5ee !important;
+  border-color: rgba(0, 180, 216, 0.45) !important;
+  border-radius: 0.5rem;
+}
+html.theme-jungle main .rounded-2xl:not(.invoice-crossref-panel):not(.invoice-crossref-hero) button[class*="dark:bg-slate-800"]:hover,
+html.theme-jungle main .rounded-xl:not(.invoice-crossref-panel-inner) button[class*="dark:bg-slate-800"]:hover {
+  background: rgba(45, 106, 79, 0.92) !important;
+  border-color: rgba(173, 232, 244, 0.4) !important;
+}
+
+/* Jungle: darker type on the backdrop outside bubble cards (same pattern as cherry blossom). */
+html.theme-jungle main > div.flex.flex-col > div.flex:first-child {
+  border: 2px solid rgba(255, 255, 255, 0.92);
+  border-radius: 0.75rem;
+  padding: 0.875rem 1rem;
+  box-sizing: border-box;
+}
+html.theme-jungle main :is(h1, h2, h3) {
+  color: #06281f !important;
+}
+html.theme-jungle main > div.flex.flex-col > div.flex:first-child .text-slate-900,
+html.theme-jungle main > div.flex.flex-col > div.flex:first-child .text-slate-800,
+html.theme-jungle main > div.flex.flex-col > div.flex:first-child .text-slate-700,
+html.theme-jungle main > div.flex.flex-col > div.flex:first-child .text-slate-600,
+html.theme-jungle main > div.flex.flex-col > div.flex:first-child .text-slate-500,
+html.theme-jungle main > div.flex.flex-col > div.flex:first-child .text-slate-400 {
+  color: #0c3028 !important;
+}
+
+html.theme-jungle .invoice-crossref-hero,
+html.theme-jungle .invoice-crossref-panel {
+  background: linear-gradient(
+    145deg,
+    rgba(27, 67, 50, 0.88) 0%,
+    rgba(13, 48, 40, 0.85) 50%,
+    rgba(20, 58, 48, 0.88) 100%
+  ) !important;
+  border-width: var(--jungle-bubble-border-width) !important;
+  border-color: var(--jungle-bubble-border) !important;
+  backdrop-filter: blur(14px);
+}
+html.theme-jungle .invoice-crossref-hero h1,
+html.theme-jungle .invoice-crossref-panel h1,
+html.theme-jungle .invoice-crossref-panel h2,
+html.theme-jungle .invoice-crossref-panel h3 {
+  color: #f8fffe !important;
+}
+html.theme-jungle .invoice-crossref-hero p {
+  color: #b8e8dc !important;
+}
+html.theme-jungle .invoice-crossref-panel {
+  color: #b8e8dc;
+}
+html.theme-jungle .invoice-crossref-panel label {
+  color: #c8f5e8 !important;
+}
+html.theme-jungle .invoice-crossref-panel-inner {
+  background: rgba(13, 40, 32, 0.55) !important;
+  border-width: var(--jungle-bubble-border-width) !important;
+  border-color: var(--jungle-bubble-border-soft) !important;
+}
+html.theme-jungle details.invoice-crossref-panel > summary:hover {
+  background: rgba(45, 106, 79, 0.42) !important;
+}
+html.theme-jungle .invoice-crossref-panel summary .font-semibold {
+  color: #f8fffe !important;
+}
+html.theme-jungle .invoice-crossref-panel summary .text-slate-500 {
+  color: #7dd3c0 !important;
+}
+html.theme-jungle .invoice-crossref-panel-body {
+  border-top-color: var(--jungle-bubble-divider) !important;
+}
+html.theme-jungle .invoice-crossref-panel a,
+html.theme-jungle .invoice-crossref-hero a {
+  color: #7ddede !important;
+}
+html.theme-jungle .invoice-crossref-panel a:hover,
+html.theme-jungle .invoice-crossref-hero a:hover {
+  color: #ffffff !important;
+}
+html.theme-jungle .invoice-crossref-panel :where(input, select, textarea):not([type="submit"]) {
+  border-color: rgba(0, 180, 216, 0.45) !important;
+  background: rgba(13, 40, 32, 0.92) !important;
+  color: #f8fffe !important;
+}
+
+html.theme-jungle .invoice-crossref-panel a.invoice-crossref-export-xlsx,
+html.theme-jungle .invoice-crossref-panel button.invoice-crossref-export-xlsx {
+  border-color: rgba(0, 180, 216, 0.55) !important;
+  background: linear-gradient(
+    135deg,
+    rgba(27, 67, 50, 0.98) 0%,
+    rgba(45, 106, 79, 0.96) 45%,
+    rgba(13, 48, 40, 0.98) 100%
+  ) !important;
+  color: #f0fffa !important;
+  border-radius: 0.5rem;
+  box-shadow: 0 2px 8px rgba(2, 48, 71, 0.35);
+}
+html.theme-jungle .invoice-crossref-panel a.invoice-crossref-export-xlsx:hover,
+html.theme-jungle .invoice-crossref-panel button.invoice-crossref-export-xlsx:hover {
+  border-color: rgba(173, 232, 244, 0.55) !important;
+  background: linear-gradient(
+    135deg,
+    rgba(45, 106, 79, 0.98) 0%,
+    rgba(0, 180, 216, 0.35) 100%
+  ) !important;
+  color: #ffffff !important;
+}
+
+html.theme-jungle .invoice-crossref-panel a.profile-primary-action {
+  color: #023047 !important;
+  background: linear-gradient(180deg, #00b4d8 0%, #0077b6 100%) !important;
+  border-radius: 0.5rem;
+}
+html.theme-jungle .invoice-crossref-panel a.profile-primary-action:hover {
+  background: linear-gradient(180deg, #48cae4 0%, #0096c7 100%) !important;
+  color: #001219 !important;
+}
+
+html.theme-jungle .invoice-crossref-hero .text-slate-600,
+html.theme-jungle .invoice-crossref-panel :where(.text-slate-400, .text-slate-500, .text-slate-600),
+html.theme-jungle .invoice-crossref-panel thead,
+html.theme-jungle .invoice-crossref-panel thead th,
+html.theme-jungle #invoice-crossref-table thead,
+html.theme-jungle #invoice-crossref-table thead th {
+  color: #48cae4 !important;
+}
+html.theme-jungle .invoice-crossref-panel .font-medium.text-slate-700 {
+  color: #b8e8dc !important;
+}
+html.theme-jungle .invoice-crossref-panel summary .text-slate-500 {
+  color: #7dd3c0 !important;
+}
+html.theme-jungle .invoice-crossref-panel .invoice-crossref-chevron {
+  color: var(--jungle-lime) !important;
+}
+
+html.theme-jungle #invoice-crossref-table tbody tr.invoice-crossref-row--solved {
+  background-color: rgba(0, 168, 107, 0.28) !important;
+  box-shadow: inset 0 0 0 1px rgba(158, 240, 26, 0.28);
+}
+html.theme-jungle #invoice-crossref-table tbody tr.invoice-crossref-row--mismatch {
+  background-color: rgba(208, 0, 0, 0.22) !important;
+  box-shadow: inset 0 0 0 1px rgba(255, 77, 109, 0.35);
+}
+html.theme-jungle #invoice-crossref-table tbody tr.invoice-crossref-row--soft {
+  background-color: rgba(255, 183, 77, 0.18) !important;
+  box-shadow: inset 0 0 0 1px rgba(158, 240, 26, 0.22);
+}
+html.theme-jungle #invoice-crossref-table .invoice-crossref-cell-alert {
+  color: #ffb3b8 !important;
+}
+
+html.theme-jungle #invoice-crossref-table .invoice-crossref-resize-handle:hover {
+  background: rgba(0, 180, 216, 0.35);
+}
+
+html.theme-jungle .invoice-crossref-resize-preview {
+  background: rgb(0 180 216 / 0.92);
+}
+
+html.theme-jungle .page-shell-drag-handle:hover,
+html.theme-jungle .page-shell-drag-handle:focus-visible {
+  background: rgba(0, 180, 216, 0.38);
+}
+html.theme-jungle .page-shell-drag-handle.is-dragging {
+  background: rgba(0, 119, 182, 0.55);
+}
+
+/* Talent status selects — Active green, Work Comp blue, FMLA purple, Terminated red (People list + profile) */
+main select.talent-status-select {
+  font-weight: 600;
+  border-width: 1px;
+  border-style: solid;
+}
+/* Light UI — .rounded-2xl keeps specificity above themed main select resets (jungle / blossom / city) */
+html.theme-light main .rounded-2xl select.talent-status-select.talent-status-select--active {
+  background-color: #dcfce7 !important;
+  color: #14532d !important;
+  border-color: #22c55e !important;
+}
+html.theme-light main .rounded-2xl select.talent-status-select.talent-status-select--work_comp {
+  background-color: #dbeafe !important;
+  color: #1e3a8a !important;
+  border-color: #2563eb !important;
+}
+html.theme-light main .rounded-2xl select.talent-status-select.talent-status-select--fmla {
+  background-color: #ede9fe !important;
+  color: #5b21b6 !important;
+  border-color: #7c3aed !important;
+}
+html.theme-light main .rounded-2xl select.talent-status-select.talent-status-select--terminated {
+  background-color: #fee2e2 !important;
+  color: #991b1b !important;
+  border-color: #ef4444 !important;
+}
+/* Dark UI (default dark + scenic themes) */
+html.dark main .rounded-2xl select.talent-status-select.talent-status-select--active {
+  background-color: rgba(22, 101, 52, 0.42) !important;
+  color: #bbf7d0 !important;
+  border-color: #4ade80 !important;
+}
+html.dark main .rounded-2xl select.talent-status-select.talent-status-select--work_comp {
+  background-color: rgba(30, 64, 175, 0.42) !important;
+  color: #bfdbfe !important;
+  border-color: #60a5fa !important;
+}
+html.dark main .rounded-2xl select.talent-status-select.talent-status-select--fmla {
+  background-color: rgba(91, 33, 182, 0.4) !important;
+  color: #ddd6fe !important;
+  border-color: #a78bfa !important;
+}
+html.dark main .rounded-2xl select.talent-status-select.talent-status-select--terminated {
+  background-color: rgba(127, 29, 29, 0.42) !important;
+  color: #fecaca !important;
+  border-color: #f87171 !important;
+}
+/* Open list: option colors (supported in Chromium / Firefox) */
+html.theme-light main .rounded-2xl select.talent-status-select option[value="active"] {
+  background-color: #dcfce7;
+  color: #14532d;
+}
+html.theme-light main .rounded-2xl select.talent-status-select option[value="work_comp"] {
+  background-color: #dbeafe;
+  color: #1e3a8a;
+}
+html.theme-light main .rounded-2xl select.talent-status-select option[value="fmla"] {
+  background-color: #ede9fe;
+  color: #5b21b6;
+}
+html.theme-light main .rounded-2xl select.talent-status-select option[value="terminated"] {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+html.dark main .rounded-2xl select.talent-status-select option[value="active"] {
+  background-color: #14532d;
+  color: #bbf7d0;
+}
+html.dark main .rounded-2xl select.talent-status-select option[value="work_comp"] {
+  background-color: #1e3a8a;
+  color: #bfdbfe;
+}
+html.dark main .rounded-2xl select.talent-status-select option[value="fmla"] {
+  background-color: #5b21b6;
+  color: #ede9fe;
+}
+html.dark main .rounded-2xl select.talent-status-select option[value="terminated"] {
+  background-color: #7f1d1d;
+  color: #fecaca;
+}
+
+/* Invoice cross-reference: results fit page width — no horizontal scrollbar */
+.invoice-crossref-page {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+.invoice-crossref-results-panel {
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+.invoice-crossref-results-scroll {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
+  overscroll-behavior-x: none;
+}
+
+/* Shoals: hours-only cross-reference — hide rate and dollar columns in the results table */
+.invoice-crossref-layout-shoals #invoice-crossref-table .invoice-crossref-col-shoals-hide {
+  display: none !important;
+}
+
+#invoice-crossref-table.invoice-crossref-results-table {
+  table-layout: fixed;
+  width: 100%;
+  max-width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem; /* 14px — readable body text */
+  line-height: 1.35;
+}
+#invoice-crossref-table.invoice-crossref-results-table th,
+#invoice-crossref-table.invoice-crossref-results-table td {
+  padding: 0.22rem 0.28rem;
+  vertical-align: top;
+}
+#invoice-crossref-table.invoice-crossref-results-table thead th {
+  font-size: 0.8125rem; /* 13px headers */
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* Ellipsis for wide cells (table-layout: fixed + max-width:0 trick) */
+#invoice-crossref-table.invoice-crossref-results-table tbody td:not([data-col="crossref_note"]):not([data-col="crossref_solved"]) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 0;
+}
+#invoice-crossref-table.invoice-crossref-results-table tbody td[data-col="crossref_solved"] {
+  max-width: none;
+  white-space: normal;
+  overflow: visible;
+}
+#invoice-crossref-table.invoice-crossref-results-table tbody tr[id^="invoice-crossref-row-"] {
+  scroll-margin-top: 0.75rem;
+}
+#invoice-crossref-table.invoice-crossref-results-table tbody td[data-col="crossref_note"] {
+  max-width: none;
+  white-space: normal;
+  overflow: visible;
+  padding: 0;
+  vertical-align: top;
+  position: relative;
+  /* Row height is at least this; textarea fills cell via absolute inset below */
+  min-height: 5.75rem;
+}
+/* Inset = small spacing from cell edges; box fills full row height for that column */
+#invoice-crossref-table.invoice-crossref-results-table tbody td[data-col="crossref_note"] .invoice-crossref-note-cell {
+  position: absolute;
+  left: 0.2rem;
+  right: 0.2rem;
+  top: 0.3rem;
+  bottom: 0.35rem;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+#invoice-crossref-table.invoice-crossref-results-table tbody td[data-col="crossref_note"] form.invoice-crossref-note-form {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  min-width: 0;
+}
+#invoice-crossref-table.invoice-crossref-results-table .invoice-crossref-note-input {
+  font-size: inherit;
+  line-height: 1.35;
+  box-sizing: border-box;
+  resize: none;
+  flex: 1 1 auto;
+  min-height: 0;
+  max-height: none;
+  width: 100%;
+  min-width: 0;
+}
+
+[data-project-workspace] {
+  transition: opacity 120ms ease, filter 120ms ease;
+}
+
+[data-project-workspace].project-tab-loading {
+  opacity: 0.72;
+  filter: saturate(0.92);
+}
+
+.project-tab-panel {
+  min-height: 28rem;
+}
+
+[data-gantt-root] [data-gantt-task],
+[data-gantt-root] [data-gantt-group-toggle] {
+  transition: background-color 120ms ease, opacity 120ms ease;
+}
+
+[data-gantt-root] [data-gantt-group].gantt-collapsed [data-gantt-group-toggle] {
+  box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.18);
+}
+
+.gantt-caret {
+  display: inline-flex;
+  height: 1.25rem;
+  width: 1.25rem;
+  flex: 0 0 1.25rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  color: var(--pm-muted);
+  transition: transform 120ms ease, background-color 120ms ease;
+}
+
+.gantt-caret::before {
+  content: "";
+  display: block;
+  width: 0.45rem;
+  height: 0.45rem;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(45deg) translate(-1px, -1px);
+}
+
+.gantt-collapsed .gantt-caret {
+  transform: rotate(-90deg);
+}
+
+[data-gantt-root] [data-gantt-group-toggle]:hover .gantt-caret {
+  background: rgba(148, 163, 184, 0.16);
+}
+
+[data-gantt-root] [data-gantt-task]:hover {
+  background-color: rgba(248, 250, 252, 0.92);
+}
+
+.dark [data-gantt-root] [data-gantt-task]:hover {
+  background-color: rgba(15, 23, 42, 0.92);
+}
+
+[data-gantt-grid-frame] .gantt-layout {
+  display: grid;
+  grid-template-columns: var(--gantt-template) !important;
+  gap: 0 !important;
+}
+
+[data-gantt-grid-frame] .gantt-chart-cell {
+  width: var(--gantt-chart-width);
+  min-width: var(--gantt-chart-width);
+  max-width: var(--gantt-chart-width);
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+[data-gantt-grid-frame] .gantt-track {
+  display: grid;
+  grid-template-columns: repeat(var(--gantt-columns), var(--gantt-column-width)) !important;
+  gap: 0 !important;
+  width: var(--gantt-chart-width);
+  min-width: var(--gantt-chart-width);
+  max-width: var(--gantt-chart-width);
+  border-left-width: 0 !important;
+  border-right-width: 0 !important;
+}
+
+[data-gantt-grid-frame] .gantt-body {
+  isolation: isolate;
+}
+
+[data-gantt-grid-frame] .gantt-today-overlay {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(var(--gantt-label-width) + ((var(--gantt-today-start) - 1) * var(--gantt-column-width)));
+  width: var(--gantt-column-width);
+  z-index: 30;
+  pointer-events: none;
+  background:
+    linear-gradient(
+      90deg,
+      transparent 0,
+      transparent calc(50% - 1px),
+      var(--pm-today-line) calc(50% - 1px),
+      var(--pm-today-line) calc(50% + 1px),
+      transparent calc(50% + 1px)
+    ),
+    var(--pm-today-bg);
+}
+
+[data-project-workspace].pm-compact {
+  font-size: 0.8125rem;
+}
+
+[data-project-workspace].pm-compact nav a {
+  padding-top: 0.38rem !important;
+  padding-bottom: 0.38rem !important;
+}
+
+[data-project-workspace].pm-compact .project-tab-panel {
+  min-height: 18rem;
+  margin-top: 0.75rem !important;
+}
+
+[data-project-workspace].pm-compact [data-pm-controls] {
+  margin-bottom: 0.6rem !important;
+  gap: 0.4rem !important;
+  padding: 0.45rem !important;
+}
+
+[data-project-workspace].pm-compact [data-pm-controls] label,
+[data-project-workspace].pm-compact [data-pm-controls] button {
+  padding: 0.3rem 0.5rem !important;
+  gap: 0.35rem !important;
+}
+
+[data-project-workspace].pm-compact [data-pm-controls] input[type="checkbox"] {
+  height: 0.875rem !important;
+  width: 0.875rem !important;
+}
+
+[data-project-workspace].pm-compact section,
+[data-project-workspace].pm-compact aside,
+[data-project-workspace].pm-compact article,
+[data-project-workspace].pm-compact [data-pm-task],
+[data-project-workspace].pm-compact [data-pm-column] {
+  border-radius: 0.55rem !important;
+}
+
+[data-project-workspace].pm-compact [data-pm-column] {
+  padding: 0.45rem !important;
+}
+
+[data-project-workspace].pm-compact [data-pm-column-list] {
+  min-height: 4rem !important;
+  padding: 0.15rem !important;
+}
+
+[data-project-workspace].pm-compact [data-pm-column-list],
+[data-project-workspace].pm-compact .space-y-3 > :not([hidden]) ~ :not([hidden]) {
+  margin-top: 0.4rem !important;
+}
+
+[data-project-workspace].pm-compact [data-pm-card] {
+  padding: 0.55rem !important;
+}
+
+[data-project-workspace].pm-compact [data-pm-card] h3,
+[data-project-workspace].pm-compact [data-pm-task] .font-semibold {
+  font-size: 0.8125rem !important;
+  line-height: 1.15 !important;
+}
+
+[data-project-workspace].pm-compact [data-pm-card] .mt-2,
+[data-project-workspace].pm-compact [data-pm-card] .mt-3,
+[data-project-workspace].pm-compact [data-pm-task] .mt-2,
+[data-project-workspace].pm-compact [data-pm-task] .mt-3 {
+  margin-top: 0.35rem !important;
+}
+
+[data-project-workspace].pm-compact [data-pm-card] .h-2,
+[data-project-workspace].pm-compact [data-pm-task] .h-2 {
+  height: 0.25rem !important;
+}
+
+[data-project-workspace].pm-compact table {
+  font-size: 0.8125rem !important;
+}
+
+[data-project-workspace].pm-compact th,
+[data-project-workspace].pm-compact td {
+  padding: 0.38rem 0.5rem !important;
+}
+
+[data-project-workspace].pm-compact td .mt-1 {
+  margin-top: 0.15rem !important;
+}
+
+[data-project-workspace].pm-compact td .max-w-md {
+  max-width: 26rem !important;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+[data-project-workspace].pm-compact .grid {
+  gap: 0.65rem;
+}
+
+[data-project-workspace].pm-compact [data-gantt-grid-frame] .grid {
+  gap: 0 !important;
+}
+
+[data-project-workspace].pm-compact [data-gantt-root] [data-gantt-group-toggle] > div,
+[data-project-workspace].pm-compact [data-gantt-root] [data-gantt-task] > div {
+  padding-top: 0.45rem !important;
+  padding-bottom: 0.45rem !important;
+}
+
+[data-project-workspace].pm-compact [data-gantt-root] [data-gantt-task] .h-12 {
+  height: 2.15rem !important;
+}
+
+[data-project-workspace].pm-compact [data-gantt-root] [data-gantt-task] .top-3 {
+  top: 0.45rem !important;
+}
+
+[data-project-workspace].pm-compact [data-gantt-root] [data-gantt-task] .h-6 {
+  height: 1.25rem !important;
+}
+
+/* Project management theming */
+[data-project-workspace] {
+  --pm-panel-bg: rgba(255, 255, 255, 0.96);
+  --pm-panel-bg-strong: #ffffff;
+  --pm-panel-bg-soft: #f8fafc;
+  --pm-row-bg: #ffffff;
+  --pm-row-hover: #f8fafc;
+  --pm-border: rgba(148, 163, 184, 0.34);
+  --pm-border-strong: rgba(100, 116, 139, 0.45);
+  --pm-text: #0f172a;
+  --pm-muted: #64748b;
+  --pm-input-bg: #ffffff;
+  --pm-input-border: #cbd5e1;
+  --pm-input-text: #0f172a;
+  --pm-button-bg: #0f172a;
+  --pm-button-text: #ffffff;
+  --pm-button-subtle-bg: #ffffff;
+  --pm-button-subtle-text: #334155;
+  --pm-accent: #2563eb;
+  --pm-accent-strong: #1d4ed8;
+  --pm-gantt-week-bg: #1e3a8a;
+  --pm-gantt-week-border: rgba(147, 197, 253, 0.34);
+  --pm-gantt-day-bg: #eff6ff;
+  --pm-gantt-day-text: #0f172a;
+  --pm-gantt-grid-bg: #ffffff;
+  --pm-gantt-grid-line: rgba(148, 163, 184, 0.38);
+  --pm-gantt-group-bg: rgba(239, 246, 255, 0.8);
+  --pm-gantt-rollup: rgba(37, 99, 235, 0.82);
+  --pm-gantt-rollup-progress: rgba(34, 211, 238, 0.82);
+  --pm-gantt-task-bg: rgba(255, 255, 255, 0.98);
+  --pm-today-bg: rgba(251, 113, 133, 0.16);
+  --pm-today-line: rgba(225, 29, 72, 0.9);
+}
+
+.dark [data-project-workspace],
+html.theme-dark [data-project-workspace] {
+  --pm-panel-bg: rgba(15, 23, 42, 0.82);
+  --pm-panel-bg-strong: rgba(15, 23, 42, 0.96);
+  --pm-panel-bg-soft: rgba(30, 41, 59, 0.7);
+  --pm-row-bg: rgba(15, 23, 42, 0.72);
+  --pm-row-hover: rgba(30, 41, 59, 0.92);
+  --pm-border: rgba(100, 116, 139, 0.45);
+  --pm-border-strong: rgba(148, 163, 184, 0.55);
+  --pm-text: #f8fafc;
+  --pm-muted: #94a3b8;
+  --pm-input-bg: rgba(2, 6, 23, 0.64);
+  --pm-input-border: rgba(100, 116, 139, 0.65);
+  --pm-input-text: #f8fafc;
+  --pm-button-bg: #f8fafc;
+  --pm-button-text: #0f172a;
+  --pm-button-subtle-bg: rgba(15, 23, 42, 0.75);
+  --pm-button-subtle-text: #e2e8f0;
+  --pm-accent: #38bdf8;
+  --pm-accent-strong: #0ea5e9;
+  --pm-gantt-week-bg: #172554;
+  --pm-gantt-week-border: rgba(96, 165, 250, 0.34);
+  --pm-gantt-day-bg: rgba(15, 23, 42, 0.94);
+  --pm-gantt-day-text: #e2e8f0;
+  --pm-gantt-grid-bg: rgba(2, 6, 23, 0.82);
+  --pm-gantt-grid-line: rgba(100, 116, 139, 0.42);
+  --pm-gantt-group-bg: rgba(15, 23, 42, 0.76);
+  --pm-gantt-rollup: rgba(96, 165, 250, 0.74);
+  --pm-gantt-rollup-progress: rgba(103, 232, 249, 0.82);
+  --pm-gantt-task-bg: rgba(15, 23, 42, 0.86);
+  --pm-today-bg: rgba(244, 63, 94, 0.24);
+  --pm-today-line: rgba(251, 113, 133, 0.95);
+}
+
+html.theme-purple [data-project-workspace] {
+  --pm-panel-bg: rgba(30, 27, 75, 0.82);
+  --pm-panel-bg-strong: rgba(23, 18, 62, 0.94);
+  --pm-panel-bg-soft: rgba(49, 46, 129, 0.48);
+  --pm-row-bg: rgba(20, 18, 54, 0.8);
+  --pm-row-hover: rgba(67, 56, 202, 0.34);
+  --pm-border: rgba(199, 210, 254, 0.32);
+  --pm-border-strong: rgba(224, 231, 255, 0.46);
+  --pm-text: #eef2ff;
+  --pm-muted: #a5b4fc;
+  --pm-input-bg: rgba(15, 23, 42, 0.54);
+  --pm-input-border: rgba(199, 210, 254, 0.44);
+  --pm-input-text: #eef2ff;
+  --pm-button-bg: #c7d2fe;
+  --pm-button-text: #1e1b4b;
+  --pm-button-subtle-bg: rgba(49, 46, 129, 0.58);
+  --pm-button-subtle-text: #e0e7ff;
+  --pm-accent: #a78bfa;
+  --pm-accent-strong: #818cf8;
+  --pm-gantt-week-bg: linear-gradient(90deg, rgba(49, 46, 129, 0.98), rgba(67, 56, 202, 0.94));
+  --pm-gantt-week-border: rgba(199, 210, 254, 0.3);
+  --pm-gantt-day-bg: rgba(30, 27, 75, 0.9);
+  --pm-gantt-day-text: #eef2ff;
+  --pm-gantt-grid-bg: rgba(15, 23, 42, 0.72);
+  --pm-gantt-grid-line: rgba(199, 210, 254, 0.2);
+  --pm-gantt-group-bg: rgba(49, 46, 129, 0.3);
+  --pm-gantt-rollup: rgba(129, 140, 248, 0.78);
+  --pm-gantt-rollup-progress: rgba(216, 180, 254, 0.86);
+  --pm-gantt-task-bg: rgba(24, 20, 62, 0.78);
+  --pm-today-bg: rgba(236, 72, 153, 0.28);
+  --pm-today-line: rgba(244, 114, 182, 0.95);
+}
+
+html.theme-pink [data-project-workspace] {
+  --pm-panel-bg: rgba(74, 4, 78, 0.78);
+  --pm-panel-bg-strong: rgba(58, 8, 47, 0.94);
+  --pm-panel-bg-soft: rgba(131, 24, 67, 0.48);
+  --pm-row-bg: rgba(44, 10, 36, 0.8);
+  --pm-row-hover: rgba(157, 23, 77, 0.34);
+  --pm-border: rgba(251, 207, 232, 0.32);
+  --pm-border-strong: rgba(252, 231, 243, 0.48);
+  --pm-text: #fdf2f8;
+  --pm-muted: #f9a8d4;
+  --pm-input-bg: rgba(30, 10, 25, 0.6);
+  --pm-input-border: rgba(251, 207, 232, 0.46);
+  --pm-input-text: #fdf2f8;
+  --pm-button-bg: #fbcfe8;
+  --pm-button-text: #500724;
+  --pm-button-subtle-bg: rgba(131, 24, 67, 0.56);
+  --pm-button-subtle-text: #fce7f3;
+  --pm-accent: #f472b6;
+  --pm-accent-strong: #ec4899;
+  --pm-gantt-week-bg: linear-gradient(90deg, rgba(131, 24, 67, 0.98), rgba(157, 23, 77, 0.94));
+  --pm-gantt-week-border: rgba(251, 207, 232, 0.28);
+  --pm-gantt-day-bg: rgba(74, 4, 78, 0.86);
+  --pm-gantt-day-text: #fdf2f8;
+  --pm-gantt-grid-bg: rgba(30, 10, 25, 0.74);
+  --pm-gantt-grid-line: rgba(251, 207, 232, 0.2);
+  --pm-gantt-group-bg: rgba(157, 23, 77, 0.26);
+  --pm-gantt-rollup: rgba(244, 114, 182, 0.78);
+  --pm-gantt-rollup-progress: rgba(251, 207, 232, 0.88);
+  --pm-gantt-task-bg: rgba(45, 10, 36, 0.78);
+  --pm-today-bg: rgba(251, 191, 36, 0.22);
+  --pm-today-line: rgba(251, 113, 133, 0.95);
+}
+
+html.theme-blossom [data-project-workspace] {
+  --pm-panel-bg: rgba(45, 31, 16, 0.9);
+  --pm-panel-bg-strong: rgba(35, 24, 12, 0.96);
+  --pm-panel-bg-soft: rgba(65, 45, 24, 0.72);
+  --pm-row-bg: rgba(35, 24, 12, 0.84);
+  --pm-row-hover: rgba(82, 57, 31, 0.76);
+  --pm-border: rgba(184, 148, 116, 0.52);
+  --pm-border-strong: rgba(218, 178, 136, 0.66);
+  --pm-text: #faf3ea;
+  --pm-muted: #d4c4b0;
+  --pm-input-bg: rgba(30, 20, 10, 0.88);
+  --pm-input-border: rgba(184, 148, 116, 0.58);
+  --pm-input-text: #faf3ea;
+  --pm-button-bg: #ead8c5;
+  --pm-button-text: #321f12;
+  --pm-button-subtle-bg: rgba(55, 38, 20, 0.88);
+  --pm-button-subtle-text: #f5ebe0;
+  --pm-accent: #d8a76f;
+  --pm-accent-strong: #b98a5f;
+  --pm-gantt-week-bg: linear-gradient(90deg, rgba(70, 45, 24, 0.98), rgba(120, 79, 43, 0.94));
+  --pm-gantt-week-border: rgba(234, 216, 197, 0.24);
+  --pm-gantt-day-bg: rgba(45, 31, 16, 0.9);
+  --pm-gantt-day-text: #faf3ea;
+  --pm-gantt-grid-bg: rgba(30, 20, 10, 0.78);
+  --pm-gantt-grid-line: rgba(184, 148, 116, 0.28);
+  --pm-gantt-group-bg: rgba(82, 57, 31, 0.4);
+  --pm-gantt-rollup: rgba(184, 148, 116, 0.86);
+  --pm-gantt-rollup-progress: rgba(247, 203, 150, 0.86);
+  --pm-gantt-task-bg: rgba(38, 25, 13, 0.82);
+  --pm-today-bg: rgba(244, 114, 182, 0.2);
+  --pm-today-line: rgba(244, 114, 182, 0.95);
+}
+
+html.theme-city [data-project-workspace] {
+  --pm-panel-bg: rgba(7, 11, 20, 0.84);
+  --pm-panel-bg-strong: rgba(3, 7, 18, 0.96);
+  --pm-panel-bg-soft: rgba(15, 23, 42, 0.74);
+  --pm-row-bg: rgba(7, 11, 20, 0.82);
+  --pm-row-hover: rgba(30, 41, 59, 0.74);
+  --pm-border: rgba(71, 85, 105, 0.58);
+  --pm-border-strong: rgba(148, 163, 184, 0.54);
+  --pm-text: #f8fafc;
+  --pm-muted: #cbd5e1;
+  --pm-input-bg: rgba(2, 6, 23, 0.78);
+  --pm-input-border: rgba(71, 85, 105, 0.75);
+  --pm-input-text: #f8fafc;
+  --pm-button-bg: #e2e8f0;
+  --pm-button-text: #020617;
+  --pm-button-subtle-bg: rgba(15, 23, 42, 0.86);
+  --pm-button-subtle-text: #e2e8f0;
+  --pm-accent: #38bdf8;
+  --pm-accent-strong: #0ea5e9;
+  --pm-gantt-week-bg: linear-gradient(90deg, rgba(12, 74, 110, 0.98), rgba(30, 41, 59, 0.94));
+  --pm-gantt-week-border: rgba(125, 211, 252, 0.26);
+  --pm-gantt-day-bg: rgba(7, 11, 20, 0.92);
+  --pm-gantt-day-text: #e2e8f0;
+  --pm-gantt-grid-bg: rgba(2, 6, 23, 0.82);
+  --pm-gantt-grid-line: rgba(71, 85, 105, 0.45);
+  --pm-gantt-group-bg: rgba(15, 23, 42, 0.72);
+  --pm-gantt-rollup: rgba(56, 189, 248, 0.68);
+  --pm-gantt-rollup-progress: rgba(186, 230, 253, 0.86);
+  --pm-gantt-task-bg: rgba(7, 11, 20, 0.84);
+  --pm-today-bg: rgba(251, 113, 133, 0.22);
+  --pm-today-line: rgba(251, 113, 133, 0.95);
+}
+
+html.theme-jungle [data-project-workspace] {
+  --pm-panel-bg: rgba(27, 67, 50, 0.86);
+  --pm-panel-bg-strong: rgba(13, 40, 32, 0.96);
+  --pm-panel-bg-soft: rgba(45, 106, 79, 0.54);
+  --pm-row-bg: rgba(13, 40, 32, 0.82);
+  --pm-row-hover: rgba(45, 106, 79, 0.72);
+  --pm-border: rgba(173, 232, 244, 0.36);
+  --pm-border-strong: rgba(202, 255, 191, 0.48);
+  --pm-text: #f8fffe;
+  --pm-muted: #b8e8dc;
+  --pm-input-bg: rgba(7, 30, 24, 0.86);
+  --pm-input-border: rgba(0, 180, 216, 0.45);
+  --pm-input-text: #f8fffe;
+  --pm-button-bg: #ade8f4;
+  --pm-button-text: #023047;
+  --pm-button-subtle-bg: rgba(13, 40, 32, 0.9);
+  --pm-button-subtle-text: #d5f5ee;
+  --pm-accent: #00b4d8;
+  --pm-accent-strong: #90be6d;
+  --pm-gantt-week-bg: linear-gradient(90deg, rgba(27, 67, 50, 0.98), rgba(0, 119, 182, 0.78));
+  --pm-gantt-week-border: rgba(173, 232, 244, 0.26);
+  --pm-gantt-day-bg: rgba(13, 40, 32, 0.92);
+  --pm-gantt-day-text: #f8fffe;
+  --pm-gantt-grid-bg: rgba(7, 30, 24, 0.8);
+  --pm-gantt-grid-line: rgba(173, 232, 244, 0.22);
+  --pm-gantt-group-bg: rgba(45, 106, 79, 0.38);
+  --pm-gantt-rollup: rgba(0, 180, 216, 0.72);
+  --pm-gantt-rollup-progress: rgba(202, 255, 191, 0.86);
+  --pm-gantt-task-bg: rgba(13, 40, 32, 0.84);
+  --pm-today-bg: rgba(255, 183, 77, 0.22);
+  --pm-today-line: rgba(255, 183, 77, 0.95);
+}
+
+[data-project-workspace] :where([data-pm-controls], [data-list-filters], [data-gantt-root]),
+#project-task-modal .rounded-2xl {
+  background: var(--pm-panel-bg) !important;
+  border-color: var(--pm-border) !important;
+  color: var(--pm-text) !important;
+}
+
+[data-project-workspace] :where([data-pm-controls], [data-list-filters]) :where(label, button, select, input),
+[data-project-workspace] [data-gantt-root] :where(label, select, input),
+.project-task-form :where(input, select, textarea),
+#project-task-modal :where(input, select, textarea) {
+  background: var(--pm-input-bg) !important;
+  border-color: var(--pm-input-border) !important;
+  color: var(--pm-input-text) !important;
+}
+
+html[class*="theme-"] [data-project-workspace] [data-pm-controls] :where(label, button),
+html[class*="theme-"] [data-project-workspace] [data-list-filters] button,
+html[class*="theme-"] [data-project-workspace] [data-gantt-root] label,
+html[class*="theme-"] [data-project-workspace] :where([data-task-edit-toggle], [data-task-edit-close]) {
+  background: var(--pm-button-subtle-bg) !important;
+  border-color: var(--pm-border) !important;
+  color: var(--pm-button-subtle-text) !important;
+}
+
+html[class*="theme-"] [data-project-workspace] :where([data-pm-controls], [data-list-filters], [data-gantt-root], .project-task-form) :where(input:not([type="checkbox"]), select, textarea) {
+  background: var(--pm-input-bg) !important;
+  border-color: var(--pm-input-border) !important;
+  color: var(--pm-input-text) !important;
+}
+
+[data-project-workspace] :where([data-pm-controls], [data-list-filters]) :where(input::placeholder, textarea::placeholder),
+.project-task-form :where(input::placeholder, textarea::placeholder) {
+  color: var(--pm-muted) !important;
+}
+
+[data-project-workspace] :where([data-open-task-modal], [data-pm-clear-filters]),
+[data-project-workspace] [data-task-edit-toggle],
+[data-project-workspace] [data-task-edit-close] {
+  background: var(--pm-button-subtle-bg) !important;
+  border-color: var(--pm-border) !important;
+  color: var(--pm-button-subtle-text) !important;
+}
+
+[data-project-workspace] :where([data-open-task-modal], [data-pm-clear-filters], [data-task-edit-toggle], [data-task-edit-close]):hover {
+  border-color: var(--pm-border-strong) !important;
+  filter: brightness(1.06);
+}
+
+[data-project-workspace] [data-open-task-modal] {
+  background: var(--pm-button-bg) !important;
+  color: var(--pm-button-text) !important;
+}
+
+.project-task-form,
+[data-project-workspace] [data-task-edit-row] > td > div {
+  background: var(--pm-panel-bg-strong) !important;
+  border-color: var(--pm-border) !important;
+  color: var(--pm-text) !important;
+}
+
+.project-task-form label,
+.project-task-form span,
+[data-project-workspace] :where(.text-slate-500, .text-slate-400) {
+  color: var(--pm-muted) !important;
+}
+
+.project-task-form button[type="submit"]:not([formaction*="delete"]) {
+  background: var(--pm-button-bg) !important;
+  color: var(--pm-button-text) !important;
+}
+
+[data-project-workspace] table thead,
+[data-project-workspace] table thead tr,
+[data-project-workspace] table thead th {
+  background: var(--pm-panel-bg-soft) !important;
+  border-color: var(--pm-border) !important;
+  color: var(--pm-muted) !important;
+}
+
+[data-project-workspace] table tbody tr[data-pm-task],
+[data-project-workspace] [data-pm-card],
+[data-project-workspace] [data-pm-column],
+[data-project-workspace] [data-gantt-task] {
+  background: var(--pm-row-bg) !important;
+  border-color: var(--pm-border) !important;
+  color: var(--pm-text) !important;
+}
+
+[data-project-workspace] table tbody tr[data-pm-task]:hover,
+[data-project-workspace] [data-pm-card]:hover,
+[data-gantt-root] [data-gantt-task]:hover {
+  background: var(--pm-row-hover) !important;
+}
+
+[data-project-workspace] table tbody,
+[data-project-workspace] table tbody tr,
+[data-project-workspace] table tbody td,
+[data-project-workspace] [data-task-edit-row],
+[data-project-workspace] .divide-y > :not([hidden]) ~ :not([hidden]) {
+  border-color: var(--pm-border) !important;
+}
+
+[data-project-workspace] :where(.h-2, .h-9, .h-12).bg-white,
+[data-project-workspace] .bg-slate-100,
+[data-project-workspace] .dark\:bg-slate-800 {
+  background-color: var(--pm-panel-bg-soft) !important;
+}
+
+[data-gantt-root] .sticky {
+  background: var(--pm-panel-bg-strong) !important;
+  border-color: var(--pm-border) !important;
+  color: var(--pm-muted) !important;
+}
+
+[data-gantt-root] .bg-blue-900,
+[data-gantt-root] .dark\:bg-blue-950 {
+  background: var(--pm-gantt-week-bg) !important;
+  border-color: var(--pm-gantt-week-border) !important;
+  color: var(--pm-text) !important;
+}
+
+[data-gantt-root] .border-blue-950,
+[data-gantt-root] .border-blue-800 {
+  border-color: var(--pm-gantt-week-border) !important;
+}
+
+[data-gantt-root] .bg-sky-50,
+[data-gantt-root] .dark\:bg-slate-900 {
+  background: var(--pm-gantt-day-bg) !important;
+  border-color: var(--pm-border) !important;
+  color: var(--pm-gantt-day-text) !important;
+}
+
+[data-gantt-root] .bg-emerald-50\/70,
+[data-gantt-root] .bg-white,
+[data-gantt-root] .dark\:bg-slate-950,
+[data-gantt-root] .dark\:bg-slate-950\/50 {
+  background: var(--pm-gantt-grid-bg) !important;
+  border-color: var(--pm-gantt-grid-line) !important;
+}
+
+[data-gantt-root] [data-gantt-group-toggle] {
+  background: var(--pm-gantt-group-bg) !important;
+  color: var(--pm-text) !important;
+}
+
+[data-gantt-root] [data-gantt-group-toggle]:hover {
+  background: var(--pm-row-hover) !important;
+}
+
+[data-gantt-root] .border-slate-200,
+[data-gantt-root] .border-slate-300,
+[data-gantt-root] .border-slate-300\/80,
+[data-gantt-root] .dark\:border-slate-700,
+[data-gantt-root] .dark\:border-slate-800,
+[data-gantt-root] .dark\:border-slate-700\/70 {
+  border-color: var(--pm-gantt-grid-line) !important;
+}
+
+[data-gantt-root] .bg-rose-100,
+[data-gantt-root] .bg-rose-100\/70,
+[data-gantt-root] .bg-rose-50,
+[data-gantt-root] .dark\:bg-rose-950\/40,
+[data-gantt-root] .dark\:bg-rose-950\/30 {
+  background: var(--pm-today-bg) !important;
+  color: var(--pm-text) !important;
+}
+
+[data-gantt-root] .bg-blue-700\/85,
+[data-gantt-root] .dark\:bg-blue-300\/80 {
+  background: var(--pm-gantt-rollup) !important;
+}
+
+[data-gantt-root] .bg-cyan-300 {
+  background: var(--pm-gantt-rollup-progress) !important;
+}

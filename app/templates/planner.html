@@ -1,0 +1,1358 @@
+{% extends "base.html" %}
+{% macro render_nodes(nodes, project, participant, current_entry) %}
+  {% for node in nodes %}
+    {% set entry = node.entry %}
+    {% set is_selected = current_entry and current_entry.id == entry.id %}
+    <button
+      type="button"
+      class="planner-drop-slot"
+      data-parent-id="{{ node.parent_id if node.parent_id is not none else '' }}"
+      data-before-id="{{ entry.id }}"
+      aria-label="Move before {{ entry.title }}"
+    ></button>
+    <div class="planner-node" style="--planner-depth: {{ node.depth }};">
+      <button
+        type="button"
+        class="planner-node-row {% if is_selected %}planner-node-row-selected{% endif %}"
+        draggable="true"
+        data-entry-id="{{ entry.id }}"
+        data-parent-id="{{ entry.id }}"
+        data-before-id=""
+        data-drop-mode="inside"
+        data-planner-href="/projects/{{ project.id }}/participants/{{ participant.id }}/planner?entry_id={{ entry.id }}"
+      >
+        <span class="min-w-0 flex-1 text-left">
+          <span class="block truncate text-sm font-medium text-slate-900 dark:text-slate-100">{{ entry.title }}</span>
+        </span>
+      </button>
+      {% if node.children %}
+        <div class="planner-node-children">
+          {{ render_nodes(node.children, project, participant, current_entry) }}
+          <button
+            type="button"
+            class="planner-drop-slot planner-drop-slot-child"
+            data-parent-id="{{ entry.id }}"
+            data-before-id=""
+            aria-label="Move into {{ entry.title }}"
+          ></button>
+        </div>
+      {% else %}
+        <div class="planner-node-children">
+          <button
+            type="button"
+            class="planner-drop-slot planner-drop-slot-child"
+            data-parent-id="{{ entry.id }}"
+            data-before-id=""
+            aria-label="Move into {{ entry.title }}"
+          ></button>
+        </div>
+      {% endif %}
+    </div>
+  {% endfor %}
+{% endmacro %}
+{% block content %}
+  <style>
+    .planner-shell {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .planner-workspace {
+      --planner-shell-bg: linear-gradient(155deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.94) 100%);
+      --planner-shell-border: rgba(148, 163, 184, 0.34);
+      --planner-shell-divider: rgba(148, 163, 184, 0.32);
+      --planner-shell-shadow:
+        0 22px 48px rgba(15, 23, 42, 0.12),
+        inset 0 1px 0 rgba(255, 255, 255, 0.5);
+      --planner-inner-muted-bg: rgba(255, 255, 255, 0.46);
+      --planner-hover-bg: rgba(255, 255, 255, 0.46);
+      --planner-child-line: rgba(148, 163, 184, 0.28);
+      --planner-accent: rgb(14 165 233);
+      --planner-accent-soft: rgba(14, 165, 233, 0.16);
+      --planner-button-bg: rgb(15 23 42);
+      --planner-button-fg: rgb(255 255 255);
+      --planner-button-border: rgba(15, 23, 42, 0.15);
+      --planner-button-hover: rgb(30 41 59);
+      --planner-input-bg: rgba(255, 255, 255, 0.84);
+      --planner-input-border: rgba(148, 163, 184, 0.34);
+      --planner-pane-glow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    }
+    .planner-layout {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      overflow: hidden;
+      border: 1px solid var(--planner-shell-border);
+      border-radius: 1.35rem;
+      background: var(--planner-shell-bg);
+      box-shadow: var(--planner-shell-shadow);
+      backdrop-filter: blur(16px);
+    }
+    .planner-page-root.is-loading {
+      pointer-events: none;
+      opacity: 0.74;
+      transition: opacity 120ms ease;
+    }
+    .planner-inline-error.is-visible {
+      display: block;
+    }
+    .planner-note-surface {
+      background: transparent;
+      border: 0;
+      box-shadow: none;
+    }
+    .planner-note-title-input {
+      background: transparent;
+      border: 0;
+      font-size: 1.12rem;
+      font-weight: 700;
+      line-height: 1.15;
+      outline: none;
+      padding-right: 2.4rem;
+      width: 100%;
+    }
+    .planner-note-title-input::placeholder,
+    .planner-note-box-editor:empty::before {
+      color: rgb(148 163 184 / 0.9);
+    }
+    .planner-note-box-editor:empty::before {
+      content: attr(data-placeholder);
+      pointer-events: none;
+    }
+    .planner-note-toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.35rem;
+      margin-bottom: 0.3rem;
+      padding-right: 2.9rem;
+    }
+    .planner-toolbar-control {
+      border: 1px solid var(--planner-input-border);
+      background: var(--planner-input-bg);
+      border-radius: 0.55rem;
+      color: inherit;
+      font-size: 0.72rem;
+      min-height: 1.9rem;
+      padding: 0.25rem 0.45rem;
+    }
+    .planner-toolbar-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 1.9rem;
+      padding-left: 0.42rem;
+      padding-right: 0.42rem;
+    }
+    .planner-toolbar-button.is-active {
+      border-color: color-mix(in srgb, var(--planner-accent) 70%, transparent);
+      background: color-mix(in srgb, var(--planner-accent) 18%, transparent);
+      color: var(--planner-accent);
+    }
+    .planner-toolbar-color {
+      width: 2.2rem;
+      padding: 0.08rem;
+    }
+    .planner-note-canvas {
+      border-top: 1px solid color-mix(in srgb, var(--planner-input-border) 92%, transparent);
+      padding-top: 0.12rem;
+      position: relative;
+      min-height: 28rem;
+      cursor: text;
+    }
+    .planner-note-canvas-resizer {
+      align-items: center;
+      color: color-mix(in srgb, var(--planner-input-border) 96%, transparent);
+      cursor: ns-resize;
+      display: flex;
+      height: 1rem;
+      justify-content: center;
+      margin-top: 0.15rem;
+      user-select: none;
+      width: 100%;
+    }
+    .planner-note-canvas-resizer::before {
+      background: currentColor;
+      border-radius: 999px;
+      content: "";
+      display: block;
+      height: 2px;
+      opacity: 0.85;
+      width: 3.25rem;
+    }
+    .planner-note-canvas-resizer:hover {
+      color: color-mix(in srgb, var(--planner-accent) 68%, var(--planner-input-border));
+    }
+    .planner-note-box {
+      position: absolute;
+      min-width: 11rem;
+      min-height: 7rem;
+      border: 1px solid transparent;
+      border-radius: 0;
+      box-sizing: border-box;
+      overflow: hidden;
+      resize: both;
+      background: color-mix(in srgb, var(--planner-input-bg) 58%, transparent);
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+      transform-origin: top left;
+    }
+    .planner-note-box:hover {
+      border-color: color-mix(in srgb, var(--planner-accent) 28%, transparent);
+    }
+    .planner-note-box.is-selected {
+      border-color: color-mix(in srgb, var(--planner-accent) 70%, transparent);
+      box-shadow: 0 0 0 1px color-mix(in srgb, var(--planner-accent) 28%, transparent);
+    }
+    .planner-note-box-handle {
+      background: color-mix(in srgb, var(--planner-accent) 28%, transparent);
+      clip-path: polygon(0 0, 100% 0, 0 100%);
+      cursor: move;
+      height: 0.9rem;
+      left: 0;
+      position: absolute;
+      top: 0;
+      width: 0.9rem;
+      z-index: 2;
+    }
+    .planner-note-box-editor {
+      background: transparent;
+      border: 0;
+      color: inherit;
+      height: 100%;
+      min-height: 5.75rem;
+      outline: none;
+      overflow: auto;
+      padding: 0.3rem;
+      white-space: pre-wrap;
+      width: 100%;
+      word-break: break-word;
+    }
+    .planner-note-box-editor[contenteditable="true"] {
+      cursor: text;
+    }
+    .planner-note-menu {
+      background: var(--planner-input-bg);
+      border: 1px solid var(--planner-input-border);
+      box-shadow: 0 16px 36px rgba(15, 23, 42, 0.16);
+    }
+    .planner-box-context-menu {
+      background: rgba(15, 23, 42, 0.96);
+      border: 1px solid rgba(148, 163, 184, 0.26);
+      box-shadow: 0 16px 36px rgba(15, 23, 42, 0.16);
+      min-width: 10rem;
+      position: fixed;
+      border-radius: 0;
+      z-index: 80;
+    }
+    .planner-pane {
+      min-width: 0;
+      box-shadow: var(--planner-pane-glow);
+    }
+    .planner-sidebar-pane {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent);
+    }
+    .planner-editor-pane {
+      border-top: 1px solid var(--planner-shell-divider);
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 14rem);
+    }
+    html.theme-dark .planner-workspace,
+    html.dark:not(.theme-purple):not(.theme-pink):not(.theme-blossom):not(.theme-city):not(.theme-jungle) .planner-workspace {
+      --planner-shell-bg: linear-gradient(155deg, rgba(15, 23, 42, 0.94) 0%, rgba(17, 24, 39, 0.94) 100%);
+      --planner-shell-border: rgba(71, 85, 105, 0.48);
+      --planner-shell-divider: rgba(71, 85, 105, 0.44);
+      --planner-shell-shadow:
+        0 22px 48px rgba(2, 6, 23, 0.42),
+        inset 0 1px 0 rgba(255, 255, 255, 0.04);
+      --planner-inner-muted-bg: rgba(15, 23, 42, 0.42);
+      --planner-hover-bg: rgba(30, 41, 59, 0.72);
+      --planner-child-line: rgba(71, 85, 105, 0.42);
+      --planner-button-bg: rgba(241, 245, 249, 0.94);
+      --planner-button-fg: rgb(15 23 42);
+      --planner-button-border: rgba(226, 232, 240, 0.14);
+      --planner-button-hover: rgba(255, 255, 255, 1);
+      --planner-input-bg: rgba(15, 23, 42, 0.76);
+      --planner-input-border: rgba(71, 85, 105, 0.56);
+      --planner-pane-glow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    }
+    html.theme-purple .planner-workspace {
+      --planner-shell-bg: linear-gradient(155deg, rgba(36, 28, 92, 0.94) 0%, rgba(49, 46, 129, 0.9) 54%, rgba(30, 41, 59, 0.92) 100%);
+      --planner-shell-border: rgba(129, 140, 248, 0.34);
+      --planner-shell-divider: rgba(129, 140, 248, 0.32);
+      --planner-shell-shadow:
+        0 26px 54px rgba(30, 27, 75, 0.38),
+        inset 0 1px 0 rgba(199, 210, 254, 0.08);
+      --planner-inner-muted-bg: rgba(49, 46, 129, 0.28);
+      --planner-hover-bg: rgba(67, 56, 202, 0.24);
+      --planner-child-line: rgba(129, 140, 248, 0.32);
+      --planner-accent: rgb(56 189 248);
+      --planner-accent-soft: rgba(56, 189, 248, 0.16);
+      --planner-button-bg: rgba(224, 231, 255, 0.96);
+      --planner-button-fg: rgb(49 46 129);
+      --planner-button-border: rgba(199, 210, 254, 0.18);
+      --planner-button-hover: rgba(255, 255, 255, 1);
+      --planner-input-bg: rgba(30, 41, 59, 0.46);
+      --planner-input-border: rgba(129, 140, 248, 0.34);
+      --planner-pane-glow: inset 0 1px 0 rgba(224, 231, 255, 0.06);
+    }
+    html.theme-pink .planner-workspace {
+      --planner-shell-bg: linear-gradient(155deg, rgba(74, 4, 78, 0.94) 0%, rgba(131, 24, 67, 0.9) 56%, rgba(76, 5, 25, 0.92) 100%);
+      --planner-shell-border: rgba(244, 114, 182, 0.34);
+      --planner-shell-divider: rgba(244, 114, 182, 0.3);
+      --planner-shell-shadow:
+        0 26px 54px rgba(80, 7, 36, 0.36),
+        inset 0 1px 0 rgba(251, 207, 232, 0.08);
+      --planner-inner-muted-bg: rgba(131, 24, 67, 0.28);
+      --planner-hover-bg: rgba(190, 24, 93, 0.2);
+      --planner-child-line: rgba(244, 114, 182, 0.28);
+      --planner-accent: rgb(251 113 133);
+      --planner-accent-soft: rgba(251, 113, 133, 0.18);
+      --planner-button-bg: rgba(252, 231, 243, 0.96);
+      --planner-button-fg: rgb(131 24 67);
+      --planner-button-border: rgba(252, 231, 243, 0.16);
+      --planner-button-hover: rgba(255, 255, 255, 1);
+      --planner-input-bg: rgba(76, 5, 25, 0.34);
+      --planner-input-border: rgba(244, 114, 182, 0.34);
+      --planner-pane-glow: inset 0 1px 0 rgba(252, 231, 243, 0.06);
+    }
+    html.theme-blossom .planner-workspace {
+      --planner-shell-bg: linear-gradient(155deg, rgba(58, 39, 21, 0.94) 0%, rgba(94, 66, 34, 0.9) 56%, rgba(78, 49, 28, 0.92) 100%);
+      --planner-shell-border: rgba(184, 148, 116, 0.38);
+      --planner-shell-divider: rgba(184, 148, 116, 0.34);
+      --planner-shell-shadow:
+        0 24px 56px rgba(45, 31, 16, 0.34),
+        inset 0 1px 0 rgba(245, 235, 224, 0.08);
+      --planner-inner-muted-bg: rgba(110, 78, 46, 0.26);
+      --planner-hover-bg: rgba(145, 102, 55, 0.22);
+      --planner-child-line: rgba(184, 148, 116, 0.34);
+      --planner-accent: rgb(245 158 11);
+      --planner-accent-soft: rgba(245, 158, 11, 0.16);
+      --planner-button-bg: rgba(245, 235, 224, 0.96);
+      --planner-button-fg: rgb(92 58 31);
+      --planner-button-border: rgba(245, 235, 224, 0.16);
+      --planner-button-hover: rgba(255, 248, 241, 1);
+      --planner-input-bg: rgba(52, 36, 18, 0.36);
+      --planner-input-border: rgba(184, 148, 116, 0.38);
+      --planner-pane-glow: inset 0 1px 0 rgba(245, 235, 224, 0.06);
+    }
+    html.theme-city .planner-workspace {
+      --planner-shell-bg: linear-gradient(155deg, rgba(7, 11, 20, 0.96) 0%, rgba(15, 23, 42, 0.94) 56%, rgba(17, 24, 39, 0.92) 100%);
+      --planner-shell-border: rgba(100, 116, 139, 0.34);
+      --planner-shell-divider: rgba(100, 116, 139, 0.3);
+      --planner-shell-shadow:
+        0 26px 56px rgba(2, 6, 23, 0.46),
+        inset 0 1px 0 rgba(226, 232, 240, 0.04);
+      --planner-inner-muted-bg: rgba(15, 23, 42, 0.34);
+      --planner-hover-bg: rgba(30, 41, 59, 0.76);
+      --planner-child-line: rgba(100, 116, 139, 0.28);
+      --planner-accent: rgb(96 165 250);
+      --planner-accent-soft: rgba(96, 165, 250, 0.16);
+      --planner-button-bg: rgba(226, 232, 240, 0.96);
+      --planner-button-fg: rgb(15 23 42);
+      --planner-button-border: rgba(226, 232, 240, 0.14);
+      --planner-button-hover: rgba(255, 255, 255, 1);
+      --planner-input-bg: rgba(15, 23, 42, 0.74);
+      --planner-input-border: rgba(71, 85, 105, 0.54);
+      --planner-pane-glow: inset 0 1px 0 rgba(226, 232, 240, 0.04);
+    }
+    html.theme-jungle .planner-workspace {
+      --planner-shell-bg: linear-gradient(155deg, rgba(14, 45, 32, 0.95) 0%, rgba(20, 83, 45, 0.9) 56%, rgba(22, 59, 43, 0.92) 100%);
+      --planner-shell-border: rgba(74, 222, 128, 0.26);
+      --planner-shell-divider: rgba(74, 222, 128, 0.22);
+      --planner-shell-shadow:
+        0 26px 56px rgba(6, 24, 17, 0.4),
+        inset 0 1px 0 rgba(220, 252, 231, 0.06);
+      --planner-inner-muted-bg: rgba(20, 83, 45, 0.24);
+      --planner-hover-bg: rgba(22, 101, 52, 0.28);
+      --planner-child-line: rgba(74, 222, 128, 0.24);
+      --planner-accent: rgb(52 211 153);
+      --planner-accent-soft: rgba(52, 211, 153, 0.16);
+      --planner-button-bg: rgba(220, 252, 231, 0.96);
+      --planner-button-fg: rgb(20 83 45);
+      --planner-button-border: rgba(220, 252, 231, 0.14);
+      --planner-button-hover: rgba(240, 253, 244, 1);
+      --planner-input-bg: rgba(20, 55, 39, 0.44);
+      --planner-input-border: rgba(74, 222, 128, 0.28);
+      --planner-pane-glow: inset 0 1px 0 rgba(220, 252, 231, 0.04);
+    }
+    .planner-tree.dragging .planner-drop-slot {
+      max-height: 1.25rem;
+      opacity: 1;
+    }
+    .planner-tree.dragging .planner-node-row {
+      cursor: grabbing;
+    }
+    .planner-drop-slot {
+      display: block;
+      width: 100%;
+      max-height: 0;
+      border: 0;
+      background: transparent;
+      opacity: 0;
+      transition: max-height 120ms ease, opacity 120ms ease, background-color 120ms ease;
+    }
+    .planner-drop-slot::before {
+      display: block;
+      height: 0.35rem;
+      border-radius: 999px;
+      background: var(--planner-accent-soft);
+      content: "";
+    }
+    .planner-drop-slot.is-active::before {
+      background: var(--planner-accent);
+    }
+    .planner-node {
+      margin-left: calc(var(--planner-depth) * 0.6rem);
+    }
+    .planner-node-children {
+      margin-left: 0.3rem;
+      border-left: 1px solid var(--planner-child-line);
+      padding-left: 0.35rem;
+    }
+    .planner-node-row {
+      display: flex;
+      width: 100%;
+      align-items: center;
+      gap: 0.4rem;
+      border-radius: 0.8rem;
+      border: 1px solid transparent;
+      background: transparent;
+      padding: 0.5rem 0.65rem;
+      transition: border-color 120ms ease, background-color 120ms ease, transform 120ms ease;
+    }
+    .planner-node-row:hover {
+      background: var(--planner-hover-bg);
+    }
+    .planner-node-row-selected {
+      border-color: color-mix(in srgb, var(--planner-accent) 70%, transparent);
+      background: color-mix(in srgb, var(--planner-accent) 18%, transparent);
+    }
+    .planner-node-row.is-drop-target {
+      border-color: var(--planner-accent);
+      background: color-mix(in srgb, var(--planner-accent) 22%, transparent);
+    }
+    .planner-mini-button {
+      display: inline-flex;
+      height: 2.4rem;
+      width: 2.4rem;
+      align-items: center;
+      justify-content: center;
+      border-radius: 999px;
+      border: 1px solid var(--planner-button-border);
+      background: var(--planner-button-bg);
+      color: var(--planner-button-fg);
+      font-size: 1.25rem;
+      line-height: 1;
+      transition: transform 120ms ease, background-color 120ms ease;
+    }
+    .planner-mini-button:hover {
+      transform: translateY(-1px);
+      background: var(--planner-button-hover);
+    }
+    .planner-add-panel {
+      background: var(--planner-inner-muted-bg);
+      border-color: var(--planner-input-border);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    }
+    .planner-shell :where(.planner-input, .planner-select, .planner-pill) {
+      border-color: var(--planner-input-border);
+      background: var(--planner-input-bg);
+    }
+    .planner-shell .planner-soft-panel {
+      background: var(--planner-inner-muted-bg);
+      border-color: var(--planner-input-border);
+    }
+    html.theme-jungle .planner-notebook-title,
+    html.theme-jungle .planner-entry-title {
+      color: rgb(236 253 245) !important;
+    }
+    html.theme-blossom .planner-notebook-title,
+    html.theme-blossom .planner-entry-title {
+      color: rgb(255 255 255) !important;
+    }
+    html.theme-blossom .planner-entry-role {
+      color: rgb(214 188 158) !important;
+    }
+    @media (min-width: 1024px) {
+      .planner-layout {
+        flex-direction: row;
+        align-items: stretch;
+      }
+      .planner-sidebar-wrap {
+        width: 11.25rem;
+        flex: none;
+      }
+      .planner-editor-wrap {
+        min-width: 0;
+        flex: 1 1 auto;
+      }
+      .planner-editor-pane {
+        border-top: 0;
+        border-left: 1px solid var(--planner-shell-divider);
+      }
+    }
+  </style>
+
+  <div id="planner-page-root" class="planner-page-root">
+  <div class="planner-shell">
+    <div class="rounded-xl border border-slate-200 bg-white px-3 py-1.5 dark:border-slate-700 dark:bg-slate-900">
+      <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div class="flex items-center gap-3">
+          <a class="text-sm text-slate-500 hover:underline dark:text-slate-400" href="/projects/{{ project.id }}?tab=participant-{{ participant.id }}">Back to participant</a>
+        </div>
+        <div class="text-sm text-slate-600 dark:text-slate-300">
+          Tasks and Planning
+        </div>
+      </div>
+    </div>
+
+    <div class="planner-layout planner-workspace">
+      <aside class="planner-sidebar-wrap planner-pane planner-sidebar-pane">
+        <div class="flex h-full min-h-[460px] flex-col p-2">
+          <div class="mb-2">
+            <h2 class="planner-notebook-title text-sm font-semibold text-slate-900 dark:text-slate-100">Notebook</h2>
+          </div>
+
+          <div class="min-h-0 flex-1 overflow-y-auto">
+            <form id="planner-move-form" method="post" action="/projects/{{ project.id }}/participants/{{ participant.id }}/planner" class="hidden" data-planner-async="true">
+              <input type="hidden" name="action" value="move" />
+              <input type="hidden" name="entry_id" id="planner-move-entry-id" value="" />
+              <input type="hidden" name="move_parent_id" id="planner-move-parent-id" value="" />
+              <input type="hidden" name="move_before_id" id="planner-move-before-id" value="" />
+            </form>
+
+            <div id="planner-tree" class="planner-tree space-y-0.5">
+              <button
+                type="button"
+                class="planner-drop-slot"
+                data-parent-id=""
+                data-before-id="{% if entry_tree %}{{ entry_tree[0].entry.id }}{% endif %}"
+                aria-label="Move to the top level"
+              ></button>
+              {% if entry_tree %}
+                {{ render_nodes(entry_tree, project, participant, current_entry) }}
+                <button type="button" class="planner-drop-slot" data-parent-id="" data-before-id="" aria-label="Move to the end"></button>
+              {% else %}
+                <div class="rounded-2xl border border-dashed border-slate-300 px-3 py-5 text-center text-sm text-slate-500 dark:border-slate-600 dark:text-slate-400">
+                  No notes yet.
+                </div>
+              {% endif %}
+            </div>
+          </div>
+
+          <div id="planner-add-panel" class="planner-add-panel mt-2 hidden rounded-xl border p-2">
+            <form method="post" action="/projects/{{ project.id }}/participants/{{ participant.id }}/planner" class="space-y-2" data-planner-async="true">
+              <div>
+                <label class="block text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400" for="new_entry_title">New note</label>
+                <input
+                  id="new_entry_title"
+                  type="text"
+                  name="title"
+                  maxlength="300"
+                  placeholder="Project kickoff"
+                  required
+                  class="planner-input mt-1 w-full rounded-xl border px-3 py-2 text-sm dark:text-slate-100"
+                />
+              </div>
+              <div class="flex items-center justify-between gap-2">
+                <button
+                  type="button"
+                  id="planner-add-cancel"
+                  class="rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-[11px] font-medium text-slate-600 hover:bg-slate-100 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-700"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  class="rounded-lg bg-slate-900 px-2.5 py-1.5 text-[11px] font-semibold text-white hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white"
+                >
+                  Add note
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <div class="mt-2 flex justify-center">
+            <button type="button" id="planner-add-toggle" class="planner-mini-button" aria-expanded="false" aria-controls="planner-add-panel">+</button>
+          </div>
+        </div>
+      </aside>
+
+      <section class="planner-editor-wrap planner-pane planner-editor-pane">
+        <div class="min-h-[460px] p-2.5 sm:p-3">
+          {% if error %}
+            <div class="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-200">
+              {{ error }}
+            </div>
+          {% endif %}
+          <div id="planner-inline-error" class="planner-inline-error mb-4 hidden rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-200"></div>
+
+          {% if current_entry %}
+            <form method="post" action="/projects/{{ project.id }}/participants/{{ participant.id }}/planner" class="space-y-2" data-planner-autosave-form="true">
+              <input type="hidden" name="entry_id" value="{{ current_entry.id }}" />
+              <div class="planner-note-surface relative overflow-hidden px-1 py-1 sm:px-2 sm:py-2">
+                <div class="absolute right-1 top-1">
+                  <button
+                    type="button"
+                    id="planner-note-menu-btn"
+                    class="inline-flex h-7 w-7 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-500 hover:bg-slate-100 hover:text-slate-700 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
+                    aria-expanded="false"
+                    aria-haspopup="menu"
+                    aria-controls="planner-note-menu"
+                  >
+                    <span class="sr-only">Open note options</span>
+                    <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 7.5h15M4.5 12h15M4.5 16.5h15" />
+                    </svg>
+                  </button>
+                  <div id="planner-note-menu" class="planner-note-menu absolute right-0 z-20 mt-2 hidden min-w-[11rem] rounded-2xl p-2">
+                    <button
+                      type="button"
+                      id="planner-delete-btn"
+                      class="flex w-full items-center justify-start rounded-xl px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-50 dark:text-red-300 dark:hover:bg-red-950/40"
+                      data-planner-delete="true"
+                    >
+                      Delete note
+                    </button>
+                  </div>
+                </div>
+
+                <div class="planner-note-toolbar">
+                  <select id="planner-font-family" class="planner-toolbar-control">
+                    <option value="Georgia">Georgia</option>
+                    <option value="'Times New Roman', serif">Times New Roman</option>
+                    <option value="'Trebuchet MS', sans-serif">Trebuchet MS</option>
+                    <option value="'Gill Sans', sans-serif">Gill Sans</option>
+                    <option value="'Courier New', monospace">Courier New</option>
+                  </select>
+                  <select id="planner-font-size" class="planner-toolbar-control">
+                    <option value="14">14</option>
+                    <option value="16">16</option>
+                    <option value="18" selected>18</option>
+                    <option value="22">22</option>
+                    <option value="28">28</option>
+                    <option value="36">36</option>
+                  </select>
+                  <button type="button" id="planner-format-bold" class="planner-toolbar-control planner-toolbar-button" aria-pressed="false"><strong>B</strong></button>
+                  <button type="button" id="planner-format-italic" class="planner-toolbar-control planner-toolbar-button" aria-pressed="false"><em>I</em></button>
+                  <button type="button" id="planner-format-underline" class="planner-toolbar-control planner-toolbar-button" aria-pressed="false"><span style="text-decoration: underline;">U</span></button>
+                  <input type="color" id="planner-font-color" class="planner-toolbar-control planner-toolbar-color" value="#f8fafc" aria-label="Text color" />
+                </div>
+
+                <div class="min-w-0">
+                  <p class="planner-entry-role mb-0.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-sky-600 dark:text-sky-400">{{ current_entry_note_role }}</p>
+                  <div class="min-w-0">
+                    <input
+                      id="edit_title"
+                      name="title"
+                      type="text"
+                      maxlength="300"
+                      value="{{ current_entry.title }}"
+                      required
+                      class="planner-note-title-input planner-entry-title block text-slate-900 dark:text-slate-100"
+                      placeholder="Untitled note"
+                    />
+                  </div>
+                </div>
+                <input id="planner-note-content-json" type="hidden" name="content" value="{{ current_entry.content or '' }}" />
+                <script id="planner-note-document" type="application/json">{{ current_entry_document | tojson }}</script>
+                <div id="planner-note-canvas" class="planner-note-canvas mt-1" aria-label="Note canvas"></div>
+                <div id="planner-note-canvas-resizer" class="planner-note-canvas-resizer" aria-label="Resize note pad"></div>
+                <div id="planner-box-context-menu" class="planner-box-context-menu hidden p-1.5">
+                  <button
+                    type="button"
+                    id="planner-box-delete-btn"
+                    class="flex w-full items-center justify-start px-2.5 py-1.5 text-xs font-medium text-red-700 hover:bg-red-50 dark:text-red-300 dark:hover:bg-red-950/40"
+                  >
+                    Delete text box
+                  </button>
+                </div>
+              </div>
+
+              <div class="flex flex-wrap items-center gap-2 pt-0.5">
+                <p class="text-[11px] text-slate-500 dark:text-slate-400">Click to create a resizable text box. Drag a note onto another note in the notebook to make it a child note.</p>
+              </div>
+            </form>
+            <form id="planner-delete-form" method="post" action="/projects/{{ project.id }}/participants/{{ participant.id }}/planner" class="hidden" data-planner-async="true">
+              <input type="hidden" name="action" value="delete" />
+              <input type="hidden" name="entry_id" value="{{ current_entry.id }}" />
+            </form>
+          {% else %}
+            <div class="planner-soft-panel flex min-h-[460px] flex-col items-center justify-center gap-3 rounded-3xl border border-dashed px-6 text-center">
+              <div class="rounded-full bg-slate-900 p-3 text-white dark:bg-slate-100 dark:text-slate-900">
+                <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.6" stroke="currentColor" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m6-6H6" />
+                </svg>
+              </div>
+              <div>
+                <h2 class="text-lg font-semibold text-slate-900 dark:text-slate-100">Open a note to start editing</h2>
+                <p class="mt-1 max-w-xl text-sm text-slate-500 dark:text-slate-400">Use the compact plus button to create a new note, then drag items around the notebook on the left to shape the hierarchy the way you want.</p>
+              </div>
+            </div>
+          {% endif %}
+        </div>
+      </section>
+    </div>
+  </div>
+  </div>
+
+  <script>
+    (function () {
+      if (!window.__plannerPageEnhancer) {
+        window.__plannerPageEnhancer = true;
+
+        function parsePlannerResponse(html) {
+          var parser = new DOMParser();
+          var doc = parser.parseFromString(html, "text/html");
+          return {
+            document: doc,
+            root: doc.getElementById("planner-page-root"),
+            title: doc.title || document.title,
+          };
+        }
+
+        function currentPlannerRoot() {
+          return document.getElementById("planner-page-root");
+        }
+
+        async function loadPlannerPage(url, options) {
+          var root = currentPlannerRoot();
+          if (!root) {
+            window.location.href = url;
+            return;
+          }
+
+          root.classList.add("is-loading");
+          try {
+            var response = await fetch(url, options || { headers: { "X-Requested-With": "planner-fetch" } });
+            var html = await response.text();
+            var parsed = parsePlannerResponse(html);
+            if (!response.ok || !parsed.root) {
+              window.location.href = response.url || url;
+              return;
+            }
+            root.replaceWith(parsed.root);
+            document.title = parsed.title;
+            if (!(options && options.skipHistory)) {
+              window.history.pushState({ planner: true }, "", response.url || url);
+            }
+            initPlannerPage(parsed.root);
+          } catch (error) {
+            window.location.href = url;
+          }
+        }
+
+        async function submitPlannerForm(form) {
+          var action = form.getAttribute("action") || window.location.href;
+          var method = (form.getAttribute("method") || "get").toUpperCase();
+          if (method === "GET") {
+            var params = new URLSearchParams(new FormData(form));
+            var query = params.toString();
+            var url = query ? action + (action.indexOf("?") >= 0 ? "&" : "?") + query : action;
+            await loadPlannerPage(url);
+            return;
+          }
+          await loadPlannerPage(action, {
+            method: method,
+            body: new FormData(form),
+            headers: { "X-Requested-With": "planner-fetch" },
+          });
+        }
+
+        window.initPlannerPage = function initPlannerPage(root) {
+          if (!root) return;
+
+          var addToggle = root.querySelector("#planner-add-toggle");
+          var addPanel = root.querySelector("#planner-add-panel");
+          var addCancel = root.querySelector("#planner-add-cancel");
+          var addTitle = root.querySelector("#new_entry_title");
+          function setAddPanel(open) {
+            if (!addToggle || !addPanel) return;
+            addPanel.classList.toggle("hidden", !open);
+            addToggle.setAttribute("aria-expanded", open ? "true" : "false");
+            if (open && addTitle) {
+              window.requestAnimationFrame(function () {
+                addTitle.focus();
+              });
+            }
+          }
+          if (addToggle && addPanel) {
+            addToggle.addEventListener("click", function () {
+              setAddPanel(addPanel.classList.contains("hidden"));
+            });
+          }
+          if (addCancel) {
+            addCancel.addEventListener("click", function () {
+              setAddPanel(false);
+            });
+          }
+
+          root.querySelectorAll("[data-planner-href]").forEach(function (element) {
+            element.addEventListener("click", function (event) {
+              event.preventDefault();
+              loadPlannerPage(element.getAttribute("data-planner-href"));
+            });
+          });
+
+          root.querySelectorAll("form[data-planner-async='true']").forEach(function (form) {
+            form.addEventListener("submit", function (event) {
+              event.preventDefault();
+              submitPlannerForm(form);
+            });
+          });
+
+          var autosaveForm = root.querySelector("form[data-planner-autosave-form='true']");
+          var autosaveError = root.querySelector("#planner-inline-error");
+          if (autosaveForm) {
+            var titleInput = root.querySelector("#edit_title");
+            var contentInput = root.querySelector("#planner-note-content-json");
+            var deleteBtn = root.querySelector("#planner-delete-btn");
+            var deleteForm = root.querySelector("#planner-delete-form");
+            var menuBtn = root.querySelector("#planner-note-menu-btn");
+            var menuPanel = root.querySelector("#planner-note-menu");
+            var noteCanvas = root.querySelector("#planner-note-canvas");
+            var noteDocumentScript = root.querySelector("#planner-note-document");
+            var boxContextMenu = root.querySelector("#planner-box-context-menu");
+            var boxDeleteBtn = root.querySelector("#planner-box-delete-btn");
+            var fontFamilyControl = root.querySelector("#planner-font-family");
+            var fontSizeControl = root.querySelector("#planner-font-size");
+            var boldControl = root.querySelector("#planner-format-bold");
+            var italicControl = root.querySelector("#planner-format-italic");
+            var underlineControl = root.querySelector("#planner-format-underline");
+            var colorControl = root.querySelector("#planner-font-color");
+            var autosaveTimer = null;
+            var autosavePending = false;
+            var selectedBoxId = null;
+            var draftStyle = {
+              fontFamily: "Georgia",
+              fontSize: 18,
+              fontWeight: "400",
+              fontStyle: "normal",
+              textDecoration: "none",
+              color: "#f8fafc",
+            };
+            var noteDocument = { version: 1, boxes: [] };
+            var boxContextMenuTargetId = null;
+
+            try {
+              noteDocument = JSON.parse((noteDocumentScript && noteDocumentScript.textContent) || "{\"version\":1,\"boxes\":[]}");
+            } catch (error) {
+              noteDocument = { version: 1, boxes: [] };
+            }
+            if (!Array.isArray(noteDocument.boxes)) {
+              noteDocument.boxes = [];
+            }
+            noteDocument.canvasHeight = Math.max(360, parseInt(noteDocument.canvasHeight, 10) || 528);
+
+            function showAutosaveError(message) {
+              if (!autosaveError) return;
+              autosaveError.textContent = message;
+              autosaveError.classList.remove("hidden");
+              autosaveError.classList.add("is-visible");
+            }
+
+            function hideAutosaveError() {
+              if (!autosaveError) return;
+              autosaveError.textContent = "";
+              autosaveError.classList.add("hidden");
+              autosaveError.classList.remove("is-visible");
+            }
+
+            function currentSelectionBox() {
+              if (!selectedBoxId) return null;
+              return noteDocument.boxes.find(function (box) {
+                return box.id === selectedBoxId;
+              }) || null;
+            }
+
+            function closeBoxContextMenu() {
+              if (!boxContextMenu) return;
+              boxContextMenu.classList.add("hidden");
+              boxContextMenuTargetId = null;
+            }
+
+            function openBoxContextMenu(boxId, x, y) {
+              if (!boxContextMenu) return;
+              if (boxContextMenu.parentElement !== document.body) {
+                document.body.appendChild(boxContextMenu);
+              }
+              boxContextMenuTargetId = boxId;
+              boxContextMenu.style.left = x + "px";
+              boxContextMenu.style.top = y + "px";
+              boxContextMenu.classList.remove("hidden");
+            }
+
+            function syncToolbarFromStyle(style) {
+              if (!style) return;
+              if (fontFamilyControl) fontFamilyControl.value = style.fontFamily || draftStyle.fontFamily;
+              if (fontSizeControl) fontSizeControl.value = String(style.fontSize || draftStyle.fontSize);
+              if (colorControl) colorControl.value = style.color || draftStyle.color;
+              if (boldControl) {
+                var isBold = (style.fontWeight || "400") === "700";
+                boldControl.classList.toggle("is-active", isBold);
+                boldControl.setAttribute("aria-pressed", isBold ? "true" : "false");
+              }
+              if (italicControl) {
+                var isItalic = (style.fontStyle || "normal") === "italic";
+                italicControl.classList.toggle("is-active", isItalic);
+                italicControl.setAttribute("aria-pressed", isItalic ? "true" : "false");
+              }
+              if (underlineControl) {
+                var isUnderline = (style.textDecoration || "none") === "underline";
+                underlineControl.classList.toggle("is-active", isUnderline);
+                underlineControl.setAttribute("aria-pressed", isUnderline ? "true" : "false");
+              }
+            }
+
+            function updateDraftStyleFromControls() {
+              if (fontFamilyControl) draftStyle.fontFamily = fontFamilyControl.value;
+              if (fontSizeControl) draftStyle.fontSize = parseInt(fontSizeControl.value, 10) || 18;
+              if (colorControl) draftStyle.color = colorControl.value || "#f8fafc";
+              if (boldControl) draftStyle.fontWeight = boldControl.getAttribute("aria-pressed") === "true" ? "700" : "400";
+              if (italicControl) draftStyle.fontStyle = italicControl.getAttribute("aria-pressed") === "true" ? "italic" : "normal";
+              if (underlineControl) draftStyle.textDecoration = underlineControl.getAttribute("aria-pressed") === "true" ? "underline" : "none";
+            }
+
+            function serializeDocument() {
+              if (!contentInput) return;
+              contentInput.value = JSON.stringify({ version: 1, canvasHeight: noteDocument.canvasHeight, boxes: noteDocument.boxes });
+            }
+
+            function applyBoxStyles(editor, box) {
+              editor.style.fontFamily = box.fontFamily || "Georgia";
+              editor.style.fontSize = String(box.fontSize || 18) + "px";
+              editor.style.fontWeight = box.fontWeight || "400";
+              editor.style.fontStyle = box.fontStyle || "normal";
+              editor.style.textDecoration = box.textDecoration || "none";
+              editor.style.color = box.color || "#f8fafc";
+            }
+
+            function scheduleAutosave() {
+              clearTimeout(autosaveTimer);
+              serializeDocument();
+              autosaveTimer = window.setTimeout(function () {
+                autosaveNow();
+              }, 500);
+            }
+
+            function selectBox(boxId) {
+              selectedBoxId = boxId;
+              if (!noteCanvas) return;
+              noteCanvas.querySelectorAll(".planner-note-box").forEach(function (element) {
+                element.classList.toggle("is-selected", element.dataset.boxId === boxId);
+              });
+              syncToolbarFromStyle(currentSelectionBox() || draftStyle);
+            }
+
+            function createEmptyBox(x, y) {
+              updateDraftStyleFromControls();
+              var box = {
+                id: "box-" + Date.now() + "-" + Math.floor(Math.random() * 10000),
+                x: Math.max(0, Math.round(x)),
+                y: Math.max(0, Math.round(y)),
+                w: 320,
+                h: 180,
+                text: "",
+                fontFamily: draftStyle.fontFamily,
+                fontSize: draftStyle.fontSize,
+                fontWeight: draftStyle.fontWeight,
+                fontStyle: draftStyle.fontStyle,
+                textDecoration: draftStyle.textDecoration,
+                color: draftStyle.color,
+              };
+              noteDocument.boxes.push(box);
+              renderNoteCanvas();
+              selectBox(box.id);
+              scheduleAutosave();
+              var editor = noteCanvas && noteCanvas.querySelector(".planner-note-box[data-box-id='" + box.id + "'] .planner-note-box-editor");
+              if (editor) {
+                window.requestAnimationFrame(function () {
+                  editor.focus();
+                });
+              }
+            }
+
+            function bindResizeObserver(wrapper, box) {
+              if (!window.ResizeObserver) return;
+              var observer = new ResizeObserver(function (entries) {
+                entries.forEach(function (entry) {
+                  box.w = Math.round(entry.contentRect.width);
+                  box.h = Math.round(entry.contentRect.height);
+                  scheduleAutosave();
+                });
+              });
+              observer.observe(wrapper);
+            }
+
+            function attachBoxInteractions(wrapper, handle, editor, box) {
+              var dragState = null;
+              handle.addEventListener("pointerdown", function (event) {
+                if (event.button !== 0) return;
+                selectBox(box.id);
+                closeBoxContextMenu();
+                dragState = {
+                  startX: event.clientX,
+                  startY: event.clientY,
+                  boxX: box.x,
+                  boxY: box.y,
+                };
+                handle.setPointerCapture(event.pointerId);
+              });
+              handle.addEventListener("pointermove", function (event) {
+                if (!dragState) return;
+                var dx = event.clientX - dragState.startX;
+                var dy = event.clientY - dragState.startY;
+                box.x = Math.max(0, Math.round(dragState.boxX + dx));
+                box.y = Math.max(0, Math.round(dragState.boxY + dy));
+                wrapper.style.left = box.x + "px";
+                wrapper.style.top = box.y + "px";
+              });
+              handle.addEventListener("pointerup", function (event) {
+                if (!dragState) return;
+                dragState = null;
+                handle.releasePointerCapture(event.pointerId);
+                scheduleAutosave();
+              });
+              handle.addEventListener("pointercancel", function () {
+                dragState = null;
+              });
+              handle.addEventListener("contextmenu", function (event) {
+                event.preventDefault();
+                event.stopPropagation();
+                selectBox(box.id);
+                openBoxContextMenu(box.id, event.clientX, event.clientY);
+              });
+              editor.addEventListener("focus", function () {
+                selectBox(box.id);
+              });
+              wrapper.addEventListener("mousedown", function () {
+                selectBox(box.id);
+              });
+              editor.addEventListener("input", function () {
+                box.text = editor.innerText;
+                scheduleAutosave();
+              });
+              bindResizeObserver(wrapper, box);
+            }
+
+            function renderNoteCanvas() {
+              if (!noteCanvas) return;
+              noteCanvas.innerHTML = "";
+              closeBoxContextMenu();
+              var canvasHeight = Math.max(360, noteDocument.canvasHeight || 528);
+              noteDocument.boxes.forEach(function (box) {
+                canvasHeight = Math.max(canvasHeight, box.y + box.h + 48);
+                var wrapper = document.createElement("div");
+                wrapper.className = "planner-note-box" + (box.id === selectedBoxId ? " is-selected" : "");
+                wrapper.dataset.boxId = box.id;
+                wrapper.style.left = box.x + "px";
+                wrapper.style.top = box.y + "px";
+                wrapper.style.width = box.w + "px";
+                wrapper.style.height = box.h + "px";
+
+                var handle = document.createElement("div");
+                handle.className = "planner-note-box-handle";
+
+                var editor = document.createElement("div");
+                editor.className = "planner-note-box-editor";
+                editor.contentEditable = "true";
+                editor.spellcheck = true;
+                editor.dataset.placeholder = "Type here";
+                editor.innerText = box.text || "";
+                applyBoxStyles(editor, box);
+
+                wrapper.appendChild(handle);
+                wrapper.appendChild(editor);
+                noteCanvas.appendChild(wrapper);
+                attachBoxInteractions(wrapper, handle, editor, box);
+              });
+              noteCanvas.style.height = canvasHeight + "px";
+              noteDocument.canvasHeight = canvasHeight;
+            }
+
+            function closeMenu() {
+              if (!menuBtn || !menuPanel) return;
+              menuPanel.classList.add("hidden");
+              menuBtn.setAttribute("aria-expanded", "false");
+            }
+
+            function toggleMenu() {
+              if (!menuBtn || !menuPanel) return;
+              var shouldOpen = menuPanel.classList.contains("hidden");
+              menuPanel.classList.toggle("hidden", !shouldOpen);
+              menuBtn.setAttribute("aria-expanded", shouldOpen ? "true" : "false");
+            }
+
+            async function autosaveNow(options) {
+              if (autosavePending) return;
+              if (!contentInput || !titleInput) return;
+              autosavePending = true;
+              hideAutosaveError();
+              serializeDocument();
+              try {
+                var response = await fetch(autosaveForm.getAttribute("action"), {
+                  method: "POST",
+                  body: new FormData(autosaveForm),
+                  headers: {
+                    "X-Planner-Autosave": "1",
+                    "Accept": "application/json",
+                  },
+                });
+                var payload = await response.json();
+                if (!response.ok || !payload.ok) {
+                  showAutosaveError((payload && payload.error) || "Your changes could not be saved.");
+                  return;
+                }
+                if (titleInput && typeof payload.title === "string") {
+                  titleInput.value = payload.title;
+                }
+                if (contentInput && typeof payload.content === "string") {
+                  contentInput.value = payload.content;
+                }
+              } catch (error) {
+                showAutosaveError("Your changes could not be saved.");
+              } finally {
+                autosavePending = false;
+              }
+            }
+
+            autosaveForm.addEventListener("submit", function (event) {
+              event.preventDefault();
+            });
+
+            if (titleInput) {
+              titleInput.addEventListener("input", function () {
+                scheduleAutosave();
+              });
+              titleInput.addEventListener("keydown", function (event) {
+                if (event.key === "Enter") {
+                  event.preventDefault();
+                  clearTimeout(autosaveTimer);
+                  autosaveNow();
+                }
+              });
+              titleInput.addEventListener("blur", function () {
+                clearTimeout(autosaveTimer);
+                autosaveNow();
+              });
+            }
+            if (fontFamilyControl) {
+              fontFamilyControl.addEventListener("change", function () {
+                updateDraftStyleFromControls();
+                var box = currentSelectionBox();
+                if (!box) return;
+                box.fontFamily = draftStyle.fontFamily;
+                renderNoteCanvas();
+                selectBox(box.id);
+                scheduleAutosave();
+              });
+            }
+            if (fontSizeControl) {
+              fontSizeControl.addEventListener("change", function () {
+                updateDraftStyleFromControls();
+                var box = currentSelectionBox();
+                if (!box) return;
+                box.fontSize = draftStyle.fontSize;
+                renderNoteCanvas();
+                selectBox(box.id);
+                scheduleAutosave();
+              });
+            }
+            [
+              { button: boldControl, key: "fontWeight", activeValue: "700", inactiveValue: "400" },
+              { button: italicControl, key: "fontStyle", activeValue: "italic", inactiveValue: "normal" },
+              { button: underlineControl, key: "textDecoration", activeValue: "underline", inactiveValue: "none" }
+            ].forEach(function (config) {
+              if (!config.button) return;
+              config.button.addEventListener("click", function () {
+                var isActive = config.button.getAttribute("aria-pressed") === "true";
+                config.button.setAttribute("aria-pressed", isActive ? "false" : "true");
+                config.button.classList.toggle("is-active", !isActive);
+                updateDraftStyleFromControls();
+                var box = currentSelectionBox();
+                if (!box) return;
+                box[config.key] = draftStyle[config.key];
+                renderNoteCanvas();
+                selectBox(box.id);
+                scheduleAutosave();
+              });
+            });
+            if (colorControl) {
+              colorControl.addEventListener("input", function () {
+                updateDraftStyleFromControls();
+                var box = currentSelectionBox();
+                if (!box) return;
+                box.color = draftStyle.color;
+                renderNoteCanvas();
+                selectBox(box.id);
+                scheduleAutosave();
+              });
+            }
+            if (noteCanvas) {
+              noteCanvas.addEventListener("click", function (event) {
+                closeBoxContextMenu();
+                if (event.target !== noteCanvas) return;
+                var rect = noteCanvas.getBoundingClientRect();
+                createEmptyBox(
+                  event.clientX - rect.left + noteCanvas.scrollLeft - 12,
+                  event.clientY - rect.top + noteCanvas.scrollTop - 12
+                );
+              });
+            }
+            var canvasResizer = root.querySelector("#planner-note-canvas-resizer");
+            if (canvasResizer && noteCanvas) {
+              var resizeState = null;
+              canvasResizer.addEventListener("pointerdown", function (event) {
+                resizeState = {
+                  startY: event.clientY,
+                  startHeight: Math.max(360, Math.round(noteCanvas.getBoundingClientRect().height)),
+                };
+                canvasResizer.setPointerCapture(event.pointerId);
+              });
+              canvasResizer.addEventListener("pointermove", function (event) {
+                if (!resizeState) return;
+                var delta = event.clientY - resizeState.startY;
+                var nextHeight = Math.max(360, Math.round(resizeState.startHeight + delta));
+                noteDocument.canvasHeight = nextHeight;
+                noteCanvas.style.height = nextHeight + "px";
+              });
+              canvasResizer.addEventListener("pointerup", function (event) {
+                if (!resizeState) return;
+                resizeState = null;
+                canvasResizer.releasePointerCapture(event.pointerId);
+                scheduleAutosave();
+              });
+              canvasResizer.addEventListener("pointercancel", function () {
+                resizeState = null;
+              });
+            }
+            if (menuBtn && menuPanel) {
+              menuBtn.addEventListener("click", function (event) {
+                event.stopPropagation();
+                closeBoxContextMenu();
+                toggleMenu();
+              });
+              document.addEventListener("click", function (event) {
+                if (!menuPanel.classList.contains("hidden") && !menuPanel.contains(event.target) && event.target !== menuBtn) {
+                  closeMenu();
+                }
+                if (boxContextMenu && !boxContextMenu.classList.contains("hidden") && !boxContextMenu.contains(event.target)) {
+                  closeBoxContextMenu();
+                }
+              });
+            }
+            if (boxDeleteBtn) {
+              boxDeleteBtn.addEventListener("click", function () {
+                if (!boxContextMenuTargetId) return;
+                noteDocument.boxes = noteDocument.boxes.filter(function (box) {
+                  return box.id !== boxContextMenuTargetId;
+                });
+                if (selectedBoxId === boxContextMenuTargetId) {
+                  selectedBoxId = noteDocument.boxes.length ? noteDocument.boxes[0].id : null;
+                }
+                closeBoxContextMenu();
+                renderNoteCanvas();
+                syncToolbarFromStyle(currentSelectionBox() || draftStyle);
+                scheduleAutosave();
+              });
+            }
+            if (deleteBtn && deleteForm) {
+              deleteBtn.addEventListener("click", function () {
+                closeMenu();
+                submitPlannerForm(deleteForm);
+              });
+            }
+            if (noteDocument.boxes.length) {
+              selectedBoxId = noteDocument.boxes[0].id;
+            }
+            syncToolbarFromStyle(currentSelectionBox() || draftStyle);
+            serializeDocument();
+            renderNoteCanvas();
+          }
+
+          var tree = root.querySelector("#planner-tree");
+          var moveForm = root.querySelector("#planner-move-form");
+          var moveEntryInput = root.querySelector("#planner-move-entry-id");
+          var moveParentInput = root.querySelector("#planner-move-parent-id");
+          var moveBeforeInput = root.querySelector("#planner-move-before-id");
+          if (!tree || !moveForm || !moveEntryInput || !moveParentInput || !moveBeforeInput) return;
+
+          var dragEntryId = "";
+          var activeTarget = null;
+
+          function clearHighlights() {
+            tree.querySelectorAll(".planner-drop-slot.is-active, .planner-node-row.is-drop-target").forEach(function (element) {
+              element.classList.remove("is-active", "is-drop-target");
+            });
+            activeTarget = null;
+          }
+
+          function activateTarget(element) {
+            if (activeTarget === element) return;
+            clearHighlights();
+            activeTarget = element;
+            if (element.classList.contains("planner-drop-slot")) {
+              element.classList.add("is-active");
+            } else {
+              element.classList.add("is-drop-target");
+            }
+          }
+
+          function submitMove(target) {
+            if (!dragEntryId || !target) return;
+            if (target.dataset.entryId === dragEntryId) return;
+            moveEntryInput.value = dragEntryId;
+            moveParentInput.value = target.dataset.parentId || "";
+            moveBeforeInput.value = target.dataset.beforeId || "";
+            submitPlannerForm(moveForm);
+          }
+
+          tree.querySelectorAll(".planner-node-row[draggable='true']").forEach(function (row) {
+            row.addEventListener("dragstart", function (event) {
+              dragEntryId = row.dataset.entryId || "";
+              tree.classList.add("dragging");
+              if (event.dataTransfer) {
+                event.dataTransfer.effectAllowed = "move";
+                event.dataTransfer.setData("text/plain", dragEntryId);
+              }
+            });
+            row.addEventListener("dragend", function () {
+              dragEntryId = "";
+              tree.classList.remove("dragging");
+              clearHighlights();
+            });
+          });
+
+          tree.querySelectorAll(".planner-drop-slot, .planner-node-row[data-drop-mode='inside']").forEach(function (target) {
+            target.addEventListener("dragover", function (event) {
+              if (!dragEntryId) return;
+              event.preventDefault();
+              activateTarget(target);
+              if (event.dataTransfer) {
+                event.dataTransfer.dropEffect = "move";
+              }
+            });
+            target.addEventListener("dragleave", function (event) {
+              if (!activeTarget || activeTarget !== target) return;
+              if (target.contains(event.relatedTarget)) return;
+              clearHighlights();
+            });
+            target.addEventListener("drop", function (event) {
+              if (!dragEntryId) return;
+              event.preventDefault();
+              activateTarget(target);
+              submitMove(target);
+            });
+          });
+        };
+
+        window.addEventListener("popstate", function () {
+          var root = currentPlannerRoot();
+          if (!root) return;
+          loadPlannerPage(window.location.href, { headers: { "X-Requested-With": "planner-fetch" }, skipHistory: true });
+        });
+      }
+
+      window.initPlannerPage(document.getElementById("planner-page-root"));
+    })();
+  </script>
+{% endblock %}

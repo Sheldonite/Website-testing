@@ -1,0 +1,236 @@
+{% extends "base.html" %}
+{% block content %}
+  <div class="flex flex-col gap-6">
+    <section class="rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-700 dark:bg-slate-900">
+      <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+        <div>
+          <div class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Home</div>
+          <h1 class="mt-1 text-2xl font-semibold tracking-tight">Command center</h1>
+          <p class="mt-1 max-w-3xl text-sm text-slate-600 dark:text-slate-300">
+            A quick read on project work, people load, imports, and invoice review across the site.
+          </p>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          {% if can_manage_projects %}
+            <a href="/projects" class="rounded-lg bg-slate-900 px-3 py-2 text-sm font-medium text-white hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white">Create project</a>
+          {% endif %}
+          {% if can_view_projects %}
+            <a href="/projects" class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200 dark:hover:bg-slate-800">Projects</a>
+          {% endif %}
+          {% if can_view_imports %}
+            <a href="/" class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200 dark:hover:bg-slate-800">Import</a>
+          {% endif %}
+        </div>
+      </div>
+    </section>
+
+    <section class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-6">
+      <div class="rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
+        <div class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Active projects</div>
+        <div class="mt-1 text-2xl font-semibold">{{ active_projects_count }}</div>
+        <div class="mt-1 text-xs text-slate-500 dark:text-slate-400">{{ projects_count }} total</div>
+      </div>
+      <div class="rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
+        <div class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Open tasks</div>
+        <div class="mt-1 text-2xl font-semibold">{{ open_tasks_count }}</div>
+        <div class="mt-1 text-xs text-slate-500 dark:text-slate-400">{{ portfolio_avg_completion }}% portfolio complete</div>
+      </div>
+      <div class="rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
+        <div class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Needs attention</div>
+        <div class="mt-1 text-2xl font-semibold {% if overdue_tasks_count or stuck_tasks_count %}text-red-700 dark:text-red-300{% endif %}">{{ overdue_tasks_count + stuck_tasks_count }}</div>
+        <div class="mt-1 text-xs text-slate-500 dark:text-slate-400">{{ overdue_tasks_count }} overdue / {{ stuck_tasks_count }} stuck</div>
+      </div>
+      <div class="rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
+        <div class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Risk / owners</div>
+        <div class="mt-1 text-2xl font-semibold">{{ high_risk_tasks_count }}</div>
+        <div class="mt-1 text-xs text-slate-500 dark:text-slate-400">{{ missing_owner_tasks_count }} missing owners</div>
+      </div>
+      <div class="rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
+        <div class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">People</div>
+        <div class="mt-1 text-2xl font-semibold">{{ active_people_count }}</div>
+        <div class="mt-1 text-xs text-slate-500 dark:text-slate-400">{{ people_count }} total</div>
+      </div>
+      <div class="rounded-2xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
+        <div class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">Invoice review</div>
+        <div class="mt-1 text-2xl font-semibold {% if invoice_exception_count %}text-amber-700 dark:text-amber-300{% endif %}">{{ invoice_exception_count }}</div>
+        <div class="mt-1 text-xs text-slate-500 dark:text-slate-400">{{ invoice_total_rows }} rows in snapshot</div>
+      </div>
+    </section>
+
+    <section class="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1.25fr)_minmax(22rem,0.75fr)]">
+      <div class="rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-700 dark:bg-slate-900">
+        <div class="flex items-center justify-between gap-3">
+          <div>
+            <h2 class="text-lg font-semibold">Work needing attention</h2>
+            <p class="text-sm text-slate-500 dark:text-slate-400">Overdue, stuck, and near-term work across visible projects.</p>
+          </div>
+          {% if can_view_projects %}
+            <a href="/projects" class="text-sm text-slate-500 hover:underline dark:text-slate-400">Open projects</a>
+          {% endif %}
+        </div>
+
+        <div class="mt-5 grid gap-4 lg:grid-cols-3">
+          <div>
+            <div class="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Overdue</div>
+            <div class="space-y-2">
+              {% for task in overdue_tasks %}
+                <a href="{{ task.href }}" class="block rounded-lg border border-red-200 bg-red-50 p-3 text-sm hover:bg-red-100 dark:border-red-900/60 dark:bg-red-950/30 dark:hover:bg-red-950/50">
+                  <span class="block font-medium text-red-900 dark:text-red-200">{{ task.title }}</span>
+                  <span class="mt-1 block text-xs text-red-700 dark:text-red-300">{{ task.project_name }} / due {{ task.due_date }}</span>
+                </a>
+              {% else %}
+                <p class="rounded-lg border border-dashed border-slate-200 p-3 text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400">Nothing overdue.</p>
+              {% endfor %}
+            </div>
+          </div>
+          <div>
+            <div class="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Stuck</div>
+            <div class="space-y-2">
+              {% for task in stuck_tasks %}
+                <a href="{{ task.href }}" class="block rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm hover:bg-amber-100 dark:border-amber-900/60 dark:bg-amber-950/30 dark:hover:bg-amber-950/50">
+                  <span class="block font-medium text-amber-900 dark:text-amber-200">{{ task.title }}</span>
+                  <span class="mt-1 block text-xs text-amber-700 dark:text-amber-300">{{ task.project_name }} / {{ task.owner_name or "Unassigned" }}</span>
+                </a>
+              {% else %}
+                <p class="rounded-lg border border-dashed border-slate-200 p-3 text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400">No stuck tasks.</p>
+              {% endfor %}
+            </div>
+          </div>
+          <div>
+            <div class="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Due this week</div>
+            <div class="space-y-2">
+              {% for task in due_this_week_tasks %}
+                <a href="{{ task.href }}" class="block rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-800/60 dark:hover:bg-slate-800">
+                  <span class="block font-medium">{{ task.title }}</span>
+                  <span class="mt-1 block text-xs text-slate-500 dark:text-slate-400">{{ task.project_name }} / due {{ task.due_date }}</span>
+                </a>
+              {% else %}
+                <p class="rounded-lg border border-dashed border-slate-200 p-3 text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400">No task due dates this week.</p>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <aside class="rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-700 dark:bg-slate-900">
+        <h2 class="text-lg font-semibold">Recent activity</h2>
+        <div class="mt-4 space-y-3">
+          {% for item in activity_feed %}
+            <a href="{{ item.href }}" class="block rounded-lg border border-slate-200 p-3 text-sm hover:bg-slate-50 dark:border-slate-700 dark:hover:bg-slate-800">
+              <span class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">{{ item.kind }}</span>
+              <span class="mt-1 block font-medium">{{ item.title }}</span>
+              <span class="mt-1 block text-xs text-slate-500 dark:text-slate-400">{{ item.subtitle }}</span>
+            </a>
+          {% else %}
+            <p class="rounded-lg border border-dashed border-slate-200 p-4 text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400">Activity will appear here as work changes.</p>
+          {% endfor %}
+        </div>
+      </aside>
+    </section>
+
+    <section class="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_24rem]">
+      <div class="rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-700 dark:bg-slate-900">
+        <div class="flex items-center justify-between gap-3">
+          <h2 class="text-lg font-semibold">Projects overview</h2>
+          {% if can_view_projects %}<a href="/projects" class="text-sm text-slate-500 hover:underline dark:text-slate-400">All projects</a>{% endif %}
+        </div>
+        <div class="mt-4 overflow-x-auto">
+          <table class="w-full min-w-[860px] text-sm">
+            <thead class="text-left text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">
+              <tr>
+                <th class="py-2 pr-3">Project</th>
+                <th class="py-2 pr-3">Progress</th>
+                <th class="py-2 pr-3">Open</th>
+                <th class="py-2 pr-3">Attention</th>
+                <th class="py-2 pr-3">Next due</th>
+                <th class="py-2 pr-3">Open</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for project in project_cards[:8] %}
+                <tr class="border-t border-slate-200 align-top dark:border-slate-700">
+                  <td class="py-3 pr-3">
+                    <a href="{{ project.href }}" class="font-medium hover:underline">{{ project.name }}</a>
+                    <div class="mt-1 text-xs text-slate-500 dark:text-slate-400">{{ project.client_name or project.status|replace('_', ' ')|title }}</div>
+                  </td>
+                  <td class="py-3 pr-3">
+                    <div class="flex items-center gap-2">
+                      <div class="h-2 w-28 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+                        <div class="h-full rounded-full bg-cyan-500" style="width: {{ project.avg_completion }}%"></div>
+                      </div>
+                      <span class="text-xs text-slate-500 dark:text-slate-400">{{ project.avg_completion }}%</span>
+                    </div>
+                  </td>
+                  <td class="py-3 pr-3">{{ project.open_tasks }}</td>
+                  <td class="py-3 pr-3">
+                    {% if project.overdue_tasks or project.stuck_tasks or project.high_risk_tasks %}
+                      <span class="rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-800 dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-200">
+                        {{ project.overdue_tasks }} late / {{ project.stuck_tasks }} stuck / {{ project.high_risk_tasks }} risk
+                      </span>
+                    {% else %}
+                      <span class="text-slate-500 dark:text-slate-400">Clear</span>
+                    {% endif %}
+                  </td>
+                  <td class="py-3 pr-3">
+                    {% if project.next_due %}
+                      {{ project.next_due.due_date }}<br />
+                      <span class="text-xs text-slate-500 dark:text-slate-400">{{ project.next_due.title }}</span>
+                    {% else %}
+                      <span class="text-slate-500 dark:text-slate-400">No date</span>
+                    {% endif %}
+                  </td>
+                  <td class="py-3 pr-3">
+                    <div class="flex gap-2">
+                      <a href="{{ project.views_href }}" class="text-slate-500 hover:underline dark:text-slate-400">Views</a>
+                      <a href="{{ project.timeline_href }}" class="text-slate-500 hover:underline dark:text-slate-400">Timeline</a>
+                    </div>
+                  </td>
+                </tr>
+              {% else %}
+                <tr class="border-t border-slate-200 dark:border-slate-700">
+                  <td colspan="6" class="py-4 text-slate-500 dark:text-slate-400">No visible projects yet.</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <aside class="space-y-6">
+        <div class="rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-700 dark:bg-slate-900">
+          <h2 class="text-lg font-semibold">People workload</h2>
+          <div class="mt-4 space-y-3">
+            {% for person in people_workload %}
+              <div class="rounded-lg border border-slate-200 p-3 dark:border-slate-700">
+                <div class="flex items-center justify-between gap-3">
+                  <div class="font-medium">{{ person.name }}</div>
+                  <div class="text-sm text-slate-500 dark:text-slate-400">{{ person.open_tasks }} open</div>
+                </div>
+                <div class="mt-2 h-2 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+                  <div class="h-full rounded-full bg-emerald-500" style="width: {{ person.avg_completion }}%"></div>
+                </div>
+                <div class="mt-2 text-xs text-slate-500 dark:text-slate-400">{{ person.overdue_tasks }} overdue / {{ person.stuck_tasks }} stuck / {{ person.high_risk_tasks }} high risk</div>
+              </div>
+            {% else %}
+              <p class="rounded-lg border border-dashed border-slate-200 p-4 text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400">Owner workload appears as tasks are assigned.</p>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-700 dark:bg-slate-900">
+          <h2 class="text-lg font-semibold">Operations health</h2>
+          <div class="mt-4 space-y-3 text-sm">
+            <div class="flex items-center justify-between gap-3 rounded-lg border border-slate-200 p-3 dark:border-slate-700">
+              <span>Latest import</span>
+              <span class="text-right text-slate-500 dark:text-slate-400">{% if recent_imports %}{{ recent_imports[0].imported_at }}{% else %}None{% endif %}</span>
+            </div>
+            <div class="flex items-center justify-between gap-3 rounded-lg border border-slate-200 p-3 dark:border-slate-700">
+              <span>Invoice snapshot</span>
+              <span class="text-right text-slate-500 dark:text-slate-400">{% if invoice_snapshot_at %}{{ invoice_snapshot_at }}{% else %}Not calculated{% endif %}</span>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </section>
+  </div>
+{% endblock %}

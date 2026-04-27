@@ -1,0 +1,277 @@
+{% extends "base.html" %}
+{% macro status_badge(status, label) %}
+  {% set s = status or 'todo' %}
+  <span class="inline-flex rounded-full border px-2 py-0.5 text-xs font-semibold
+    {% if s == 'done' %}border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-900/60 dark:bg-emerald-950/30 dark:text-emerald-200
+    {% elif s == 'blocked' %}border-red-200 bg-red-50 text-red-800 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-200
+    {% elif s == 'in_progress' %}border-blue-200 bg-blue-50 text-blue-800 dark:border-blue-900/60 dark:bg-blue-950/30 dark:text-blue-200
+    {% elif s == 'backlog' %}border-slate-200 bg-slate-50 text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300
+    {% else %}border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-200{% endif %}">
+    {{ label }}
+  </span>
+{% endmacro %}
+{% macro priority_badge(priority, label) %}
+  {% set p = priority or 'medium' %}
+  <span class="inline-flex rounded-full border px-2 py-0.5 text-xs font-medium
+    {% if p == 'critical' %}border-rose-200 bg-rose-50 text-rose-800 dark:border-rose-900/60 dark:bg-rose-950/30 dark:text-rose-200
+    {% elif p == 'high' %}border-orange-200 bg-orange-50 text-orange-800 dark:border-orange-900/60 dark:bg-orange-950/30 dark:text-orange-200
+    {% elif p == 'low' %}border-slate-200 bg-slate-50 text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300
+    {% else %}border-indigo-200 bg-indigo-50 text-indigo-800 dark:border-indigo-900/60 dark:bg-indigo-950/30 dark:text-indigo-200{% endif %}">
+    {{ label }}
+  </span>
+{% endmacro %}
+{% macro department_badge(name, color) %}
+  {% set c = color or 'slate' %}
+  <span class="inline-flex max-w-full items-center rounded-full border px-2 py-0.5 text-xs font-medium
+    {% if c == 'blue' %}border-blue-200 bg-blue-50 text-blue-800 dark:border-blue-900/60 dark:bg-blue-950/30 dark:text-blue-200
+    {% elif c == 'emerald' %}border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-900/60 dark:bg-emerald-950/30 dark:text-emerald-200
+    {% elif c == 'amber' %}border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-900/60 dark:bg-amber-950/30 dark:text-amber-200
+    {% elif c == 'rose' %}border-rose-200 bg-rose-50 text-rose-800 dark:border-rose-900/60 dark:bg-rose-950/30 dark:text-rose-200
+    {% elif c == 'cyan' %}border-cyan-200 bg-cyan-50 text-cyan-800 dark:border-cyan-900/60 dark:bg-cyan-950/30 dark:text-cyan-200
+    {% elif c == 'violet' %}border-violet-200 bg-violet-50 text-violet-800 dark:border-violet-900/60 dark:bg-violet-950/30 dark:text-violet-200
+    {% elif c == 'orange' %}border-orange-200 bg-orange-50 text-orange-800 dark:border-orange-900/60 dark:bg-orange-950/30 dark:text-orange-200
+    {% else %}border-slate-200 bg-slate-50 text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300{% endif %}">
+    <span class="truncate">{{ name or 'Cross-functional' }}</span>
+  </span>
+{% endmacro %}
+
+{% block content %}
+  <div class="space-y-4" data-project-workspace>
+    <section class="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-900">
+      <div class="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+        <div class="min-w-0">
+          <div class="flex flex-wrap items-center gap-2 text-xs">
+            <a class="text-slate-500 hover:underline dark:text-slate-400" href="/projects">Projects</a>
+            <span class="text-slate-400 dark:text-slate-500">/</span>
+            <a class="text-slate-500 hover:underline dark:text-slate-400" href="/projects/{{ project.id }}?tab=board">{{ project.name }}</a>
+            <span class="text-slate-400 dark:text-slate-500">/</span>
+            <span class="font-medium text-slate-700 dark:text-slate-200">{{ task.title }}</span>
+          </div>
+          <h1 class="mt-2 truncate text-xl font-semibold tracking-tight">{{ task.title }}</h1>
+          <div class="mt-2 flex flex-wrap items-center gap-2">
+            {{ status_badge(task.status, task.status_label) }}
+            {{ priority_badge(task.priority, task.priority_label) }}
+            {{ department_badge(task.department_name, task.department_color) }}
+            {% if task.is_overdue %}
+              <span class="inline-flex rounded-full border border-red-200 bg-red-50 px-2 py-0.5 text-xs font-semibold text-red-800 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-200">Overdue</span>
+            {% endif %}
+          </div>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <a href="/projects/{{ project.id }}?tab=board" class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200 dark:hover:bg-slate-800">Views</a>
+          <a href="/projects/{{ project.id }}/tasks/{{ task.id }}/notes" class="rounded-lg bg-slate-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white">Notes</a>
+          <a href="/projects/{{ project.id }}?tab=timeline" class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-200 dark:hover:bg-slate-800">Timeline</a>
+        </div>
+      </div>
+    </section>
+
+    {% if notice %}
+      <div class="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-900 dark:border-emerald-900/60 dark:bg-emerald-950/30 dark:text-emerald-200">{{ notice }}</div>
+    {% endif %}
+    {% if error %}
+      <div class="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-900 dark:border-red-800 dark:bg-red-950/40 dark:text-red-200">{{ error }}</div>
+    {% endif %}
+
+    <section class="grid gap-2 rounded-xl border border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-900 md:grid-cols-5">
+      <div class="rounded-lg border border-slate-200 p-2 dark:border-slate-700">
+        <div class="text-[0.65rem] uppercase tracking-wide text-slate-500 dark:text-slate-400">Complete</div>
+        <div class="mt-1 flex items-center gap-2">
+          <div class="h-2 min-w-0 flex-1 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+            <div class="h-full rounded-full bg-slate-900 dark:bg-slate-100" style="width: {{ task.percent_complete }}%"></div>
+          </div>
+          <span class="text-xs font-semibold">{{ task.percent_complete }}%</span>
+        </div>
+      </div>
+      <div class="rounded-lg border border-slate-200 p-2 dark:border-slate-700">
+        <div class="text-[0.65rem] uppercase tracking-wide text-slate-500 dark:text-slate-400">Owner</div>
+        <div class="truncate text-sm font-medium">{{ task.owner_name or "Unassigned" }}</div>
+      </div>
+      <div class="rounded-lg border border-slate-200 p-2 dark:border-slate-700">
+        <div class="text-[0.65rem] uppercase tracking-wide text-slate-500 dark:text-slate-400">Supporters</div>
+        <div class="truncate text-sm font-medium">{{ task.supporter_summary or "-" }}</div>
+      </div>
+      <div class="rounded-lg border border-slate-200 p-2 dark:border-slate-700">
+        <div class="text-[0.65rem] uppercase tracking-wide text-slate-500 dark:text-slate-400">Start</div>
+        <div class="text-sm font-medium">{{ task.start_date or "-" }}</div>
+      </div>
+      <div class="rounded-lg border border-slate-200 p-2 dark:border-slate-700">
+        <div class="text-[0.65rem] uppercase tracking-wide text-slate-500 dark:text-slate-400">Due</div>
+        <div class="text-sm font-medium {% if task.is_overdue %}text-red-700 dark:text-red-300{% endif %}">{{ task.due_date or "-" }}</div>
+      </div>
+    </section>
+
+    <section class="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-900">
+      <div class="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <h2 class="font-semibold">Edit task</h2>
+        <a href="/projects/{{ project.id }}/tasks/{{ task.id }}/notes" class="text-sm font-medium text-slate-600 hover:underline dark:text-slate-300">Open Notes</a>
+      </div>
+      {% if can_manage_projects %}
+        <form class="grid gap-3" method="post" action="/projects/{{ project.id }}/tasks/{{ task.id }}">
+          <input type="hidden" name="return_tab" value="task" />
+          <div class="grid gap-3 lg:grid-cols-[minmax(16rem,1.4fr)_11rem_11rem_11rem]">
+            <label class="grid gap-1">
+              <span class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Task</span>
+              <input name="title" maxlength="300" required value="{{ task.title }}" class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100" />
+            </label>
+            <label class="grid gap-1">
+              <span class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Status</span>
+              <select name="status" class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100">
+                {% for value, label in project_task_status_options %}
+                  <option value="{{ value }}" {% if task.status == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+              </select>
+            </label>
+            <label class="grid gap-1">
+              <span class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Priority</span>
+              <select name="priority" class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100">
+                {% for value, label in project_task_priority_options %}
+                  <option value="{{ value }}" {% if task.priority == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+              </select>
+            </label>
+            <label class="grid gap-1">
+              <span class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Risk</span>
+              <select name="risk_level" class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100">
+                {% for value, label in project_task_risk_options %}
+                  <option value="{{ value }}" {% if task.risk_level == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+              </select>
+            </label>
+          </div>
+
+          <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-[13rem_13rem_minmax(14rem,1fr)_9rem_9rem_8rem]">
+            <label class="grid gap-1">
+              <span class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Department</span>
+              <select name="department_id" class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100">
+                <option value="">Cross-functional</option>
+                {% for department in department_cards %}
+                  <option value="{{ department.id }}" {% if task.department_id == department.id %}selected{% endif %}>{{ department.name }}</option>
+                {% endfor %}
+              </select>
+            </label>
+            <label class="grid gap-1">
+              <span class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Owner</span>
+              <select name="owner_participant_id" class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100">
+                <option value="">Unassigned</option>
+                {% for member in member_cards %}
+                  <option value="{{ member.id }}" {% if task.owner_participant_id == member.id %}selected{% endif %}>{{ member.display_name }}</option>
+                {% endfor %}
+              </select>
+            </label>
+            <div class="grid gap-1">
+              <span class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Supporters</span>
+              <div class="max-h-20 overflow-y-auto rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100">
+                <div class="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                  {% for member in member_cards %}
+                    <label class="inline-flex items-center gap-1.5 whitespace-nowrap">
+                      <input type="checkbox" name="supporter_participant_ids" value="{{ member.id }}" class="h-3.5 w-3.5 rounded border-slate-300" {% if member.id in task.supporter_ids %}checked{% endif %} />
+                      <span>{{ member.display_name }}</span>
+                    </label>
+                  {% else %}
+                    <span class="text-slate-500 dark:text-slate-400">Add people first</span>
+                  {% endfor %}
+                </div>
+              </div>
+            </div>
+            <label class="grid gap-1">
+              <span class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Start</span>
+              <input type="date" name="start_date" value="{{ task.start_date if task.start_date else '' }}" class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100" />
+            </label>
+            <label class="grid gap-1">
+              <span class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Due</span>
+              <input type="date" name="due_date" value="{{ task.due_date if task.due_date else '' }}" class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100" />
+            </label>
+            <label class="grid gap-1">
+              <span class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Complete</span>
+              <input type="number" name="percent_complete" min="0" max="100" value="{{ task.percent_complete }}" class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100" />
+            </label>
+          </div>
+
+          <div class="grid gap-3 lg:grid-cols-3">
+            <label class="grid gap-1">
+              <span class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Description</span>
+              <textarea name="description" rows="3" maxlength="4000" class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100">{{ task.description or '' }}</textarea>
+            </label>
+            <label class="grid gap-1">
+              <span class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Dependencies</span>
+              <textarea name="dependency_note" rows="3" maxlength="4000" class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100">{{ task.dependency_note or '' }}</textarea>
+            </label>
+            <label class="grid gap-1">
+              <span class="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Risk notes</span>
+              <textarea name="risk_notes" rows="3" maxlength="4000" class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100">{{ task.risk_notes or '' }}</textarea>
+            </label>
+          </div>
+
+          <div class="flex flex-wrap gap-2">
+            <button type="submit" class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white">Save task</button>
+            <button type="submit" formaction="/projects/{{ project.id }}/tasks/{{ task.id }}/delete" class="rounded-lg border border-red-200 bg-white px-3 py-2 text-sm font-medium text-red-800 hover:bg-red-50 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-300 dark:hover:bg-red-950/40">Delete</button>
+          </div>
+        </form>
+      {% else %}
+        <p class="text-sm text-slate-500 dark:text-slate-400">You can view this task, but editing is restricted.</p>
+      {% endif %}
+    </section>
+
+    <section class="rounded-xl border border-slate-200 bg-white p-4 dark:border-slate-700 dark:bg-slate-900">
+      <div class="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h2 class="font-semibold">Activity log</h2>
+          <p class="text-xs text-slate-500 dark:text-slate-400">Quick notes stay here; richer page-style notes live in Notes.</p>
+        </div>
+        <a href="/projects/{{ project.id }}/tasks/{{ task.id }}/notes" class="text-sm font-medium text-slate-600 hover:underline dark:text-slate-300">Open Notes</a>
+      </div>
+      <form method="post" action="/projects/{{ project.id }}/tasks/{{ task.id }}/notes" class="mb-4 grid gap-2 rounded-lg border border-slate-200 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-950/60">
+        <div class="grid gap-2 md:grid-cols-[10rem_minmax(0,1fr)_auto]">
+          <select name="note_type" class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100">
+            {% for value, label in project_task_note_type_options %}
+              <option value="{{ value }}">{{ label }}</option>
+            {% endfor %}
+          </select>
+          <input name="title" maxlength="200" placeholder="Optional note title" class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100" />
+          <label class="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900">
+            <input type="checkbox" name="is_pinned" value="1" class="h-4 w-4 rounded border-slate-300" />
+            <span>Pin</span>
+          </label>
+        </div>
+        <textarea name="content" rows="3" maxlength="8000" placeholder="Add a quick activity update." class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"></textarea>
+        <div><button type="submit" class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white">Add activity</button></div>
+      </form>
+
+      <div class="divide-y divide-slate-200 overflow-hidden rounded-lg border border-slate-200 dark:divide-slate-700 dark:border-slate-700">
+        {% for note in notes %}
+          <article class="{% if note.is_pinned %}bg-amber-50 dark:bg-amber-950/20{% else %}bg-white dark:bg-slate-950{% endif %} p-3">
+            <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+              <div class="min-w-0">
+                <div class="flex flex-wrap items-center gap-2">
+                  <span class="rounded-full border border-slate-200 bg-slate-50 px-2 py-0.5 text-[0.65rem] font-semibold text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">{{ note.note_type_label }}</span>
+                  {% if note.is_pinned %}
+                    <span class="rounded-full border border-amber-200 bg-amber-100 px-2 py-0.5 text-[0.65rem] font-semibold text-amber-900 dark:border-amber-900/70 dark:bg-amber-950/40 dark:text-amber-200">Pinned</span>
+                  {% endif %}
+                  <span class="text-xs text-slate-500 dark:text-slate-400">{{ note.created_at }}</span>
+                </div>
+                {% if note.title %}<h3 class="mt-1 text-sm font-semibold">{{ note.title }}</h3>{% endif %}
+                {% if note.plain_text %}
+                  <p class="mt-1 whitespace-pre-wrap text-sm leading-5 text-slate-700 dark:text-slate-200">{{ note.plain_text }}</p>
+                {% endif %}
+              </div>
+              <div class="flex shrink-0 flex-wrap gap-2">
+                {% if not note.is_pinned %}
+                  <form method="post" action="/projects/{{ project.id }}/tasks/{{ task.id }}/notes/{{ note.id }}/pin">
+                    <button type="submit" class="rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800">Pin</button>
+                  </form>
+                {% endif %}
+                {% if can_manage_projects %}
+                  <form method="post" action="/projects/{{ project.id }}/tasks/{{ task.id }}/notes/{{ note.id }}/delete">
+                    <button type="submit" class="rounded-lg border border-red-200 bg-white px-2.5 py-1 text-xs font-medium text-red-800 hover:bg-red-50 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-300 dark:hover:bg-red-950/40">Delete</button>
+                  </form>
+                {% endif %}
+              </div>
+            </div>
+          </article>
+        {% else %}
+          <div class="bg-slate-50 p-4 text-sm text-slate-500 dark:bg-slate-950/60 dark:text-slate-400">No activity yet.</div>
+        {% endfor %}
+      </div>
+    </section>
+  </div>
+{% endblock %}

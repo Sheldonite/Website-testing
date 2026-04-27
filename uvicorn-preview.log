@@ -1,0 +1,8 @@
+INFO:     127.0.0.1:56193 - "GET /projects/2?tab=timeline HTTP/1.1" 303 See Other
+INFO:     127.0.0.1:56194 - "GET /projects/2?tab=timeline HTTP/1.1" 303 See Other
+INFO:     127.0.0.1:56194 - "GET /login?next=%2Fprojects%2F2%3Ftab%3Dtimeline HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56193 - "GET /login?next=%2Fprojects%2F2%3Ftab%3Dtimeline HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56197 - "GET /projects/2?tab=timeline HTTP/1.1" 303 See Other
+INFO:     127.0.0.1:56197 - "GET /login?next=%2Fprojects%2F2%3Ftab%3Dtimeline HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56198 - "GET /projects/2?tab=timeline HTTP/1.1" 303 See Other
+INFO:     127.0.0.1:56198 - "GET /login?next=%2Fprojects%2F2%3Ftab%3Dtimeline HTTP/1.1" 200 OK
