@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Boss Fight</title>
+    <link rel="stylesheet" href="./src/styles.css?v=20260427-2" />
+  </head>
+  <body>
+    <main class="shell">
+      <section class="game-wrap" aria-label="Boss arena game">
+        <canvas id="game" width="1280" height="720"></canvas>
+        <div class="topbar">
+          <div>
+            <strong>Boss Fight</strong>
+            <span id="statusText">Gear up, use WASD to enter the arena, then click to shoot.</span>
+          </div>
+          <button id="potionButton" type="button" title="Drink potion">Potion</button>
+          <button id="resetButton" type="button" title="Reset fight">Reset Fight</button>
+        </div>
+        <div id="floatText" class="float-text" aria-live="polite"></div>
+      </section>
+
+      <aside class="hud" aria-label="Character information">
+        <section class="panel">
+          <div class="portrait-row">
+            <div class="portrait" aria-hidden="true"></div>
+            <div>
+              <h1>Rook</h1>
+              <p><span id="roomText">Starter Room</span></p>
+            </div>
+          </div>
+          <div class="meters">
+            <div class="meter">
+              <div class="meter-label"><span>Health</span><span id="hpText">30/30</span></div>
+              <div class="meter-track"><div id="hpBar" class="meter-fill hp"></div></div>
+            </div>
+            <div class="meter">
+              <div class="meter-label"><span>Boss</span><span id="bossHpText">600/600</span></div>
+              <div class="meter-track"><div id="bossHpBar" class="meter-fill boss"></div></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel compact">
+          <h2>Build</h2>
+          <div id="buildPanel" class="stat-grid"></div>
+        </section>
+
+        <section class="panel compact">
+          <h2>Boss Test</h2>
+          <div id="bossSelector" class="choice-list">
+            <button class="choice selected" type="button" data-boss="cola"><span>Big Cola</span><small>Test</small></button>
+            <button class="choice" type="button" data-boss="burger"><span>Big Burger</span><small>Test</small></button>
+            <button class="choice" type="button" data-boss="fries"><span>Curly Fries</span><small>Test</small></button>
+            <button class="choice" type="button" data-boss="trio"><span>Condiment Trio</span><small>Test</small></button>
+            <button class="choice" type="button" data-boss="sauce"><span>Special Sauce</span><small>Test</small></button>
+            <button class="choice" type="button" data-boss="shake"><span>Peanut Buster Shake</span><small>Test</small></button>
+            <button class="choice" type="button" data-boss="nacho"><span>Nacho Libre</span><small>Test</small></button>
+          </div>
+        </section>
+
+      </aside>
+    </main>
+
+    <script src="./src/game.js?v=20260427-15"></script>
+  </body>
+</html>
